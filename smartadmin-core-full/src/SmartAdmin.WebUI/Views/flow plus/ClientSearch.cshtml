@@ -1,0 +1,643 @@
+﻿
+@{
+    @model ViewModels.TMSClientSearch.TMSClientSearchList;
+}
+@*<div class="container">
+        <div class="row">
+            <input type="text" name="GroupValue" class="form-control" />
+
+        </div>
+        <div class="row">
+            <input type="text" name="GroupValue" class="form-control" />
+
+        </div>
+        <div class="row">
+            <input type="text" name="GroupValue" class="form-control" />
+
+        </div>
+    </div>*@
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/reactions/reactions.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/jqvmap/jqvmap.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+}
+
+<form onreset="resetFunction();" asp-controller="TMSClientSearch" asp-action="Results">
+
+    <input type="hidden" name="CountryValues" id="hiddenCountryValues" />
+    <input type="hidden" name="TechnologyValues" id="hiddenTechnologyValues" />
+
+    <div class="form-group">
+
+        <h3>Search for: </h3>
+        <table>
+            <tr>
+                <td>
+                    <input type="radio" value="Contact" name="rbSearch" id="contactID" /> <label class="form-label" for="contactID">Contact</label>
+                    &nbsp; <input type="radio" value="Org" name="rbSearch" id="orgID" /> <label class="form-label" for="orgID">Organisation</label>
+                    &nbsp;<input type="radio" value="OrgGroup" name="rbSearch" id="orgGroupID" /> <label class="form-label" for="orgGroupID">Organisation group</label>
+                </td>
+            </tr>
+        </table>
+        <table>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="radio" value="accNumber" name="rbAccNumber" id="accNumberID" /> <label class="form-label" for="accNumberID">Find specific account number:</label> &nbsp;
+                </td>
+                <td>
+                    <input type="number" id="txtNumberID" name="NumberValue" class="form-control" value="@Model.exactNumber" />
+                </td>
+            </tr>
+            <tr>
+                <td><input type="radio" value="other" name="rbAccNumber" id="otherID" checked="checked" /> <label class="form-label" for="otherID">Search by other criteria</label></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+        </table>
+
+        <div class="d-flex flex-fill">
+            <div class="flex-fill">
+                <table id="SearchCriteriaTable" style="white-space: nowrap; border-collapse:separate; border-spacing:0.1cm;">
+                    <tbody>
+                        <tr id="ContactNameRow">
+                            <td>
+                                <label class="form-label"> Search by contact name: </label>
+                            </td>
+                            <td>
+                                <input type="text" name="ContactValue" id="txtContact" class="form-control" value="@Model.contactValue" />
+                            </td>
+                        </tr>
+                        <tr id="OrgNameRow">
+                            <td>
+                                <label class="form-label"> Search by organisation name: </label>
+                            </td>
+                            <td>
+                                <input type="text" name="OrgValue" id="orgTextBox" class="form-control" value="@Model.orgName" />
+
+                            </td>
+                        </tr>
+                        <tr id="GroupNameRow">
+                            <td>
+                                <label class="form-label"> Search by group name: </label>
+                            </td>
+                            <td>
+                                <input type="text" name="GroupValue" id="txtGroup" class="form-control" value="@Model.groupName" />
+                            </td>
+                        </tr>
+                        <tr id="InernalOrgs">
+                            <td width="200px">
+                                <label class="form-label"> Report on the following orgs: </label>
+                            </td>
+                            <td>
+                                <select id="itemSelect" name="ItemType" class="select2 form-control w-100">
+                                    <option value="1">All</option>
+                                    <option value="2">Internal</option>
+                                    <option value="3">External</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr id="EmailRow">
+
+                            <td>
+                                <label class="form-label"> Search by e-mail address: </label>
+                            </td>
+                            <td>
+                                <input type="text" name="EmailValue" id="txtEmail" class="form-control" value="@Model.emailValue" />
+                            </td>
+                        </tr>
+                        <tr id="PostcodeRow">
+                            <td>
+                                <label class="form-label"> Search by postcode, zip code or equivalent: </label>
+                            </td>
+                            <td>
+                                <input type="text" name="PostcodeValue" id="txtPostCode" class="form-control" value="@Model.postcodeValue" />
+
+                            </td>
+                        </tr>
+                        <tr id="HFMCodeISRow">
+                            <td>
+                                <label class="form-label"> Search by HFM Code IS: </label>
+                            </td>
+                            <td>
+                                <input type="text" name="HFMCodeISValue" id="txtHFMCodeIS" class="form-control" value="@Model.hfmCodeISValue" />
+
+                            </td>
+                        </tr>
+                        <tr id="HFMCodeBSRow">
+                            <td>
+                                <label class="form-label"> Search by HFM Code BS: </label>
+                            </td>
+                            <td>
+                                <input type="text" name="HFMCodeBSValue" id="txtHFMCodeBS" class="form-control" value="@Model.hfmCodeBSValue" />
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td> &nbsp;</td>
+                        </tr>
+                        <tr id="CountryRow">
+
+                            <td><input type="checkbox" id="chkByCountry" /> <label class="form-label" for="chkByCountry"> Search by country </label></td>
+                            <td>
+                                &nbsp; <select id="itemClientCountry" onchange="getSelectCountryValues()" class="form-control" size="7" disabled="disabled" name="CountryType" style="width:auto" multiple="multiple" asp-for="CountryID" asp-items="Model.CountryNames.Select(x => new SelectListItem(x.CountryName,x.Id.ToString()))">
+                                </select>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td> &nbsp;</td>
+                        </tr>
+                        <tr id="ClientTechnologyRow">
+                            <td><input type="checkbox" id="chkByClientTechnology" /> <label class="form-label" for="chkByClientTechnology"> Search by client technology: </label></td>
+                            <td>
+                                &nbsp; <select id="itemClientTechnology" onchange="getSelectTechnologyValues()" size="7" class="form-control" disabled="disabled" name="ClientTechnologyType" style="width:auto" multiple="multiple" asp-for="TMSTechnologyId" asp-items="Model.TMSTechnologyNames.Select(x => new SelectListItem(x.TechnologyName,x.Id.ToString()))">
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td> &nbsp;</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <table>
+            <tr>
+                <td>
+                    <button type="submit" onclick="saveValues()" class="form-control" style="background-color: #E84133; color: white; width: 100px;"> Search </button>
+                </td>
+                <td>
+                    <button type="button" onClick="this.form.reset()" class="form-control" style="background-color: #E84133; color: white; width: 100px;"> Clear all </button>
+                </td>
+            </tr>
+        </table>
+        <br />
+        @if (Model.OrgGroupSearchList != null)
+        {
+            <div id="panel-4" class="panel">
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div class="frame-wrap">
+
+                            <table class="table m-0 table-bordered table-striped" id="resultsTable">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            ID
+                                        </th>
+                                        <th>
+                                            Name
+                                        </th>
+                                        <th>
+                                            Number of organisations
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var row in Model.OrgGroupSearchList)
+                                    {
+                                        <tr>
+                                            <td><a style="color: #BA9765" href='@string.Format("https://myplusbeta.publicisgroupe.net/OrgGroup?groupid={0}",row.orgGroupID)'>@row.orgGroupID</a></td>
+                                            <td>@row.orgGroup</td>
+                                            <td>@row.numberOfMembers</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (Model.ContactSearchList != null)
+        {
+            <div id="panel-4" class="panel">
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div class="frame-wrap">
+
+                            <table class="table m-0 table-bordered table-striped" id="resultsTable">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            ID
+                                        </th>
+                                        <th>
+                                            Name
+                                        </th>
+                                        <th>
+                                            Org
+                                        </th>
+                                        <th>
+                                            Country
+                                        </th>
+                                        <th>
+                                            Group
+                                        </th>
+                                        <th>
+                                            Landline
+                                        </th>
+                                        <th>
+                                            Mobile
+                                        </th>
+                                        <th>
+                                            Email
+                                        </th>
+                                        <th>
+                                            Title
+                                        </th>
+
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var row in Model.ContactSearchList)
+                                    {
+                                    <tr>
+
+                                        <td><a style="color:#BA9765" href='@string.Format("https://myplusbeta.publicisgroupe.net/Contact?contactid={0}",row.contactID)'>@row.contactID</a></td>
+                                        <td>@row.contactName</td>
+                                        <td><a style="color:#BA9765 " href='@string.Format("https://myplusbeta.publicisgroupe.net/Organisation?id={0}",row.orgID)'>@row.orgName</a></td>
+                                        <td>@row.contactCountry</td>
+                                        <td><a style="color:#BA9765" href='@string.Format("https://myplusbeta.publicisgroupe.net/OrgGroup?groupid={0}",row.orgGroupID)'>@row.orgGroup</a></td>
+
+                                        @if (row.gdprStatusID != 2 && row.gdprStatusID != 0)
+                                        {
+
+                                            <td>@row.contactLandline</td>
+                                            <td>@row.contactMobile</td>
+                                            <td><a style="color:#0094ff" href='@string.Format("mailto:",row.contactEmail)'>@row.contactEmail</a></td>
+                                        }
+                                        else
+                                        {
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        }
+                                        <td>@row.contactTitle</td>
+                                    </tr>
+                                    }
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (Model.OrgSearchList != null)
+        {
+            <div id="panel-4" class="panel">
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div class="frame-wrap">
+
+
+                            <table class="table m-0 table-bordered table-striped" id="resultsTable">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            ID
+                                        </th>
+                                        <th>
+                                            Organisation Name
+                                        </th>
+                                        <th>
+                                            Address
+                                        </th>
+                                        <th>
+                                            Country
+                                        </th>
+                                        <th>
+                                            Group
+                                        </th>
+                                        <th>
+                                            Operations lead
+                                        </th>
+                                        <th>
+                                            Sales lead
+                                        </th>
+                                        <th>
+                                            Enquries lead
+                                        </th>
+                                        <th>
+                                            Email
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (var row in Model.OrgSearchList)
+                                    {
+                                        <tr>
+
+                                            <td><a style="color:#BA9765" href='@string.Format("https://myplusbeta.publicisgroupe.net/Organisation?id={0}",row.orgId)'>@row.orgId</a></td>
+                                            <td>@row.orgName</td>
+                                            <td>@row.orgAddress</td>
+                                            <td>@row.orgCountry</td>
+                                            <td><a style="color:#BA9765" href='@string.Format("https://myplusbeta.publicisgroupe.net/OrgGroup?groupid={0}",row.orgGroupID)'>@row.orgGroup</a></td>
+                                            @if (row.orgOpsLeadId != 0)
+                                            {
+                                                <td><a style="color:#BA9765" href='@string.Format("http://myplus/Employee.aspx?EmployeeID={0}",row.orgOpsLeadId)'>@row.orgOpsLeadName</a></td>
+                                            }
+                                            else
+                                            {
+                                                <td>@row.orgOpsLeadName</td>
+                                            }
+
+                                            @if (row.orgSalesLeadId != 0)
+                                            {
+                                                <td><a style="color:#BA9765" href='@string.Format("http://myplus/Employee.aspx?EmployeeID={0}",row.orgSalesLeadId)'>@row.orgSalesLeadName</a></td>
+                                            }
+                                            else
+                                            {
+                                                <td>@row.orgSalesLeadName</td>
+                                            }
+                                            @if (row.orgEnqLeadId != 0)
+                                            {
+                                                <td><a style="color:#BA9765" href='@string.Format("http://myplus/Employee.aspx?EmployeeID={0}",row.orgEnqLeadId)'>@row.orgEnqLeadName</a></td>
+                                            }
+                                            else
+                                            {
+                                                <td>@row.orgEnqLeadName</td>
+                                            }
+                                            @if (row.orgEmail != "")
+                                            {
+                                                <td><a style="color:#0094ff" href='@string.Format("mailto:",row.orgEmail)'>@row.orgEmail</a></td>
+                                            }
+                                            else
+                                            {
+                                                <td>@row.orgEmail</td>
+                                            }
+
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+
+    </div>
+</form>
+@section ScriptsBlock
+{
+ 
+    <script>
+        function getSelectTechnologyValues() {
+            var values = $('#itemClientTechnology').val();
+            $('#hiddenTechnologyValues').val(values);
+
+        }
+
+        //function saveValues() {
+        //    if ($('#otherID').is(':checked')) {
+        //        $('#hiddenrbAccValue').val('true');
+        //    }
+        //    else if ($('#accNumberID').is(':checked')) {
+        //        $('#hiddenrbAccValue').val('false');
+        //    }
+        //    var txtNumberValue = $('#txtNumberID').val();
+        //    $('#hiddenAccValue').val(txtNumberValue);
+        //    var orgValue = $('#orgTextBox').val();
+        //    $('#hiddenorgValue').val(orgValue);
+        //    var groupValue = $('#txtGroup').val();
+        //    $('#hiddengroupValue').val(groupValue);
+        //    var emailValue = $('#txtEmail').val();
+        //    $('#hiddenemailValue').val(emailValue);
+        //    var internalValue = $('#itemSelect').val();
+        //    $('#hiddeninternalValue').val(internalValue);
+        //    var postcodeValue = $('#txtPostCode').val();
+        //    $('#hiddenpostCodeValue').val(postcodeValue);
+        //    var hfmISValue = $('#txtHFMCodeIS').val();
+        //    $('#hiddenhfmISValue').val(hfmISValue);
+        //    var hfmBSValue = $('txtHFMCodeBS').val();
+        //    $('#hiddenhfmBSValue').val(hfmBSValue);
+        //    var contactValue = $('#txtContact').val();
+        //    $('#hiddencontactValue').val(contactValue);
+
+        //    alert($('#hiddenhfmBSValue').val());
+        //}
+
+        function getSelectCountryValues() {
+            var values = $('#itemClientCountry').val();
+            $('#hiddenCountryValues').val(values);
+
+        }
+
+        function resetFunction() {
+            $("#itemClientTechnology").attr('disabled', 'disabled');
+            $("#itemClientCountry").attr('disabled', 'disabled');
+            $("#SearchCriteriaTable").removeAttr('hidden');
+            $("#txtNumberID").attr('disabled', 'disabled');
+            if ($('#contactID').is(':checked')) {
+                $("#contactID").attr('checked', 'checked');
+                $("#orgID").removeAttr('checked', 'checked');
+                $("#orgGroupID").removeAttr('checked', 'checked');
+            }
+            if ($('#orgID').is(':checked')) {
+                $("#orgID").attr('checked', 'checked');
+                $("#orgGroupID").removeAttr('checked', 'checked');
+                $("#contactID").removeAttr('checked', 'checked');
+            }
+            if ($('#orgGroupID').is(':checked')) {
+                $("#orgGroupID").attr('checked', 'checked');
+                $("#orgID").removeAttr('checked', 'checked');
+                $("#contactID").removeAttr('checked', 'checked');
+            }
+        }
+
+
+    </script>
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="~/js/miscellaneous/fullcalendar/fullcalendar.bundle.js"></script>
+    <script src="~/js/statistics/sparkline/sparkline.bundle.js"></script>
+    <script src="~/js/statistics/easypiechart/easypiechart.bundle.js"></script>
+    <script src="~/js/statistics/flot/flot.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/miscellaneous/jqvmap/jqvmap.bundle.js"></script>
+    <script>
+        $(document).ready(function () {
+
+
+            $('#resultsTable').dataTable(
+                {
+                    responsive: true,
+                    searching: false,
+                    "pageLength": 50,
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    buttons: [
+                        {
+
+                        }]
+                })
+
+            if ($('#otherID').is(':checked'))
+            {
+                document.getElementById('txtNumberID').value = '';
+                $("#txtNumberID").attr('disabled', 'disabled');
+            }
+
+            if (window.location.href.indexOf("Results") > -1) {
+                var modelFromPageValue = '@ViewBag.fromPage';
+                if (modelFromPageValue == 'Contact') {
+                    $("#contactID").attr('checked', 'checked');
+                }
+                else if (modelFromPageValue == 'OrgGroup') {
+                    $("#orgGroupID").attr('checked', 'checked');
+                }
+                else if (modelFromPageValue == 'Org') {
+                    $("#orgID").attr('checked', 'checked');
+                }
+               /* alert($('#hiddenhfmBSValue').val() + ' ' + $('#hiddenhfmISValue').val());*/
+            }
+
+            if (window.location.href.indexOf("ContactSearch") > -1) {
+                $("#contactID").attr('checked', 'checked');
+
+            }
+            else if (window.location.href.indexOf("OrgSearch") > -1) {
+                $("#orgID").attr('checked', 'checked');
+            }
+            else if (window.location.href.indexOf("GroupSearch") > -1) {
+                $("#orgGroupID").attr('checked', 'checked');
+
+            }
+
+
+            if ($('#contactID').is(':checked')) {
+                $("#ContactNameRow").removeAttr('hidden');
+                $("#OrgNameRow").removeAttr('hidden');
+                $("#EmailRow").removeAttr('hidden');
+                $("#CountryRow").removeAttr('hidden');
+                $("#InernalOrgs").attr('hidden', 'hidden');
+                $("#PostcodeRow").attr('hidden', 'hidden');
+                $("#HFMCodeISRow").attr('hidden', 'hidden');
+                $("#HFMCodeBSRow").attr('hidden', 'hidden');
+                $("#ClientTechnologyRow").attr('hidden', 'hidden');
+            }
+
+            if ($('#orgGroupID').is(':checked')) {
+                $("#InernalOrgs").removeAttr('hidden');
+                $("#OrgNameRow").attr('hidden', 'hidden');
+                $("#ContactNameRow").attr('hidden', 'hidden');
+                $("#EmailRow").attr('hidden', 'hidden');
+                $("#PostcodeRow").attr('hidden', 'hidden');
+                $("#HFMCodeISRow").attr('hidden', 'hidden');
+                $("#HFMCodeBSRow").attr('hidden', 'hidden');
+                $("#ClientTechnologyRow").attr('hidden', 'hidden');
+                $("#CountryRow").attr('hidden', 'hidden');
+            }
+
+            if ($('#orgID').is(':checked')) {
+                $("#InernalOrgs").attr('hidden', 'hidden');
+                $("#OrgNameRow").removeAttr('hidden');
+                $("#ContactNameRow").attr('hidden', 'hidden');
+                $("#EmailRow").removeAttr('hidden');
+                $("#PostcodeRow").removeAttr('hidden');
+                $("#HFMCodeISRow").removeAttr('hidden');
+                $("#HFMCodeBSRow").removeAttr('hidden');
+                $("#ClientTechnologyRow").removeAttr('hidden');
+                $("#CountryRow").removeAttr('hidden');
+            }
+
+            @*@Model.JavascriptToRun;*@
+    });
+
+
+        $('#accNumberID').change(function () {
+            if ($('#accNumberID').is(':checked')) {
+                $("#txtNumberID").removeAttr('disabled');
+                $("#SearchCriteriaTable").attr('hidden','hidden');
+            }
+        });
+
+        $('#otherID').change(function () {
+            if ($('#otherID').is(':checked')) {
+                $("#txtNumberID").attr('disabled', 'disabled');
+                document.getElementById('txtNumberID').value = '';
+                $("#SearchCriteriaTable").removeAttr('hidden');
+            }
+        });
+
+        $('#chkByClientTechnology').change(function () {
+            if ($('#chkByClientTechnology').is(':checked')) {
+                $("#itemClientTechnology").removeAttr('disabled');
+            }
+            else {
+                $("#itemClientTechnology").attr('disabled', 'disabled');
+            }
+        });
+
+        $('#chkByCountry').change(function () {
+            if ($('#chkByCountry').is(':checked')) {
+                $("#itemClientCountry").removeAttr('disabled');
+            }
+            else {
+                $("#itemClientCountry").attr('disabled', 'disabled');
+            }
+        });
+
+        $('#contactID').change(function () {
+            if ($('#contactID').is(':checked')) {
+                $("#ContactNameRow").removeAttr('hidden');
+                $("#OrgNameRow").removeAttr('hidden');
+                $("#EmailRow").removeAttr('hidden');
+                $("#CountryRow").removeAttr('hidden');
+                $("#InernalOrgs").attr('hidden', 'hidden');
+                $("#PostcodeRow").attr('hidden', 'hidden');
+                $("#HFMCodeISRow").attr('hidden', 'hidden');
+                $("#HFMCodeBSRow").attr('hidden', 'hidden');
+                $("#ClientTechnologyRow").attr('hidden', 'hidden');
+            }
+        });
+
+        $('#orgGroupID').change(function () {
+            if ($('#orgGroupID').is(':checked')) {
+                $("#InernalOrgs").removeAttr('hidden');
+                $("#OrgNameRow").attr('hidden', 'hidden');
+                $("#ContactNameRow").attr('hidden', 'hidden');
+                $("#EmailRow").attr('hidden', 'hidden');
+                $("#PostcodeRow").attr('hidden', 'hidden');
+                $("#HFMCodeISRow").attr('hidden', 'hidden');
+                $("#HFMCodeBSRow").attr('hidden', 'hidden');
+                $("#ClientTechnologyRow").attr('hidden', 'hidden');
+                $("#CountryRow").attr('hidden', 'hidden');
+             }
+        });
+
+        $('#orgID').change(function () {
+            if ($('#orgID').is(':checked')) {
+                $("#InernalOrgs").attr('hidden', 'hidden');
+                $("#OrgNameRow").removeAttr('hidden');
+                $("#ContactNameRow").attr('hidden', 'hidden');
+                $("#EmailRow").removeAttr('hidden');
+                $("#PostcodeRow").removeAttr('hidden');
+                $("#HFMCodeISRow").removeAttr('hidden');
+                $("#HFMCodeBSRow").removeAttr('hidden');
+                $("#ClientTechnologyRow").removeAttr('hidden');
+                $("#CountryRow").removeAttr('hidden');
+            }
+        });
+
+    </script>
+}

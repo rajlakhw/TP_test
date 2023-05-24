@@ -1,0 +1,662 @@
+﻿@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+}
+
+@{ ViewData["Title"] = "Home page";
+    //ViewData["PageName"] = "datatables_basic";
+    //ViewData["Category1"] = "HR";
+    ViewData["Heading"] = "<i class='far fa-chart-area'></i> <b>Project flow</b> DashBoard";
+    //ViewData["PageDescription"] = "Create headache free searching, sorting and pagination tables without any complex configuration";
+}
+@{
+    @using ViewModels.HomePage;
+    @model flowPlusExtClientHomePage;
+    @using Global_Settings;
+}
+
+
+@section ScriptsBlock {
+    <script src="~/js/statistics/peity/peity.bundle.js"></script>
+    <script src="~/js/statistics/easypiechart/easypiechart.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script>
+
+        /*webfont prefix*/
+        var prefix = "far"; //fal fas far fab ni etc
+        var prefix_extend = "fa" //fa-icon
+        /*JSON file that will be loaded*/
+        var filename = "/media/data/fa-icon-list";  //available JSON files [ng-icon-base, ng-icon-list, ng-text-colors, fa-brand-list, fa-icon-list]
+        /*execute code*/
+        $.getJSON(filename + ".json").then(function (data) {
+            /*...worked*/
+            var formatedDOMElms = [];
+            /*compile DOM elements*/
+            jQuery.each(data, function (index, item) {
+                formatedDOMElms.push('<div class="col-4 col-sm-3 col-md-3 col-lg-2 col-xl-1 d-flex justify-content-center align-items-center mb-g">\
+                                            <a href="#" class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100 js-showcase-icon shadow-hover-2" data-toggle="modal" data-target="#iconModal" data-filter-tags=' + item.substring(1) + '>\
+                                                <div class="rounded-top color-fusion-300 w-100 bg-primary-300">\
+                                                    <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 fa-3x hover-bg">\
+                                                        <i class="'+ prefix + ' ' + prefix_extend + item + '"></i>\
+                                                    </div>\
+                                                </div>\
+                                                <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">\
+                                                    <span class="d-block text-truncate text-muted">' + item.substring(1) + '</span>\
+                                                </div>\
+                                            </a>\
+                                        </div>');
+            });
+            /* append to HTML dom*/
+            $('#icon-list').append(formatedDOMElms.join(" "));
+            /*initialize filter*/
+            initApp.listFilter($('#icon-list'), $('#filter-icon'));
+            /*client event for each icon*/
+            $('.js-showcase-icon').click(function () {
+                var iconClass = $(this).find('i').attr('class');
+                $('#iconModal .modal-body i').removeClass().addClass(iconClass);
+                $('#iconModal .modal-footer .js-icon-class').empty().text(iconClass);
+                $('#js-icon-class').val('<i class="' + iconClass + '"></i>')
+                $('#iconModalLabel strong').empty().text(iconClass);
+            });
+            /*copy icon button*/
+            $('.js-icon-copy').click(function () {
+                $('#js-icon-class').select();
+                document.execCommand('copy');
+            });
+            /*add number of icons*/
+            $('#filter-icon').attr('placeholder', "Search " + data.length + " icons for")
+        }).fail(function () {
+            console.log("failed")
+        });
+
+        $(document).ready(function () {
+            initializeJobOrdersTable();
+            getStats();
+        });
+
+        function getDateString(date) {
+            var dataObj = new Date(date);
+            var dayofweek = dataObj.toLocaleString('default', { weekday: 'short' });
+            var month = dataObj.toLocaleString('default', { month: 'long' });
+            var day = dataObj.getUTCDate();
+            var year = dataObj.getUTCFullYear();
+            return dayofweek + " " + day + " " + month + " " + year;
+
+        }
+        function initializeJobOrdersTable() {
+            var dataObjectId = @ViewBag.DataObjectID;
+            var dataTypeId = @ViewBag.DataObjectTypeId;
+
+            $("#dt-all-orders-component").dataTable(
+                {
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        contentType: "application/json; charset=utf-8",
+                        url: "/Home/GetAllJobOrdersDataTableComponentData",
+                        type: 'POST',
+                        data: function (d) {
+                            return JSON.stringify({ parameters: d, dataObjectId, dataTypeId });
+                        }
+                    },
+                    lengthMenu: [10, 20, 50, 100, 200],
+                    //fixedHeader: true,
+                    responsive: true,
+                    columns: [
+                        {
+                            "data": "jobOrderId",
+                            "data": "jobOrderId",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let url = `/JobManagement/OrderDetails/${data}`
+                                    return '<a href="' + url + '">' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        { "data": "contactName" },
+                        { "data": "jobOrderName" },
+                        {
+                            "data": "deliveryDeadline",
+                            render: function (data, type, row, meta) {
+                                return getDateString(data);
+                            }
+                        },
+                        {
+                            "data": "status",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == '') {
+                                        return 'N/A';
+                                    }
+                                    else {
+                                        if (data == 'One or more items/languages complete') {
+                                            return `<span style="color: darkorange;">${data}</span>`;
+                                        }
+                                        else if (data == 'Fully complete') {
+                                            return `<span style="color: limegreen;">${data}</span>`;
+                                        }
+                                        else {
+                                            //return `<span style="color: darkorange;">${data}</span>`;
+                                            return data;
+                                        }
+                                    }
+                                }
+                                return data;
+                            }
+                        }
+                    ],
+                    //columnDefs: [
+                    //    {
+                    //        "targets": [14],
+                    //        "visible": false
+                    //    },
+                    //    {
+                    //        "targets": [13],
+                    //        "visible": false
+                    //    },
+                    //    {
+                    //        "targets": [12],
+                    //        "visible": false
+                    //    },
+                    //],
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    buttons: [
+                        {
+                            extend: 'pageLength',
+                            className: 'btn-outline-default'
+                        },
+                        {
+                            extend: 'colvis',
+                            text: 'Column Visibility',
+                            titleAttr: 'Col visibility',
+                            className: 'btn-outline-default'
+                        }
+                    ],
+                    order: [[0, 'desc']]
+                });
+        }
+
+        function getStats() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    document.getElementById('pending-quotes-label').innerText = response;
+                    document.getElementById('pending-quotes-spinner').hidden = true;
+                }
+            }
+            xhr.open("POST", "Home/GetNumberOfPendingQuotes", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send();
+
+            var xhr1 = new XMLHttpRequest();
+            xhr1.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr1.responseText;
+                    document.getElementById('pending-quotes-value-label').innerText = '@Html.Raw(@ViewData["CurrencyPrefix"])' + response;
+
+                }
+            }
+            xhr1.open("POST", "Home/GetValueOfPendingQuotes", true);
+            xhr1.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr1.send();
+
+            var xhr2 = new XMLHttpRequest();
+            xhr2.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr2.responseText;
+                    document.getElementById('open-projects-label').innerText = response;
+                    document.getElementById('open-projects-spinner').hidden = true;
+
+
+                }
+            }
+            xhr2.open("POST", "Home/GetNumberOfOpenProjects", true);
+            xhr2.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr2.send();
+
+            var xhr3 = new XMLHttpRequest();
+            xhr3.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr3.responseText;
+                    document.getElementById('open-projects-value-label').innerText = '@Html.Raw(@ViewData["CurrencyPrefix"])' + response;
+
+                }
+            }
+            xhr3.open("POST", "Home/GetValueOfOpenProjects", true);
+            xhr3.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr3.send();
+
+            var xhr4 = new XMLHttpRequest();
+            xhr4.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr4.responseText;
+                    document.getElementById('in-progress-label').innerText = response;
+                    document.getElementById('in-progress-spinner').hidden = true;
+
+                }
+            }
+            xhr4.open("POST", "Home/GetNumberOfJobsInProgress", true);
+            xhr4.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr4.send();
+
+            var xhr5 = new XMLHttpRequest();
+            xhr5.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr5.responseText;
+                    document.getElementById('in-progress-value-label').innerText = '@Html.Raw(@ViewData["CurrencyPrefix"])' + response;
+
+                }
+            }
+            xhr5.open("POST", "Home/GetValueOfJobsInProgress", true);
+            xhr5.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr5.send();
+
+            var xhr6 = new XMLHttpRequest();
+            xhr6.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr6.responseText;
+                    document.getElementById('in-review-label').innerText = response;
+                    document.getElementById('in-review-spinner').hidden = true;
+
+
+
+                }
+            }
+            xhr6.open("POST", "Home/GetNumberOfJobsInReview", true);
+            xhr6.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr6.send();
+
+            var xhr7 = new XMLHttpRequest();
+            xhr7.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr7.responseText;
+                    document.getElementById('in-review-value-label').innerText = '@Html.Raw(@ViewData["CurrencyPrefix"])' + response;
+
+
+
+
+                }
+            }
+            xhr7.open("POST", "Home/GetValueOfJobsInReview", true);
+            xhr7.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr7.send();
+
+            var xhr8 = new XMLHttpRequest();
+            xhr8.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr8.responseText;
+                    document.getElementById('in-final-checks-label').innerText = response;
+                    document.getElementById('in-final-checks-spinner').hidden = true;
+
+
+                }
+            }
+            xhr8.open("POST", "Home/GetNumberOfJobsInFinalChecks", true);
+            xhr8.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr8.send();
+
+            var xhr9 = new XMLHttpRequest();
+            xhr9.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr9.responseText;
+                    document.getElementById('in-final-checks-value-label').innerText = '@Html.Raw(@ViewData["CurrencyPrefix"])' + response;
+
+
+                }
+            }
+            xhr9.open("POST", "Home/GetValueOfJobsInFinalChecks", true);
+            xhr9.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr9.send();
+
+            var xhr10 = new XMLHttpRequest();
+            xhr10.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr10.responseText;
+                    document.getElementById('ready-to-collect-label').innerText = response;
+                    document.getElementById('ready-to-collect-spinner').hidden = true;
+
+
+
+                }
+            }
+            xhr10.open("POST", "Home/GetNumberOfReadyToCollectJobs", true);
+            xhr10.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr10.send();
+
+            var xhr11 = new XMLHttpRequest();
+            xhr11.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr11.responseText;
+                    document.getElementById('ready-to-collect-value-label').innerText = '@Html.Raw(@ViewData["CurrencyPrefix"])' + response;
+
+                }
+            }
+            xhr11.open("POST", "Home/GetValueOfReadyToCollectJobs", true);
+            xhr11.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr11.send();
+
+            var xhr12 = new XMLHttpRequest();
+            xhr12.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr12.responseText;
+                    document.getElementById('total-completed-items').innerText = response;
+
+                }
+            }
+            xhr12.open("POST", "Home/GetNumberOfCompletedJobItems", true);
+            xhr12.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr12.send();
+
+            var xhr13 = new XMLHttpRequest();
+            xhr13.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr13.responseText;
+                    $('#items-pie-chart').data('easyPieChart').update(response);
+                }
+            }
+            xhr13.open("POST", "Home/GetCompletedJobItemsPercentage", true);
+            xhr13.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr13.send();
+
+            var xhr14 = new XMLHttpRequest();
+            xhr14.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr14.responseText;
+                    document.getElementById('completed-items').setAttribute("data-original-title", response);
+                }
+            }
+            xhr14.open("POST", "Home/GetTotalCompletedJobItemsStatsString", true);
+            xhr14.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr14.send();
+
+            var xhr15 = new XMLHttpRequest();
+            xhr15.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr15.responseText;
+                    $('#words-pie-chart').data('easyPieChart').update(response);
+                }
+            }
+            xhr15.open("POST", "Home/GetCompletedWordCountPercentage", true);
+            xhr15.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr15.send();
+
+
+            var xhr16 = new XMLHttpRequest();
+            xhr16.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr16.responseText;
+                    document.getElementById('total-completed-word-counts').innerText = response;
+
+                }
+            }
+            xhr16.open("POST", "Home/GetNumberOfCompletedWordCount", true);
+            xhr16.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr16.send();
+
+            var xhr17 = new XMLHttpRequest();
+            xhr17.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr17.responseText;
+                    document.getElementById('total-word-counts').setAttribute("data-original-title", response);
+                }
+            }
+            xhr17.open("POST", "Home/GetTotalCompletedWordCountStatsString", true);
+            xhr17.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr17.send();
+        }
+
+    </script>
+}
+@section SubheaderBlock {
+    <div class="subheader-block d-lg-flex align-items-center">
+        <div class="d-flex mr-4">
+            <div class="px-3 py-2 d-flex align-items-center">
+                <a href="#" id="completed-items" onclick="return false;" data-html="true" data-container="body" data-toggle="tooltip" data-placement="right">
+                    <div id="items-pie-chart" class="js-easy-pie-chart color-info-300 position-relative d-inline-flex align-items-center justify-content-center"
+                         data-piesize="45" data-linewidth="5" data-linecap="butt" data-scalelength="0">
+                    </div>
+                </a>
+                <span class="d-inline-block ml-2">
+                    <label class="fs-sm mb-0 mt-2 mt-md-0">Total items</label>
+                    <h4 id="total-completed-items" class="font-weight-bold mb-0">
+                        <div id="total-items-spinner" class="spinner-border spinner-border-sm" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </h4>
+                </span>
+            </div>
+        </div>
+        <div class="d-flex mr-0">
+            @*<a href="#" id="completed-words" onclick="return false;" data-html="true" data-container="body" data-toggle="tooltip" data-placement="right" title="@(Model.TotalWordCountOfCompletedJobItems + " out of " + Model.TotalWordCountInOpenProjects + " words have been completed")">
+                    <div class="mr-2">
+                        <span class="peity-donut" data-peity="{ &quot;fill&quot;: [&quot;#2196F3&quot;, &quot;#9acffa&quot;],  &quot;innerRadius&quot;: 14, &quot;radius&quot;: 20 }">@Model.TotalWordCountOfCompletedJobItems/@Model.TotalWordCountInOpenProjects</span>
+                    </div>
+                </a>
+                <div>
+                    <label class="fs-sm mb-0 mt-2 mt-md-0">Total words</label>
+                    <h4 class="font-weight-bold mb-0">@Model.TotalWordCountOfCompletedJobItems.ToString("N0")</h4>
+                </div>*@
+            <div class="px-3 py-2 d-flex align-items-center">
+                <a href="#" id="total-word-counts" onclick="return false;" data-html="true" data-container="body" data-toggle="tooltip" data-placement="right">
+                    <div id="words-pie-chart" class="js-easy-pie-chart color-success-500 position-relative d-inline-flex align-items-center justify-content-center"
+                         data-piesize="45" data-linewidth="5" data-linecap="butt" data-scalelength="0">
+                    </div>
+                </a>
+                <span class="d-inline-block ml-2">
+                    <label class="fs-sm mb-0 mt-2 mt-md-0">Total words</label>
+                    <h4 id="total-completed-word-counts" class="font-weight-bold mb-0">
+                        <div id="total-word-count-spinner" class="spinner-border spinner-border-sm" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </h4>
+                </span>
+            </div>
+        </div>
+    </div>
+}
+
+
+<div class="row">
+    <div class="col-sm-6 col-md-2">
+        <div class="p-2 rounded overflow-hidden position-relative text-white mb-g" style="background-color:#c51a1b;">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    <label id="pending-quotes-label"></label>
+                    <div id="pending-quotes-spinner" class="spinner-border text-white" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <label style="font-size:17px;font-weight:200">Pending Quotes </label>
+                    <small class="m-0 l-h-n" id="pending-quotes-value-label"><label></label></small>
+                </h3>
+            </div>
+            <i class="@(Settings.Theme.IconPrefix) fa-money-check-edit-alt position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-md-2">
+        <div class="p-2 rounded overflow-hidden position-relative text-white mb-g" style="background-color:#7880bd;">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    <label id="open-projects-label"></label>
+                    <div id="open-projects-spinner" class="spinner-border text-white" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <label style="font-size:17px;font-weight:200">Open Projects </label>
+                    <small class="m-0 l-h-n" id="open-projects-value-label"><label></label></small>
+                </h3>
+            </div>
+            <i class="@(Settings.Theme.IconPrefix) fa-project-diagram position-absolute pos-right pos-bottom opacity-15  mb-n1 mr-n4" style="font-size: 6rem;"></i>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-2">
+        <div class="p-2 rounded overflow-hidden position-relative text-white mb-g" style="background-color:#46bfe0;">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    <label id="in-progress-label"></label>
+                    <div id="in-progress-spinner" class="spinner-border text-white" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <label style="font-size:17px;font-weight:200">In Progress </label>
+                    <small class="m-0 l-h-n" id="in-progress-value-label"><label></label></small>
+                </h3>
+            </div>
+            <i class="@(Settings.Theme.IconPrefix) fa-language position-absolute pos-right pos-bottom opacity-15 mb-n5 mr-n6" style="font-size: 8rem;"></i>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-2">
+        <div class="p-2 rounded overflow-hidden position-relative text-white mb-g" style="background-color:#45b384;">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    <label id="in-review-label"></label>
+                    <div id="in-review-spinner" class="spinner-border text-white" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <label style="font-size:17px;font-weight:200">In Review </label>
+                    <small class="m-0 l-h-n" id="in-review-value-label"><label></label></small>
+                </h3>
+            </div>
+            <i class="@(Settings.Theme.IconPrefix) fa-eye position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n4" style="font-size: 6rem;"></i>
+        </div>
+    </div> <div class="col-sm-6 col-md-2">
+        <div class="p-2 rounded overflow-hidden position-relative text-white mb-g" style="background-color:#ba9765;">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    <label id="in-final-checks-label"></label>
+                    <div id="in-final-checks-spinner" class="spinner-border text-white" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <label style="font-size:17px;font-weight:200">Final Checks </label>
+                    <small class="m-0 l-h-n" id="in-final-checks-value-label"><label></label></small>
+                </h3>
+            </div>
+            <i class="@(Settings.Theme.IconPrefix) fa-user-check position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n4" style="font-size: 6rem;"></i>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-2">
+        <div class="p-2 rounded overflow-hidden position-relative text-white mb-g" style="background-color:#6fbc85;">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    <label id="ready-to-collect-label"></label>
+                    <div id="ready-to-collect-spinner" class="spinner-border text-white" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <label style="font-size:17px;font-weight:200">Ready to Collect </label>
+                    <small class="m-0 l-h-n" id="ready-to-collect-value-label"><label></label></small>
+                </h3>
+            </div>
+            <i class="@(Settings.Theme.IconPrefix) fa-flag-checkered position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n4" style="font-size: 6rem;"></i>
+        </div>
+    </div>
+</div>
+<br />
+<br />
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-forward fa-2x color-black"></i> &nbsp; &nbsp;
+                <h2>Quick action panel</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                </div>
+            </div>
+            <div class="panel-container expanded">
+                <div class="panel-content">
+                    <div class="container" style="align-self:center;">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="col-sm-12 col-sm-1">
+                                    <a href="Services/NewProject/true">
+                                        <div class="p-2 rounded overflow-hidden position-relative text-white mb-g" style="background-color: #3181bf;">
+                                            <div class="">
+                                                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                                                    &nbsp;&nbsp;<label style="font-size:20px;">New Quote </label>
+                                                </h3>
+                                                &nbsp;
+                                            </div>
+                                            <i class="@(Settings.Theme.IconPrefix) fa-money-check-edit-alt position-absolute pos-right pos-bottom opacity-15 mb-n4 mr-n4" style="font-size:7rem"></i>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-sm-12 col-sm-1">
+                                    <a href="Services/NewProject">
+                                        <div class="p-2 rounded overflow-hidden position-relative text-white mb-g" style="background-color: #de7373;">
+                                            <div class="">
+                                                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                                                    &nbsp;&nbsp;<label style="font-size:20px;">New Job </label>
+                                                </h3>
+                                                &nbsp;
+                                            </div>
+                                            <i class="@(Settings.Theme.IconPrefix) fa-language position-absolute pos-right pos-bottom opacity-15 mb-n4 mr-n4" style="font-size: 7rem;"></i>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-sm-12 col-sm-1">
+                                    <a href="JobManagement/ProjectStatus">
+                                        <div class="p-2 rounded overflow-hidden position-relative text-white mb-g" style="background-color: #e1c68a;">
+                                            <div class="">
+                                                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                                                    &nbsp;&nbsp;<label style="font-size:20px;">Project status </label>
+                                                </h3>
+                                                &nbsp;
+                                            </div>
+                                            <i class="@(Settings.Theme.IconPrefix) fa-file-search position-absolute pos-right pos-bottom opacity-15 mb-n4 mr-n1" style="font-size: 6rem; font-weight:500;"></i>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="cols-lg-6">
+                                <div class="col-sm-12 col-sm-1">
+                                    <a href="https://www.translateplus.com/news/new-referral-programme-and-twb-sponsorship/"><img src="~/img/TWBreferral-EN.jpg" width="300"></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-chart-network fa-2x color-black"></i> &nbsp; &nbsp;
+                <h2>
+                    Quick project overview
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                </div>
+            </div>
+            <div class="panel-container expanded">
+                <div class="panel-content">
+                    <div class="container">
+                        <div>
+                            <table id="dt-all-orders-component" class="table-sm table table-bordered table-hover table-striped w-100">
+                                <thead class="bg-faded">
+                                    <tr>
+                                        <th>Job ID</th>
+                                        <th>Requester</th>
+                                        <th>Project name</th>
+                                        <th>Due date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

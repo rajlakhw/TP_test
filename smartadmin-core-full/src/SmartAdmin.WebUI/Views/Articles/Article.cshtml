@@ -1,0 +1,148 @@
+﻿@{
+    @using ViewModels.SharePlus;
+    @model SharePlusArticleViewModel;
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/notifications/sweetalert2/sweetalert2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/theme-demo.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+}
+
+<div id="panel-2" class="panel">
+    <div class="text-center panel-hdr text-success">
+        <h2>
+            @Model.Title
+        </h2>
+        <div class="panel-toolbar">
+            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+        </div>
+
+    </div>
+    <div class="panel-container">
+        <div class="panel-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <div class="row justify-content-start">
+                            <span><i class="fal fa-eye"></i>     @Model.HistoricalNumberOfViews</span>
+                        </div>
+                        <div class="row justify-content-start">
+                            @if (Model.CreatedByEmployeeImageBase64 == null)
+                            {
+                                <span class="float-left"><img class="p-1" src="~/img/shareplusUserImage.jpg" style="height: 4rem;" /></span>
+                            }
+                            else
+                            {
+                                <span class="float-left"><img class="p-1" src="@Model.CreatedByEmployeeImageBase64" style="height: 4rem;" /></span>
+                            }
+                            <span class="float-left">@(Model.CreatedByEmployeeFirstName + " " + Model.CreatedByEmployeeSurname)</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        @*reverse the if statement to fix it*@
+                        @if (Model.IsAllowedToEdit == true)
+                        {
+                            <div class="row justify-content-center">
+                                <a class="@(Settings.Theme.IconPrefix) btn btn-sm btn-outline-success" asp-controller="Articles" asp-action="Edit" asp-route-id="@Model.Id"><i class="fal fa-edit fa-2x"></i></a>
+                                &nbsp; &nbsp;
+                                <a class="@(Settings.Theme.IconPrefix) btn btn-outline-danger" href="javascript:void(0);" id="delete-articleBtn"><i class="fal fa-trash-alt fa-2x"></i></a>
+                            </div>
+                        }
+                    </div>
+                    <div class="col">
+                        @if (Model.EmployeeMarkedArticleAsHelpful && Model.HelpfulCount > 0)
+                        {
+                            <div class="row justify-content-end">
+                                <span class="float-left color-success-100" style="cursor:not-allowed">
+                                    <i class="fas fa-thumbs-up"></i> You and @(Model.HelpfulCount - 1) other employee(s) found this article helpful
+                                </span>
+                            </div>
+                        }
+                        else if (Model.HelpfulCount > 0 && Model.EmployeeMarkedArticleAsHelpful == false)
+                        {
+                            <div class="row justify-content-end">
+                                <span id="helpful" class="float-left color-success-100" style="cursor:pointer">
+                                    <i class="fas fa-thumbs-up"></i> @Model.HelpfulCount employee(s) found this article helpful
+                                </span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row justify-content-end">
+                                <span id="helpful" class="float-left color-success-100" style="cursor:pointer">
+                                    <i class="fal fa-thumbs-up"></i> Find this article helpful?
+                                </span>
+                            </div>
+                        }
+                        <div class="row justify-content-end"><span class="float-right">Added on: @(Model.CreatedDateTime.ToString("d MMMM yyyy"))</span></div>
+                        @if (Model.LastModifiedByEmpName.Count() > 3)
+                        {
+                            <div class="row justify-content-end"><span>Last updated by: @(Model.LastModifiedByEmpName)</span></div>
+                            <div class="row justify-content-end"><span>Last updated on: @(Model.LastModifiedDateTime?.ToString("d MMMM yyyy"))</span></div>
+                        }
+                        <div class="row justify-content-end"><span>Last viewed on: @(Model.LastViewedDateTime?.ToString("d MMMM yyyy"))</span></div>
+                    </div>
+                </div>
+                <hr />
+                <div>
+                    @Html.Raw(@Model.Htmlbody.Replace(" ��", " \"\"").Replace("�� ", "\"\" ").Replace("��", "'").Replace("�C", "-"))
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    @section ScriptsBlock
+{
+        <script src="~/js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+        <script src="~/js/dependency/moment/moment.js"></script>
+        <script>
+        $("#delete-articleBtn").on("click", function () {
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!"
+            }).then(function (result) {
+                if (result.value) {
+                    $.ajax({
+                        url: "Articles/Delete?id=@Model.Id",
+                        type: "POST",
+                        success: function (data) {
+                            Swal.fire("Deleted!", "Article has been deleted.", "success");
+                            var url = 'Articles/';
+                            $(location).prop('href', url);
+                        },
+                        error: function (req, status, error) {
+                            Swal.fire("Oops!", "There was an error while trying to delete the article.", "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+        });
+
+            $("#helpful").click(function () {
+                var spanEl = $("#helpful");
+            $.ajax({
+                url: "api/SharePlusApi/Helpful/",
+                method: 'PUT',
+                dataType: 'json',
+                data: {articleId: @Model.Id},
+                success: function (res) {
+                    console.log('SUCCESS  ' + res.helpfulCount)
+                    if (res.helpfulCount > 1) {
+                        spanEl.text(`You and ${res.helpfulCount - 1} other employee(s) found this article helpful`);
+                    }
+                    else {
+                        spanEl.text('You found this article helpful');
+                    }
+                },
+                error: function (req, status, err) {
+                    console.log(status, err);
+                }
+            });
+        })
+        </script>
+    }

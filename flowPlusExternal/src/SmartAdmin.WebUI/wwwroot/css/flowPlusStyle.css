@@ -1,0 +1,52 @@
+﻿.reviewplusnewmatch {
+    color: Red;
+}
+
+.reviewplusnewmatchRTL {
+    color: Red;
+    direction: rtl;
+}
+
+.reviewplusfuzzymatch {
+    color: #000080;
+}
+
+.googleAPITranslated {
+    color: #9900cc;
+}
+
+.reviewplusfuzzymatchRTL {
+    color: #000080;
+    direction: rtl;
+}
+
+.reviewplusexactmatch {
+    color: #585858;
+}
+
+.reviewplusexactmatchRTL {
+    color: #585858;
+    direction: rtl;
+}
+
+.reviewplusEnnovaDraft {
+    color: #999900;
+}
+
+.reviewplusEnnovaDraftRTL {
+    color: #999900;
+    direction: rtl;
+}
+
+.reviewplusEnnovaTranslation {
+    color: Green;
+}
+
+.reviewplusEnnovaTranslationRTL {
+    color: Green;
+    direction: rtl;
+}
+
+.ourservicesblueGrid {
+    background: #7dbcea;
+}

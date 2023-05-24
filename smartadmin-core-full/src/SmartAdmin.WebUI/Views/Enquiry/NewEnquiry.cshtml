@@ -1,0 +1,704 @@
+﻿@{
+    ViewData["Title"] = "New Enquiry";
+    ViewData["PageName"] = "enquiry";
+    ViewData["Category1"] = "TMS";
+    ViewData["Heading"] = "";
+    @using ViewModels.Enquiries;
+    @model EnquiriesViewModel;
+    @using Data;
+    @using System.Text.Json;
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/reactions/reactions.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/jqvmap/jqvmap.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/notifications/sweetalert2/sweetalert2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+
+
+    @section ScriptsBlock {
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script src="~/js/formplugins/dropzone/dropzone.js"></script>
+    <script>
+
+        var controls = {
+            leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+            rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+        }
+        var runDatePicker = function() {
+            // orientation
+            $('.delivery-datepicker').datepicker({
+                orientation: "top left",
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+                startDate: new Date()
+            });
+        }
+        function onChange() {
+            if (document.getElementById('OrderChannelinput').value > "0") {
+                document.getElementById('OrderChannelRequired').hidden = true;
+            }
+            if (document.getElementById('job-name-input').value != "") {
+                document.getElementById('jobNameRequired').hidden = true;
+            }
+            //if (document.getElementById('project-manager-select').value > "0") {
+            //    document.getElementById('projectManagerRequired').hidden = true;
+            //}
+            if (document.getElementById('enquirydeadline-input').value != "") {
+                document.getElementById('enquirydeadlineRequired').hidden = true;
+            }
+            //if (document.getElementById('deadline-input').value != "") {
+            //    document.getElementById('deadlineRequired').hidden = true;
+            //}
+        }
+        function returnPage() {
+            var contactId = @Html.Raw(JsonSerializer.Serialize(Model.ContactId));
+            window.location.href = `Contact/?contactid=${contactId}`;
+        }
+        function viewPage() {
+            var enquiryId = document.getElementById('created-enquiry-id').value
+            window.location.href = `Enquiry/?id=${enquiryId}`;
+        }
+        function createEnquiry() {
+            //debugger;
+
+            var count = 0;
+            var contactID = @Html.Raw(JsonSerializer.Serialize(Model.ContactId));
+            var channelID = document.getElementById('OrderChannelinput').value;
+            var jobName = document.getElementById('job-name-input').value;
+            var projectManager = 0;
+            //var projectManager = document.getElementById('project-manager-select').value;
+            var enquiryDeadline = document.getElementById('enquirydeadline-input').value;
+            var overallDeadline = document.getElementById('deadline-input').value;
+            var clientNote = document.getElementById('client-notes-textarea').value;
+            var internalNote = document.getElementById('internal-notes-textarea').value;
+            var isPrinting = document.getElementById('printing-checkbox').checked;
+
+            var quoteitems = "";
+            var table = document.getElementById("quoteitemstable");
+
+            for (let row of table.rows) {
+                if (row.rowIndex > 0) {
+                    quoteitems += row.children[3].innerHTML.split("$")[1] + "-";
+                }
+            }
+
+            if (quoteitems == "") {
+                document.getElementById('quoteitemsRequired').hidden = false;
+                count++;
+            }
+            else {
+                quoteitems = quoteitems.substring(0, quoteitems.length - 1);
+            }
+
+            if (channelID < "1") {
+                document.getElementById('OrderChannelRequired').hidden = false;
+                count++;
+            }
+            if (jobName == "") {
+                document.getElementById('jobNameRequired').hidden = false;
+                count++;
+            }
+            //if (projectManager == "0") {
+            //    document.getElementById('projectManagerRequired').hidden = false;
+            //    count++;
+            //}
+            if (enquiryDeadline == "") {
+                document.getElementById('enquirydeadlineRequired').hidden = false;
+                count++;
+            }
+            //if (overallDeadline == "") {
+            //    document.getElementById('deadlineRequired').hidden = false;
+            //    count++;
+            //}
+            if (count > 0) {
+                $(window).scrollTop(0);
+                return;
+            }
+            else {
+
+                document.getElementById('create-enquiry-button').disabled = true;
+                var stringToSend = contactID + '$' + channelID + '$' + jobName + '$' + projectManager + '$' + overallDeadline + '$' + clientNote + '$' + internalNote + '$' + isPrinting + '$' + enquiryDeadline;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "Enquiry/CreateEnquiry", true);
+                xhr.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+
+                        //debugger;
+
+
+                        //show enquiry creation successful modal
+
+                        var response = xhr.responseText;
+                        var headerText = response.split("$")[0];
+                        document.getElementById('header-text').innerText = headerText;
+                        if (headerText == "Success") {
+                            var quoteitems = "";
+                            for (var i = 1, row; row = table.rows[i]; i++) {
+                                if (quoteitems == "") {
+                                    quoteitems += row.childNodes[3].innerHTML.split('$')[1];
+                                }
+                                else {
+                                    quoteitems += "$" + row.cells[3].innerHTML.split('$')[1];
+                                }
+
+                            }
+
+                            var dataToSend = response.split("$")[2] + "$" + response.split("$")[3] + "$" + quoteitems;
+                            //var xhr = new XMLHttpRequest();
+                            //xhr.open("POST", "Enquiry/CreateEnquiryQuoteItems", true);
+                            //xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                            //xhr.send(dataToSend);
+                            $.ajax({
+                                url: 'Enquiry/CreateEnquiryQuoteItems',
+                                type: 'POST',
+                                data: dataToSend,
+                                contentType: 'application/x-www-form-urlencoded',
+                                success: function(data) {
+                                    console.log("ajax is executed");
+
+                                }
+                            });
+                            document.getElementById('enquiry-creation-success-string').hidden = false;
+                            document.getElementById('enquiry-creation-success-string').textContent = "";
+                            document.getElementById('enquiry-creation-success-dates').innerText = response.split("$")[1];
+                            document.getElementById('enquiry-creation-warning-string').innerText = "";
+                            document.getElementById('created-enquiry-id').value = response.split("$")[2];
+                        }
+                        else {
+                            document.getElementById('enquiry-creation-success-string').hidden = true;
+                            document.getElementById('enquiry-creation-success-dates').innerText = "";
+                            document.getElementById('enquiry-creation-warning-string').innerText = response.split("$")[1];
+                        }
+                        $('#enquiry-creation-result-modal').modal("show");
+
+
+                    }
+                    else {
+                        //if the job order could not be added ok, then notify the user
+                    }
+                };
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(stringToSend);
+            }
+        }
+
+        function addquoteitems(sourcepath) {
+            try {
+                event.preventDefault();
+            } catch (er) {
+                alert(er);
+            }
+            //alert("here");
+            //quoteitemstablerows = "<tr><td>1</td><td>2</td><td>3</td><td>4</td></tr>";
+            //document.getElementById('quoteitemstable').hidden = false;
+            //var quoteitemstable = document.getElementById("quoteitemstable");
+            //quoteitemstable.style.visibility = "visible";
+
+            var categoryinput = document.getElementById('language-service-category-input');
+            var languageserviceinput = document.getElementById('language-service-input');
+            var sourcelanguageinput = document.getElementById('source-language-input');
+            var targetlanguageinput = document.getElementById('target-language-input');
+
+
+            // Find a <table> element with id="myTable":
+            var table = document.getElementById("quoteitemstable");
+            table.style.visibility = "visible";
+
+            for (var lscoption of categoryinput.options) {
+                if (lscoption.selected) {
+
+                    for (var lsoption of languageserviceinput.options) {
+                        if (lsoption.selected) {
+
+                            for (var sloption of sourcelanguageinput.options) {
+                                if (sloption.selected) {
+
+                                    for (var tloption of targetlanguageinput.options) {
+                                        if (tloption.selected) {
+                                            // Create an empty <tr> element and add it to the 1st position of the table:
+                                            var row = table.insertRow();
+
+                                            // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+                                            var cell1 = row.insertCell(0);
+                                            cell1.style = "text-align:center"
+                                            var cell2 = row.insertCell(1);
+                                            cell2.style = "text-align:center"
+                                            var cell3 = row.insertCell(2);
+                                            cell3.style = "text-align:center"
+                                            var cell4 = row.insertCell(3);
+                                            cell4.style = "text-align:center"
+                                            
+
+                                            // Add some text to the new cells:
+                                            cell1.innerHTML = lsoption.innerText;
+                                            cell2.innerHTML = sloption.innerText;
+                                            cell3.innerHTML = tloption.innerText;
+                                            cell4.innerHTML = "<img id='row" + row.rowIndex + "' src='/img/close.png' title='Remove' alt='Remove' onclick=(removeRow(" + row.rowIndex + "))><font style='opacity:0;font-size:1px;'>$" + lsoption.value + "," + sloption.value + "," + tloption.value+ "," + lscoption.value + "$</font>";
+                                            /*cell4.innerHTML = lsoption.value + "," + sloption.value + "," + tloption.value + "$<img id='row" + row.rowIndex + " src='/img/close.png' title='Remove' alt='Remove' onclick=(document.getElementById('quoteitemstable').deleteRow(" + row.rowIndex + "))>";*/
+                                            //var img = document.createElement("img");
+                                            //img.src = "http://www.google.com/intl/en_com/images/logo_plain.png";
+                                            //cell4.
+                                            //row.delete
+                                            //table.deleteRow(row.rowIndex)
+
+                                            document.getElementById('quoteitemsRequired').hidden = true;
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+            var addquoteitembutton = document.getElementById("addquoteitembutton");
+            addquoteitembutton.blur();
+        }
+
+        function removeRow(rowIndex) {
+            var table = document.getElementById("quoteitemstable");
+
+            var imgrow = document.getElementById("row" + rowIndex);
+            var row = imgrow.parentElement.parentElement;
+            table.deleteRow(row.rowIndex);
+
+        }
+
+        function onSelect() {
+
+            if ($('#language-service-input').val() != '') {
+                document.getElementById('languageServicesRequired').hidden = true;
+            }
+            if ($('#source-language-input').val() != '') {
+                document.getElementById('sourceLanguagesRequired').hidden = true;
+            }
+            if ($('#target-language-input').val() != '' || $('.select-language-checkbox:checked').length > 0) {
+                document.getElementById('targetLanguagesRequired').hidden = true;
+            }
+        }
+        function onCategorySelect(selectObject) {
+            var selectId = selectObject.id;
+            var values = $('#' + selectId).val();
+            var hiddenId = "hidden" + selectId;
+            $('#' + hiddenId + 'Values').val(values);
+            document.getElementById('language-service-input').disabled = false;
+            $.ajax({
+                beforeSend: function() {
+                    // add loading spinner
+                },
+                url: "api/GetServices",
+                method: 'POST',
+                dataType: 'json',
+                data: { 'SelectedField': values },
+                success: function(data) {
+                    //confirm update was successfull
+
+                    var select = $("#language-service-input");
+                    select.empty();
+                    select.append("<option value=''>(Please select)</option>"); // add "Please select" option
+                    for (let index = 0; index < data.length; ++index) {
+                        const element = data[index];
+                        var opt = document.createElement('option');
+
+                        opt.value = element.id;
+                        opt.innerHTML = element.name;
+                        select.append(opt);
+                        // ...use `element`...
+                    }
+                    select.val(null);
+
+                },
+                error: function(err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function() {
+                    // remove the spinner
+                }
+            });
+        }
+
+
+
+        $(document).ready(function() {
+            $("#deadline-input").focus(function() {
+                $(this).attr({ type: 'datetime-local' });
+            });
+            $("#enquirydeadline-input").focus(function() {
+                $(this).attr({ type: 'datetime-local' });
+            });
+
+            $(function() {
+                runDatePicker();
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "Select"
+                });
+                $(".js-hide-search").select2({
+                    minimumResultsForSearch: 1 / 0
+                });
+                $(".js-max-length").select2({
+                    maximumSelectionLength: 2,
+                    placeholder: "Select maximum 2 items"
+                });
+                $(".select2-placeholder").select2({
+                    placeholder: "Select",
+                    allowClear: true
+                });
+                $(".js-select2-icons").select2({
+                    minimumResultsForSearch: 1 / 0,
+                    templateResult: icon,
+                    templateSelection: icon,
+                    escapeMarkup: function(elm) {
+                        return elm
+                    }
+                });
+
+                $("#target-language-input").select2({
+                    placeholder: "Select Target Language(s)"
+                });
+                $("#language-service-input").select2({
+                    placeholder: "Select Language Service"
+                });
+                $("#source-language-input").select2({
+                    placeholder: "Select Source Language"
+                });
+                $("#language-service-category-input").select2({
+                    placeholder: "Select Category"
+                });
+                function icon(elm) {
+                    elm.element;
+                    return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+                }
+
+            });
+
+
+        });
+
+
+    </script>
+}
+
+    <div class="row justify-content-between px-5">
+        <div class="col-lg-6 mb-3 text-center">
+            <div class="row">
+                <label class="form-label col-lg-3 d-flex align-items-center px-0">Group</label>
+                <div class="col text-left">
+                    <a target="_blank" style="text-decoration: none !important; color: #BA9765;" asp-controller="OrgGroup" asp-action="Index" asp-route-GroupID="@Model.OrgGroupId">
+                        @(Model.OrgGroupId + " - " + Model.OrgGroupName)
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-3 d-flex align-items-center px-0">Organisation</label>
+                <div class="col text-left">
+                    <a target="_blank" style="text-decoration: none !important;" asp-controller="Organisation" asp-action="Index" asp-route-Id="@Model.OrgId">
+                        @(Model.OrgId + " - " + Model.OrgName)
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-3 d-flex align-items-center px-0">Contact</label>
+                <div class="col text-left">
+                    <a target="_blank" style="text-decoration: none !important;" asp-controller="Contact" asp-action="Index" asp-route-ContactID="@Model.ContactId">
+                        @(Model.ContactId + " - " + Model.ContactName)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form enctype="multipart/form-data" id="create-request-form" method="post">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                    <div class="panel-hdr">
+                        <i class="fal fa-info-circle fa-2x color-black color-black"></i> &nbsp; &nbsp;
+                        <h2>Key Information</h2>
+                        <div class="panel-toolbar">
+                            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                        </div>
+                    </div>
+                    <div class="panel-container show">
+                        <div class="panel-content">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group validate-me">
+                                            <label class="form-label" for="order-channel-input">How we received this enquiry:</label>
+                                            <select id="OrderChannelinput" class="select2 form-control w-200" onchange="onChange();">
+                                                <option value="-1">(Please select)</option>
+                                                @for (var j = 0; j < Model.AllJobOrderChannels.Count(); j++)
+                                            {
+                                                <option value="@Model.AllJobOrderChannels.ElementAt(j).Id">@Model.AllJobOrderChannels.ElementAt(j).Name</option>
+                                            }
+                                        </select>
+                                        <label id="OrderChannelRequired" class="text-danger" hidden>Specify how we received this enquiry</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label" for="job-name-input">Name of this job:</label>
+                                        <textarea class="form-control" id="job-name-input" style="height:39px" onchange="onChange();"></textarea>
+                                        <label id="jobNameRequired" class="text-danger" hidden>You must provide a job name for this enquiry</label>
+                                    </div>
+
+                                </div>
+                                @*<div class="col-md-6">
+                                <div class="form-group validate-me">
+                                <label class="form-label" for="project-manger-input">Assigned to:</label>
+                                <select id="project-manager-select" class="select2 form-control w-200" onchange="onChange();">
+                                <option value="0">(Please select)</option>
+                                @for (var c = 0; c < Model.ListOfEmployees.Count(); c++)
+                                {
+                                <option value="@Model.ListOfEmployees.ElementAt(c).Id" selected="@(Model.ListOfEmployees.ElementAt(c).Id == (@Model.Ownership))">@Model.ListOfEmployees.ElementAt(c).FirstName @Model.ListOfEmployees.ElementAt(c).Surname</option>
+                                }
+                                </select>
+                                <label id="projectManagerRequired" class="text-danger" hidden>Specify who should be assigned to this enquiry</label>
+                                </div>
+                                </div>*@
+                            </div>
+                            <br />
+                            <br />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label">Enquiry deadline:</label>&nbsp;<i class="ni ni-info" title="This is the deadline when we should provide the client with the quote"></i><br />
+                                        @{
+                                            if (Model.OrgSLA != null && Model.OrgSLA > 0)
+                                            {
+                                                <label><i>(Pre-populated from the @Model.OrgSLA hours SLA)</i></label>
+                                                <input type="datetime-local" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="enquirydeadline-input" onchange="onChange();" value="@(((DateTime)Model.SLAdeadline).ToString("yyyy-MM-ddTHH:mm"))">
+                                            }
+                                            else
+                                            {
+                                                <label><i>(Pre-populated from the standard 2 days)</i></label>
+                                                <input type="text" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="enquirydeadline-input" onchange="onChange();">
+                                            }
+                                        }
+
+                                        <label id="enquirydeadlineRequired" class="text-danger" hidden>Specify the enquiry delivery deadline</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label">Project deadline (if specified by client):</label>&nbsp;<i class="ni ni-info" title="Please select a specific job order deadline if the client has requested a fixed date and time to complete the project work."></i><br />
+                                        <label>&nbsp;</label>
+                                        <input type="text" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="deadline-input" onchange="onChange();">
+                                        @*<label id="deadlineRequired" class="text-danger" hidden>Specify the delivery deadline</label>*@
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <i class="fal fa-tools fa-2x color-black"></i> &nbsp; &nbsp;
+                    <h2>
+                        Optional Information
+                    </h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                    </div>
+                </div>
+                <div class="panel-container expanded">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="form-label" for="client-notes-textarea">Client Notes:</label><br />(Be aware that these notes will be visible to the client, including invoices.)
+                                        <textarea class="form-control" id="client-notes-textarea" placeholder="Notes or additional information" rows="5"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="form-label" for="internal-notes-textarea">Internal Notes:</label><br />(These notes will not be visible to the client, including on invoices.)
+                                        <textarea class="form-control" id="internal-notes-textarea" placeholder="Notes or additional information" rows="5"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="printing-packaging--div">
+                                <div class="row" id="translate-online-div">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Printing/packaging project?</label>
+                                        <br />
+                                        <br />
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="printing-checkbox">
+                                            <label class="custom-control-label" for="printing-checkbox">This is a printing/packaging project, and the relevant workflow stated in the Operations Guidebook must be followed at all times.</label>
+                                        </div>
+                                        <br /><br />
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <div class="col-lg-6">
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <i class="ni ni-list fa-2x color-black color-black"></i> &nbsp; &nbsp;
+                    <h2>Create Quote item(s)</h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                    </div>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Language&nbsp;service&nbsp;category</label>
+                                    <select name="" id="language-service-category-input" class="select2-placeholder-multiple custom-select" onchange="onCategorySelect(this);">
+                                        <option value="">Select</option>
+                                        @for (var i = 0; i < Model.LanguageServiceCategory.Count(); i++)
+                                        {
+                                            <option value="@Model.LanguageServiceCategory.ElementAt(i).Id">@Model.LanguageServiceCategory.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Language&nbsp;service</label>
+                                    <select name="" id="language-service-input" class="select2-placeholder-multiple custom-select" onchange="onSelect();" disabled>
+                                        <option value="">Select</option>
+                                        @for (var i = 0; i < Model.LanguageServices.Count(); i++)
+                                        {
+                                            <option value="@Model.LanguageServices.ElementAt(i).Id">@Model.LanguageServices.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="languageServicesRequired" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Source&nbsp;language</label>
+                                    <select name="" class="select2 form-control w-100" id="source-language-input" onchange="onSelect();">
+                                        <option value="">Select</option>
+                                        @for (var i = 0; i < Model.Languages.Count(); i++)
+                                        {
+                                            <option value="@Model.Languages.ElementAt(i).StringValue">@Model.Languages.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="sourceLanguagesRequired" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Target&nbsp;language(s)</label>
+                                    <select name="" class="select2-placeholder-multiple custom-select" multiple="multiple" id="target-language-input" onchange="onSelect();">
+                                        @for (var i = 0; i < Model.Languages.Count(); i++)
+                                        {
+                                            <option value="@Model.Languages.ElementAt(i).StringValue">@Model.Languages.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="targetLanguagesRequired" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                            </div>
+                            <br />
+                            <br />
+                            <div class="form-group-row d-flex flex-row-reverse" style="padding-bottom:20px">
+                                @{
+                                    var sourcepath = ViewBag.CurrentDirectory + "/img/close.png";
+                                }
+                                <button id="addquoteitembutton" class="@(Settings.Theme.IconPrefix) btn btn-success" type="submit" title="Save" onclick="addquoteitems('@sourcepath')"><i class="ni ni-plus fa-2x"></i></button>
+                            </div>
+                            <br />
+                            <br />
+                            <label id="quoteitemsRequired" class="text-danger" hidden>You need to add at least one quote item</label>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table border="1" id="quoteitemstable" style="width:100%;visibility:hidden">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">
+                                                    Language Service
+                                                </th>
+                                                <th style="text-align:center">
+                                                    Source Language
+                                                </th>
+                                                <th style="text-align:center">
+                                                    Target Language
+                                                </th>
+                                                <th style="text-align:center">
+                                                    Remove
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @*@{
+                                            <label id="quoteitemstablerows" />
+                                            }*@
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<div class="row">
+    <div class="col-lg-12 text-center">
+        <button class="btn btn-success" type="submit" id="create-enquiry-button" onclick="createEnquiry()">Create Enquiry</button>&nbsp;&nbsp;
+        <button class="btn btn-default" type="submit" onclick="returnPage()">Cancel</button>
+    </div>
+</div>
+<div class="modal modal-alert fade" id="enquiry-creation-result-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><label id="header-text"></label></h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>*@
+            </div>
+            <div class="modal-body">
+                <label id="enquiry-creation-success-string"></label>&nbsp;<label class="text-success md-header" id="enquiry-creation-success-dates"></label>
+                <label class="text-warning md-header" id="enquiry-creation-warning-string"></label>
+                <div id="created-enquiry-id" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="returnPage()">Return to Contact</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="viewPage()">View Enquiry</button>
+
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,191 @@
+@{
+    ViewData["Title"] = "Search";
+    ViewData["PageName"] = "page_search";
+    ViewData["Category1"] = "Page Views";
+    ViewData["PreemptiveClass"] = "layout-composed";
+
+    @using Data;
+    @using ViewModels.SearchForAnything;
+    @using System.Text.Json;
+    @using Global_Settings;
+    @model SearchForAnythingResults;
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+    <link rel="stylesheet" media="screen, print" href="css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/reactions/reactions.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/jqvmap/jqvmap.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+}
+<div class="px-3 px-sm-5 pt-4">
+    <h1 class="mb-4">
+        @Model.resultCount Results for "@Model.searchedFor"
+    </h1>
+    <form>
+
+        <div class="input-group input-group-lg mb-5 shadow-1 rounded">
+
+            <input type="text" class="form-control shadow-inset-2" name="searchedFor" id="filter-icon" aria-label="type 3 or more letters" placeholder="Search for anything..." value="@Model.searchedFor" pattern=".*[a-zA-Z0-9]{2}" required>
+            <div class="input-group-append">
+                <button class="btn btn-primary hidden-sm-down" asp-controller="Page" asp-action="Search" type="submit"><i class="@(Settings.Theme.IconPrefix) fa-search mr-lg-2"></i><span class="hidden-md-down">Search</span></button>
+            </div>
+
+        </div>
+    </form>
+</div>
+<div style="margin-left: 1cm; margin-right: 1cm;">
+    <div>
+        <table id="dt-all-search-results" class="table-sm table table-bordered table-hover table-striped w-100" >
+            <thead style="background-color:#E84133">
+                <tr>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+@section ScriptsBlock {
+    <script>
+        initApp.pushSettings("layout-composed", false);
+    </script>
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="~/js/miscellaneous/fullcalendar/fullcalendar.bundle.js"></script>
+    <script src="~/js/statistics/sparkline/sparkline.bundle.js"></script>
+    <script src="~/js/statistics/easypiechart/easypiechart.bundle.js"></script>
+    <script src="~/js/statistics/flot/flot.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/miscellaneous/jqvmap/jqvmap.bundle.js"></script>
+    <script>
+        $(document).ready(function () {
+            initializeSearchResultsTable();
+
+        });
+
+            function initializeSearchResultsTable() {
+        var dataSet = @Html.Raw(JsonSerializer.Serialize( Model.searchResults ));
+        $('#dt-all-search-results').dataTable(
+            {
+                data: dataSet,
+                searching: true,
+                dataSrc: "",
+                columns: [
+                    {
+                        "data": "resultType" },
+                    {
+                        "data": "resultDescription",
+                        render: function (data, type, row, meta) {
+                            if (row.resultType == "Contact") {
+                                let link = `https://myplusbeta.publicisgroupe.net/Contact?contactid=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "Job order") {
+                                let link = `https://myplusbeta.publicisgroupe.net/tmsjoborder/joborder?joborderid=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "Job item") {
+                                let link = `https://myplusbeta.publicisgroupe.net/JobItem?Id=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "Organisation") {
+                                let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "Organisation Group") {
+                                let link = `https://myplusbeta.publicisgroupe.net/OrgGroup?groupid=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "Linguistic supplier") {
+                                let link = `https://myplusbeta.publicisgroupe.net/Linguist?id=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "Quote") {
+                                let link = `https://myplusbeta.publicisgroupe.net/Quote/Index?id=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "Enquiry") {
+                                let link = `https://myplusbeta.publicisgroupe.net/enquiry?ID=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "share plus") {
+                                let link = `https://myplusbeta.publicisgroupe.net/Articles/Article?id=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "Supplier invoice") {
+                                let link = `http://myplus/LinguisticSupplierInvoice.aspx?InvoiceID=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "Client invoice") {
+                                let link = `http://myplus/ClientInvoice.aspx?ClientInvoiceID=${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else if (row.resultType == "Employee") {
+                                let link = `https://myplusbeta.publicisgroupe.net/HR/EmployeeProfile/${row.resultId}`;
+                                return '<a href="' + link + '" target="_blank" >' + row.resultId + '</a>' + data;
+                            }
+                            else {
+                                return "";
+                            }
+
+
+                        }
+                        
+                    }
+
+                ],
+                colReorder: true,
+                responsive: true,
+                dom:
+                    "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-outline-default'
+                    },
+                    {
+                        extend: 'colvis',
+                        text: 'Column Visibility',
+                        titleAttr: 'Col visibility',
+                        className: 'btn-outline-default'
+                    }
+                ],
+
+                initComplete: function () {
+                    this.api().columns().every(function () {
+                        var column = this;
+                        var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                            .appendTo($(column.footer()).empty())
+                            .on('change', function () {
+                                var val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            select.append('<option value="' + d + '">' + d + '</option>')
+                        });
+                    });
+                }
+            });
+
+    }
+    </script>
+}

@@ -1,0 +1,1239 @@
+﻿@{ ViewData["Title"] = "Employee profile";
+    ViewData["Category1"] = "HR";
+    //ViewData["Heading"] = "<i class='subheader-icon fal fa-table'></i> DataTables: <span class='fw-300'>Basic</span> <sup class='badge badge-primary fw-500'>ADDON</sup>";
+    //ViewData["PageDescription"] = "Create headache free searching, sorting and pagination tables without any complex configuration";
+}
+
+@{
+    @using ViewModels.HR;
+    @model EmployeeProfileModel;
+    @using Services;
+    @using Global_Settings;
+    @using System.Text.Json;
+
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+
+<input id="employee-hidden-field" type="hidden" value="@Model.EmployeeToBeViewed.Id" />
+<input id="employee-fullname-hidden-field" type="hidden" value="@Model.EmployeeToBeViewed.FirstName @Model.EmployeeToBeViewed.Surname" />
+<div>
+    <div class="row justify-content-between px-5">
+        <div class="col-lg-4 mb-3 text-center">
+            <div class="row">
+                <label class="form-label col-lg-2 d-flex align-items-center px-0">Name:</label>
+                <label class="col text-left">@Model.EmployeeToBeViewed.FirstName @Model.EmployeeToBeViewed.Surname</label>
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-2 d-flex align-items-center px-0">Job title:</label>
+                <label class="col text-left">@Model.EmployeeToBeViewed.JobTitle</label>
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-2 d-flex align-items-center px-0">Team:</label>
+                <label class="col text-left">@Model.Team.Name</label>
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-2 d-flex align-items-center px-0">ID:</label>
+                <label class="col text-left">@Model.EmployeeToBeViewed.Id</label>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3 text-center">
+            <div class="row">
+                <img src="@Model.EmployeeToBeViewed.ImageBase64" height="145" width="145" class="rounded-circle" alt="@(Settings.Theme.User)">
+                @if (Model.EmployeeToBeViewed.Id == 1317)
+                {
+                    <img src="~/img/Client-Hero-badge.png" height="100" width="100" style="vertical-align:top;" />
+                }
+
+                @if (Model.EmployeeToBeViewed.Id == 907)
+                {
+                    <img src="~/img/Team-Champion-badge.png" height="100" width="100" style="vertical-align:top;" />
+                }
+            </div>
+            @if (Model.EmployeeToBeViewed.Id == Model.loggedInEmployee.Id) {
+            <br />
+            <div class="row px-5" id="edit-employee-profile-pic">
+                <button id="employee-profile-pic-edit" type="submit" class="btn btn-danger" onclick="showUploadProfilePic()" style="background-color: #E84133; border-radius: 7px; width: 80px;">Edit</button>
+            </div>
+            }
+            <div class="row" id="upload-employee-profile-pic" hidden>
+                <input type="file" id="employee-profile-pic" onchange="showUploadProfilePicButton()">
+            </div>
+            <br />
+            <div class="row px-6" id="upload-employee-profile-pic-button" hidden>
+                <button id="employee-profile-pic-upload" class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save" onclick="uploadProfilePic(@Model.EmployeeToBeViewed.Id);" style="background-color:red;"><i class="far fa-cloud-upload fa-2x"></i></button>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3 text-center">
+            <div class="row justify-content-lg-end">
+                <a href='@string.Format("http://myplus/HighFive.aspx?EmployeeID={0}", Model.EmployeeToBeViewed.Id.ToString())' target="_blank" hidden='@((Model.EmployeeToBeViewed.Id == Model.loggedInEmployee.Id ? true : false))'>
+                    <i class="fal fa-hand-sparkles fa-3x d-block"></i>
+                    High five
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-6">
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-info-circle fa-2x"></i> &nbsp; &nbsp;
+                <h2>General information</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                    @*<button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>*@
+                    @*<button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="Close"></button>*@
+                </div>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div class="container">
+                        <div class="form-group row">
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">Office:</label>
+                            @if (Model.Office != null)
+                            {
+                                <label class="col text-left">@Model.Office.Name</label>
+                            }
+                        </div>
+                        <div class="form-group row">
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">Working hours:</label>
+                            <label class="col text-left">@Model.EmployeeToBeViewed.WorkingHoursNotes</label>
+                        </div>
+                        <div class="form-group row">
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">Started on:</label>
+                            <label class="col text-left">@Model.EmployeeToBeViewed.HireDate.ToString("dd MMMM yyyy")</label>
+                        </div>
+                        <div class="form-group row">
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">E-mail address:</label>
+                            <label class="col text-left"><a href="@("mailto:" + @Model.EmployeeToBeViewed.EmailAddress)">@Model.EmployeeToBeViewed.EmailAddress</a></label>
+                        </div>
+                        <div class="form-group row">
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">Teams ID:</label>
+                            <label class="col text-left">@Model.EmployeeToBeViewed.SkypeId</label>
+                        </div>
+                        <div class="form-group row">
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">Landline number:</label>
+                            <label class="col text-left">@Model.EmployeeToBeViewed.LandlineNumber</label>
+                        </div>
+                        <div class="form-group row"
+                             hidden='@((Model.EmployeeToBeViewed.Id == Model.loggedInEmployee.Id || Model.loggedInEmployee.TeamId == 16 ? false : true))'>
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">Mobile number:</label>
+                            <label class="col text-left">@Model.EmployeeToBeViewed.MobileNumber</label>
+                            <i>This number is a personal number for emergency/out-of-office contact only, and should not be given out to clients or suppliers</i>
+                        </div>
+                        <div class="form-group row"
+                             hidden='@((Model.EmployeeToBeViewed.Id == Model.loggedInEmployee.Id || Model.loggedInEmployee.TeamId == 16 ? false : true))'>
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">LinkedIn profile:</label>
+                            <label class="col text-left"><a href="@(Model.EmployeeToBeViewed.LinkedInUrl != null ? Model.EmployeeToBeViewed.LinkedInUrl : "" )" class="@(Model.EmployeeToBeViewed.LinkedInUrl != null ? "" : "disabled" )">@(Model.EmployeeToBeViewed.LinkedInUrl != null ? Model.EmployeeToBeViewed.LinkedInUrl : "N/A" )</a></label>
+                        </div>
+                        <div class="form-group row">
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">Notes:</label>
+                            <label class="col text-left">@Model.EmployeeToBeViewed.Notes</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-info-circle fa-2x"></i> &nbsp; &nbsp;
+                <h2>Next of kin/emergency contact</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse" hidden='@((Model.EmployeeToBeViewed.Id == Model.loggedInEmployee.Id || Model.loggedInEmployee.TeamId == 16 ? false : true))'></button>
+                    @*<button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>*@
+                    @*<button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="Close"></button>*@
+                </div>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div class="container">
+                        <div class="form-group row">
+                            <i>These details are visible only to you and the HR Team, and will be used only in the event of an emergency situation.</i>
+                        </div>
+                        <div class="form-group row">
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">Name:</label>
+                            <label class="col text-left">@Model.EmployeeToBeViewed.NextOfKinName</label>
+                        </div>
+                        <div class="form-group row">
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">Address:</label>
+                            <label class="col text-left">@Model.EmployeeToBeViewed.NextOfKinAddress</label>
+                        </div>
+                        <div class="form-group row">
+                            <label class="form-label col-lg-2 d-flex align-items-center px-0">Phone number:</label>
+                            <label class="col text-left">@Model.EmployeeToBeViewed.NextOfKinContactPhoneNumber</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="panel panel-collapsed" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Tasks
+                    <a href="http://myplus/AddSingleTask.aspx?DataObjectTypeID=5&DataObjectID=@Model.EmployeeToBeViewed.Id" target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>
+                </h2>
+
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                </div>
+
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+
+                    @if (Model.AllEmployeeTasks.Count() > 0)
+                    {
+                        <div class="container">
+                            <div class="row">
+
+                                <table id="task-table" class="table table-bordered table-hover table-sm table-striped w-100">
+                                    <thead style="color:white; background-color:#E84133;">
+                                        <tr align="center">
+                                            <th width="80px">Status</th>
+                                            <th width="150px">For</th>
+                                            <th width="250px">Details</th>
+                                            <th width="150px">Subject</th>
+                                            <th width="250px">Set by</th>
+                                            <th width="100px">Action</th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (var i = 0; i < Model.AllEmployeeTasks.Count(); i++)
+                                        {
+                                            <tr align="center">
+                                                <td>
+                                                    @if (Model.AllEmployeeTasks.ElementAt(i).CompletedDateTime != null)
+                                                    {
+                                                        <i class="ni ni-check text-success" style="vertical-align:text-bottom;font-size:18px;" title="Success"></i>
+                                                    }
+                                                    else if (Model.AllEmployeeTasks.ElementAt(i).DueDateTime < GeneralUtils.GetCurrentUKTime())
+                                                    {
+                                                        <i class="ni ni-info text-warning" style="vertical-align:text-bottom;font-size:18px;" title="Overdue"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="ni ni-ban text-info" style="vertical-align:text-bottom;font-size:18px;" title="Scheduled"></i>
+                                                    }
+                                                </td>
+
+                                                <td><a asp-controller="HR" asp-action="EmployeeProfile" asp-route-employeeToViewId="@Model.EmployeeToBeViewed.Id">@Model.EmployeeToBeViewed.FirstName @Model.EmployeeToBeViewed.Surname</a></td>
+                                                <td>
+                                                    @if (Model.AllEmployeeTasks.ElementAt(i).IsHot == true)
+                                                    {
+                                                        <i class="ni ni-fire fa-1x text-warning"></i>
+                                                    }
+                                                    <label id="task-action-string-@Model.AllEmployeeTasks.ElementAt(i).Id">@Model.AllTasksActionString.ElementAt(i)</label>
+                                                    <a asp-controller="HR" asp-action="EmployeeProfile" id="employee-name-string-@Model.AllEmployeeTasks.ElementAt(i).Id"
+                                                       asp-route-employeeToViewId="@Model.AllEmployeeTasks.ElementAt(i).DataObjectId">@Model.EmployeeToBeViewed.FirstName @Model.EmployeeToBeViewed.Surname</a>
+                                                    <input type="hidden" id="employee-id-@Model.AllEmployeeTasks.ElementAt(i).Id" value="@Model.AllEmployeeTasks.ElementAt(i).DataObjectId" />
+                                                    @if (Model.AllEmployeeTasks.ElementAt(i).IsTimeSpecific == true)
+                                                    {
+                                                        <label>at @Model.AllEmployeeTasks.ElementAt(i).DueDateTime.ToString("HH:mm")</label>
+                                                    }
+                                                    on <label id="due-date-string-@Model.AllEmployeeTasks.ElementAt(i).Id">@Model.AllEmployeeTasks.ElementAt(i).DueDateTime.ToString("dddd d MMMM yyyy")</label>
+
+                                                </td>
+                                                <td>
+                                                    @Model.AllEmployeeTasks.ElementAt(i).InstructionNotes
+                                                    <label id="created-by-label"></label>
+                                                </td>
+                                                <td>
+                                                    <a asp-controller="HR" asp-action="EmployeeProfile" asp-route-employeeToViewId="@Model.AllEmployeeTasks.ElementAt(i).CreatedByEmployeeId">@Model.AllTasksCreatedByEmployee.ElementAt(i).FirstName @Model.AllTasksCreatedByEmployee.ElementAt(i).Surname</a>
+                                                    at @Model.AllEmployeeTasks.ElementAt(i).CreatedDate.ToString("HH:mm") on @Model.AllEmployeeTasks.ElementAt(i).CreatedDate.ToString("dddd dd MMMM yyyy")
+                                                </td>
+                                                <td>
+                                                    <a href="#" title="Edit task" data-target="#edit-task-modal" data-toggle="modal" id="@("edit-task-id-" + Model.AllEmployeeTasks.ElementAt(i).Id)" onclick="loadTaskInfo(this)">
+                                                        <i class="ni ni-note text-info" style="vertical-align:text-bottom;font-size:18px;"></i>
+                                                    </a>&nbsp;&nbsp;&nbsp;
+                                                    <a title="Delete task" href="http://myplus/ConfirmTaskDeletion.aspx?TaskID=@Model.AllEmployeeTasks.ElementAt(i).Id&FromPage=Employee&TaskDataObject=@Model.EmployeeToBeViewed.Id" target="_blank">
+                                                        <i class="fal fa-trash-alt text-warning align-text-bottom" style="vertical-align:text-bottom;font-size:18px;"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+
+                                </table>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <label style="text-align:start;">There are no tasks to show for this employee</label>
+                    }
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="panel panel-collapsed" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>Ownerships</h2>
+
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                </div>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    @if (ViewBag.OnwershipCount > 0)
+                    {
+                        <div class="container">
+                            <div class="row">
+                                <table id="ownership-table" class="table table-bordered table-hover table-sm table-striped w-100" style="width:inherit;" width="100%">
+                                    <thead style="color:white; background-color:#E84133;">
+                                        <tr align="center">
+                                            <th width="250px">Organisation</th>
+                                            <th width="250px">Ownership type</th>
+                                            <th width="150px">In force since</th>
+                                            @if ((Model.AllowChangingOwnershipNotification == true || Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id || Model.EmployeeToBeViewed.Manager == Model.loggedInEmployee.Id) &&
+                                  Model.Department.Id == 1 && Model.Team.Id != 4 && Model.Team.Id != 5)
+                                            {
+                                                <th width="100px">Commission payable (%)</th>
+                                            }
+                                            <th width="150px">Action</th>
+
+                                        </tr>
+                                    </thead>
+                                    @*<tbody>
+                                            <tr>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        </tbody>*@
+                                    @*<tbody>
+                                                                                @for (var i = 0; i < Model.AllOwnerships.Count(); i++)
+                                                                                {
+                                                                                    <tr align="center">
+                                                                                        <td>
+                                                                                            <a href="http://myplus/Org.aspx?OrgID=@Model.AllOwnershipOrgs.ElementAt(i).Id">
+                                                                                                @Model.AllOwnershipOrgs.ElementAt(i).Id - @Model.AllOwnershipOrgs.ElementAt(i).OrgName
+                                                                                            </a>
+                                                                                        </td>
+
+                                                                                        <td>
+                                                                                            @Model.AllOwnershipTypes.ElementAt(i).Name
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            @Model.AllOwnerships.ElementAt(i).InForceStartDateTime.ToString("d MMMM yyyy")
+                                                                                        </td>
+                                                                                        @if ((Model.AllowChangingOwnershipNotification == true || Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id || Model.EmployeeToBeViewed.Manager == Model.loggedInEmployee.Id) &&
+                                        (Model.AllOwnerships.ElementAt(0).EmployeeOwnershipTypeId == 3 || Model.AllOwnerships.ElementAt(0).EmployeeOwnershipTypeId == 4))
+                                                                                        {
+                                                                                            <td>
+                                                                                                @if (Model.AllOwnerships.ElementAt(i).EmployeeOwnershipTypeId == 1 || Model.AllOwnerships.ElementAt(i).EmployeeOwnershipTypeId == 4)
+                                                                                                {
+                                                                                                    @if (Model.AllOwnerships.ElementAt(i).CommissionPercentage != null)
+                                                                                                    {
+                                                                                                        @Model.AllOwnerships.ElementAt(i).CommissionPercentage.Value.ToString("N2")<label>%</label>
+                                                                                                    }
+                                                                                                    else
+                                                                                                    {
+                                                                                                        @if (Model.AllOwnerships.ElementAt(i).EmployeeOwnershipTypeId == 1)
+                                                                                                        {
+                                                                                                            @Model.EmployeeToBeViewed.SalesNewBusinessCommissionPercentage.ToString("N2")<label>%</label>
+                                                                                                        }
+                                                                                                        else
+                                                                                                        {
+                                                                                                            @Model.EmployeeToBeViewed.SalesAccountManagementCommissionPercentage.ToString("N2")<label>%</label>
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            </td>
+                                                                                        }
+                                                                                        <td>
+                                                                                            <a href="http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=@Model.AllOwnerships.ElementAt(i).Id&Mode=Change">
+                                                                                                <i class="ni ni-note fa-2x text-info" style="vertical-align:text-bottom;"></i>
+                                                                                            </a>&nbsp;&nbsp;&nbsp;
+                                                                                            @if (Model.AllOwnerships.ElementAt(i).EmployeeOwnershipTypeId == 6)
+                                                                                            {
+                                                                                                <a href="http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=@Model.AllOwnerships.ElementAt(i).Id&Mode=Modify&Confirm=1">
+                                                                                                    <i class="ni ni-arrow-right fa-2x text-success"></i>
+                                                                                                </a><label>&nbsp;&nbsp;&nbsp;</label>
+                                                                                            }
+                                                                                            <a href="http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=@Model.AllOwnerships.ElementAt(i).Id&Mode=Delete">
+                                                                                                <i class="fal fa-trash-alt fa-2x text-warning align-text-bottom"></i>
+                                                                                            </a>&nbsp;&nbsp;&nbsp;
+                                                                                            @if ((Model.AllowChangingOwnershipNotification == true || Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id) &&
+                                        (Model.AllOwnerships.ElementAt(i).EmployeeOwnershipTypeId == 3 || Model.AllOwnerships.ElementAt(i).EmployeeOwnershipTypeId == 4))
+                                                                                            {
+                                                                                                <a id="ownership-notification-link" href="http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=@Model.AllOwnerships.ElementAt(i).Id&Mode=Notification">
+                                                                                                    <i class="ni ni-envelope fa-2x text-info"></i>
+                                                                                                </a>
+                                                                                            }
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                            </tbody>*@
+
+                                </table>
+
+
+
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <label style="text-align:start;">There are no ownerships to show for this employee</label>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    @if ((Model.EmployeeToBeViewed.Id == Model.loggedInEmployee.Id && Model.EmployeeToBeViewed.OfficeId!=14&& Model.EmployeeToBeViewed.OfficeId!=16) || Model.Team.Id == 16 || Model.IsloggedInEmployeeAllowedToApproveHoliday == true)
+    {
+        <div class="col-lg-12">
+            <div class="@(ViewBag.holidayYearFromURL > 0 ? "panel" : "panel panel-collapsed")" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    @*&nbsp;&nbsp;&nbsp;
+                        @if (Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id)
+                        {
+                            <a href="#" data-target="#holiday-request-modal" data-toggle="modal" onclick="showHolidayModal()" class="btn p-1">
+                                <i class="fal fa-plus-circle fa-2x"></i>
+                            </a>
+                        }
+                        &nbsp;&nbsp;*@
+
+                    <h2>
+                        Holidays
+                        @if (Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id)
+                        {
+                            <a href="#" data-target="#holiday-request-modal" data-toggle="modal" onclick="showHolidayModal()" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>
+                        }
+                    </h2>
+
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                    </div>
+                </div>
+                <div class="@(ViewBag.holidayYearFromURL > 0 ? "panel-container show" : "panel-container collapse")">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div class="row">
+                                <table class="table table-borderless" style="width:100%">
+                                    <tr>
+                                        <td align="left" style="width:200px;">
+                                            <label class="form-label md-header">Holidays(s) for the year:</label>
+                                            <select class="select2-placeholder-multiple form-control" id="holiday-year-select" onchange="showHolidayForYear();">
+                                                @for (var i = 0; i < Model.AllHolidayYearDetails.Count(); i++)
+                                                {
+                                                    <option selected="@(Model.holidayYearSelected == Model.AllHolidayYearDetails.ElementAt(i).Year ? true : false)" value="@Model.AllHolidayYearDetails.ElementAt(i).Year">@Model.AllHolidayYearDetails.ElementAt(i).Year</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            <table class="table table-borderless">
+                                                <tr>
+                                                    <td style="border-spacing:0px;padding:0px;">
+                                                        <label class="form-label md-header text-success">Standard days:</label>
+                                                    </td>
+                                                    <td style="border-spacing:0px;padding:0px;" width="50">
+                                                        @Model.HolidayDetailsForThisYear.TotalBaseAnnualHolidays.ToString("G29")
+                                                    </td>
+                                                </tr>
+                                                @if (Model.HolidayDetailsForThisYear.LoyaltyDays != null)
+                                                {
+                                                    <tr>
+                                                        <td style="border-spacing:0px;padding:0px;">
+                                                            <label class="form-label md-header text-success">Loyalty holidays:</label>
+                                                        </td>
+                                                        <td style="border-spacing:0px;padding:0px;">
+                                                            @Model.HolidayDetailsForThisYear.LoyaltyDays.Value.ToString("G29")
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                                @if (Model.HolidayDetailsForThisYear.MiscDays != null && Model.HolidayDetailsForThisYear.MiscDays > 0)
+                                                {
+                                                    <tr>
+                                                        <td style="border-spacing:0px;padding:0px;">
+                                                            <label class="form-label md-header text-success">Miscellaneous day(s):</label>
+                                                        </td>
+                                                        <td style="border-spacing:0px;padding:0px;">
+                                                            @Model.HolidayDetailsForThisYear.MiscDays.Value.ToString("G29")
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                                @if (Model.HolidayDetailsForThisYear.TotalAnnualHolidays != null)
+                                                {
+                                                    <tr>
+                                                        <td style="border-spacing:0px;padding:0px;">
+                                                            <label class="form-label md-header text-success">Total holidays:</label>
+                                                        </td>
+                                                        <td style="border-spacing:0px;padding:0px;">
+                                                            @Model.HolidayDetailsForThisYear.TotalAnnualHolidays.Value.ToString("G29")
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+
+                            <div class="row">
+                                @if (Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id)
+                                {
+                                    <label>
+                                        You have used <label class="form-label md-header text-success">@Model.HolidayDetailsForThisYear.HolidaysRequested.Value.ToString("G29")</label> holidays(s) from the total of <label class="form-label md-header text-success">@Model.HolidayDetailsForThisYear.TotalAnnualHolidays.Value.ToString("G29")</label> holidays for year <label class="form-label md-header text-success">@Model.HolidayDetailsForThisYear.Year</label><br />
+                                        And you have <label class="form-label md-header text-success">@Model.HolidayDetailsForThisYear.HolidaysRemaing.Value.ToString("G29")</label> holiday(s) remaining for the year <label class="form-label md-header text-success">@Model.HolidayDetailsForThisYear.Year</label>.
+                                    </label>
+                                }
+                                else
+                                {
+                                    <label>
+                                        This employee has used <label class="form-label md-header text-success">@Model.HolidayDetailsForThisYear.HolidaysRequested.Value.ToString("G29")</label> holidays(s) from the total of
+                                        <label class="form-label md-header text-success">@Model.HolidayDetailsForThisYear.TotalAnnualHolidays.Value.ToString("G29")</label> holidays for year
+                                        <label class="form-label md-header text-success">@Model.HolidayDetailsForThisYear.Year</label><br />
+                                        And has <label class="form-label md-header text-success">@Model.HolidayDetailsForThisYear.HolidaysRemaing.Value.ToString("G29")</label> holiday(s) remaining for the year
+                                        <label class="form-label md-header text-success">@Model.HolidayDetailsForThisYear.Year</label>.
+                                    </label>
+                                }
+                                <table id="holiday-table" class="table table-bordered table-hover table-sm table-striped w-100">
+                                    <thead style="color:white; background-color:#E84133;">
+                                        <tr align="center">
+                                            <th width="200px">First day</th>
+                                            <th width="200px">Last day</th>
+                                            <th width="80px">Total days</th>
+                                            <th width="100px" align="center">Status</th>
+                                            @if (Model.loggedInEmployee.Id == 16 || Model.IsloggedInEmployeeAllowedToApproveHoliday == true || Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id)
+                                            {
+                                                <th width="100px">Action</th>
+                                            }
+
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (var i = 0; i < Model.AllHolidayRequests.Count(); i++)
+                                        {
+                                            <tr align="center">
+                                                <td align="center">@Model.AllHolidayRequests.ElementAt(i).HolidayStartDateTime.ToString("dddd d MMMM yyyy")&nbsp;@(Model.AllHolidayRequests.ElementAt(i).StartDateAmorPmorFullDay == 1 ? "(Morning)" : "")@(Model.AllHolidayRequests.ElementAt(i).StartDateAmorPmorFullDay == 2 ? "(Afternoon)" : "")</td>
+                                                <td>@Model.AllHolidayRequests.ElementAt(i).HolidayEndDateTime.ToString("dddd d MMMM yyyy")&nbsp;@(Model.AllHolidayRequests.ElementAt(i).EndDateAmorPmorFullDay == 1 ? "(Morning)" : "")@(Model.AllHolidayRequests.ElementAt(i).EndDateAmorPmorFullDay == 2 ? "(Afternoon)" : "")</td>
+                                                <td>@Model.AllHolidayRequests.ElementAt(i).TotalDays.ToString("G29")</td>
+                                                <td>
+                                                    <i class="ni ni-check fa-1x text-success" style="vertical-align:text-bottom;"
+                                                       hidden="@(Model.AllHolidayRequests.ElementAt(i).Status == 1 || Model.AllHolidayRequests.ElementAt(i).Status == 3 || Model.AllHolidayRequests.ElementAt(i).Status == 4 ? false : true)"></i>
+                                                    <i class="ni ni-info fa-1x text-info"
+                                                       hidden="@(Model.AllHolidayRequests.ElementAt(i).Status == 0 ? false : true)"></i>
+                                                    <i class="ni ni-ban fa-1x text-warning" style="vertical-align:text-bottom;"
+                                                       hidden="@(Model.AllHolidayRequests.ElementAt(i).Status == 2 ? false : true)"></i>
+                                                    @if (Model.AllHolidayRequests.ElementAt(i).Status == 0)
+                                                    {
+                                                        <label class="form-label text-info">Pending approval</label>
+                                                    }
+
+                                                    @if (Model.AllHolidayRequests.ElementAt(i).Status == 1)
+                                                    {
+                                                        <label class="form-label text-success">Approved</label>
+                                                    }
+
+                                                    @if (Model.AllHolidayRequests.ElementAt(i).Status == 2)
+                                                    {
+                                                        <label class="form-label text-warning">Declined</label>
+                                                    }
+
+                                                    @if (Model.AllHolidayRequests.ElementAt(i).Status == 3)
+                                                    {
+                                                        <label class="form-label text-success">Taken</label>
+                                                    }
+
+                                                    @if (Model.AllHolidayRequests.ElementAt(i).Status == 4)
+                                                    {
+                                                        <label class="form-label text-success">On holiday</label>
+                                                    }
+
+                                                </td>
+                                                @if (Model.loggedInEmployee.Id == 16 || Model.IsloggedInEmployeeAllowedToApproveHoliday == true || Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id)
+                                                {
+                                                    <td>
+
+                                                        @if (Model.loggedInEmployee.Id != Model.EmployeeToBeViewed.Id && Model.AllHolidayRequests.ElementAt(i).Status == 0)
+                                                        {
+                                                            <a href="#" title="Approve" data-target="#holiday-approval-modal" data-toggle="modal" onclick="loadApprovalInfo(this)" id="@("holiday-approval-icon-" + Model.AllHolidayRequests.ElementAt(i).Id)">
+                                                                <i class="fal fa-check-circle text-success align-text-bottom" style="font-size:18px;"></i>
+                                                            </a><label>&nbsp;&nbsp;&nbsp;</label>
+                                                            <a href="#" title="Decline" data-target="#holiday-approval-modal" data-toggle="modal" onclick="loadApprovalInfo(this)" id="@("holiday-decline-icon-" + Model.AllHolidayRequests.ElementAt(i).Id)">
+                                                                <i class="ni ni-ban text-warning align-text-bottom" style="font-size:18px;"></i><label>&nbsp;&nbsp;&nbsp;</label>
+                                                            </a>
+                                                        }
+                                                        @if ((Model.AllHolidayRequests.ElementAt(i).Status == 0 || Model.AllHolidayRequests.ElementAt(i).Status == 1) &&
+Model.AllHolidayRequests.ElementAt(i).HolidayStartDateTime >= DateTime.Today)
+                                                        {
+                                                            <a href="#" title="Delete" data-target="#holiday-deletion-modal" data-toggle="modal" id="@("holiday-delete-icon-" + Model.AllHolidayRequests.ElementAt(i).Id)" onclick="showDeleteHolidayModal(this)">
+                                                                <i class="fal fa-trash-alt text-warning align-text-bottom" style="font-size:18px;"></i>
+                                                            </a>
+                                                        }
+
+                                                    </td>
+                                                }
+
+                                            </tr>
+                                        }
+                                    </tbody>
+
+                                </table>
+                                Please be aware that all dates are inclusive
+
+                            </div>
+                            <div class="row">
+
+                                @if (Model.HolidayDetailsForThisYear.HolidayNotes != "" && Model.HolidayDetailsForThisYear.HolidayNotes != null)
+                                {
+                                    <label class="form-label md-header text-success">Holiday notes:&nbsp;</label> @Model.HolidayDetailsForThisYear.HolidayNotes
+
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    @if ((Model.EmployeeToBeViewed.Id == Model.loggedInEmployee.Id && Model.EmployeeToBeViewed.OfficeId!=14 && Model.EmployeeToBeViewed.OfficeId!=16) || Model.Team.Id == 16 || Model.IsloggedInEmployeeAllowedToViewSickness == true)
+    {
+        <div class="col-lg-12">
+            <div class="@(ViewBag.sicknessYearFromURL > 0 ? "panel" : "panel panel-collapsed")" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <h2>
+                        Sick days
+                        @if (Model.loggedInEmployee.Id != Model.EmployeeToBeViewed.Id)
+                        {
+                            <a href="http://myplus/SicknessPage.aspx?EmployeeID=@Model.EmployeeToBeViewed.Id&Mode=Add" target="_blank" class="btn p-1">
+                                <i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i>
+                            </a>
+                        }
+                    </h2>
+
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                    </div>
+                </div>
+                <div class="@(ViewBag.sicknessYearFromURL > 0 ? "panel-container show" : "panel-container collapse")">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div class="row">
+                                <table class="table table-borderless" style="width:100%">
+                                    <tr>
+                                        <td align="left" style="width:200px;">
+                                            <label class="form-label md-header">Sick days(s) for the year:</label>
+                                            <select class="select2-placeholder-multiple form-control" id="sickness-year-select" onchange="showSicknessForYear();">
+                                                @for (var i = 0; i < Model.AllSicknessYears.Count(); i++)
+                                                {
+                                                    <option selected="@(Model.SicknessYearSelected == Model.AllSicknessYears.ElementAt(i) ? true : false)" value="@Model.AllSicknessYears.ElementAt(i)">@Model.AllSicknessYears.ElementAt(i)</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td>&nbsp;</td>
+                                    </tr>
+                                </table>
+
+                            </div>
+
+                            <div class="row">
+                                @if (Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id)
+                                {
+                                    <label>
+                                        You have taken <label class="form-label md-header text-success">@Model.TotalSicknessDaysForYear.ToString("G29")</label> sick day(s) this year.<br />
+                                    </label>
+                                }
+                                else
+                                {
+                                    <label>
+                                        This employee has taken <label class="form-label md-header text-success">@Model.TotalSicknessDaysForYear.ToString("G29")</label> sick day(s) this year.<br />
+                                    </label>
+                                }
+                                <table id="sickness-table" class="table table-bordered table-hover table-sm table-striped w-100">
+                                    <thead style="color:white; background-color:#E84133;">
+                                        <tr align="center">
+                                            <th width="200px">First day</th>
+                                            <th width="200px">Last day</th>
+                                            <th width="100px">Total days</th>
+                                            @if (Model.loggedInEmployee.Id != Model.EmployeeToBeViewed.Id)
+                                            {
+                                                <th width="150px">Sick notes</th>
+                                            }
+
+                                            <th width="150px">Reason for sickness</th>
+                                            <th width="150px">Confirmed</th>
+                                            <th width="150px">Approved</th>
+                                            @if (Model.loggedInEmployee.Id == 16 || Model.IsloggedInEmployeeAllowedToViewSickness == true || Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id)
+                                            {
+                                                <th width="100px">Action</th>
+                                            }
+
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (var i = 0; i < Model.AllEmployeeSickness.Count(); i++)
+                                        {
+                                            <tr align="center">
+                                                <td align="center">@Model.AllEmployeeSickness.ElementAt(i).SicknessStartDateTime.ToString("dddd d MMMM yyyy")&nbsp;@(Model.AllEmployeeSickness.ElementAt(i).StartDateAmorPmorFullDay == 1 ? "(Morning)" : "")@(Model.AllEmployeeSickness.ElementAt(i).StartDateAmorPmorFullDay == 2 ? "(Afternoon)" : "")</td>
+                                                <td>@Model.AllEmployeeSickness.ElementAt(i).SicknessEndDateTime.ToString("dddd d MMMM yyyy")&nbsp;@(Model.AllEmployeeSickness.ElementAt(i).EndDateAmorPmorFullDay == 1 ? "(Morning)" : "")@(Model.AllEmployeeSickness.ElementAt(i).EndDateAmorPmorFullDay == 2 ? "(Afternoon)" : "")</td>
+                                                <td>@Model.AllEmployeeSickness.ElementAt(i).TotalDays.ToString("G29")</td>
+                                                @if (Model.loggedInEmployee.Id != Model.EmployeeToBeViewed.Id)
+                                                {
+                                                    <td>
+                                                        @Model.AllEmployeeSickness.ElementAt(i).SickNotes
+                                                    </td>
+                                                }
+                                                <td>
+                                                    @Model.AllEmployeeSickness.ElementAt(i).EmployeeSicknessReason
+                                                </td>
+                                                <td>
+                                                    @(Model.AllEmployeeSickness.ElementAt(i).ConfirmedDateTime == null ? "" : Model.AllEmployeeSickness.ElementAt(i).ConfirmedDateTime.Value.ToString("dddd d MMMM yyyy"))
+                                                </td>
+                                                <td>
+                                                    @(Model.AllEmployeeSickness.ElementAt(i).ApprovedDateTime == null ? "" : Model.AllEmployeeSickness.ElementAt(i).ApprovedDateTime.Value.ToString("dddd d MMMM yyyy"))
+                                                </td>
+                                                @if (Model.loggedInEmployee.Id == 16 || Model.IsloggedInEmployeeAllowedToViewSickness == true || Model.loggedInEmployee.Id == Model.EmployeeToBeViewed.Id)
+                                                {
+                                                    <td>
+                                                        <a asp-controller="HR" asp-action="GetSicknessCertificatePDFFile" asp-route-certificatePath="@Model.AllEmployeeSickness.ElementAt(i).DoctorsCertificate" hidden="@(Model.AllEmployeeSickness.ElementAt(i).DoctorsCertificate == null)">
+                                                            <img src="~/img/PDFDocIcon.gif" width="28" height="30" style="vertical-align:text-bottom" /><label>&nbsp;&nbsp;&nbsp;</label>
+                                                        </a>
+                                                        @*<a asp-controller="HR" asp-action="GetSicknessCertificatePDFFile" asp-route-certificatePath="@Model.AllEmployeeSickness.ElementAt(i).DoctorsCertificate">
+                                                                PDF
+                                                            </a>*@
+                                                        @if (Model.EmployeeToBeViewed.Id == Model.loggedInEmployee.Id)
+                                                        {
+                                                            <a title="Confirm" hidden="@(Model.AllEmployeeSickness.ElementAt(i).ConfirmedDateTime != null)" target="_blank"
+                                                               href="http://myplus/SicknessPage.aspx?EmployeeID=@Model.AllEmployeeSickness.ElementAt(i).EmployeeId&SicknessID=@Model.AllEmployeeSickness.ElementAt(i).Id&Mode=Confirm">
+                                                                <i class="fal fa-check-circle text-success align-text-bottom" style="font-size:18px;"></i>
+                                                            </a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <a title="Edit" target="_blank" href="http://myplus/SicknessPage.aspx?EmployeeID=@Model.AllEmployeeSickness.ElementAt(i).EmployeeId&Mode=Edit&SicknessID=@Model.AllEmployeeSickness.ElementAt(i).Id">
+                                                                <i class="ni ni-note text-info" style="vertical-align:text-bottom;font-size:18px;"></i>
+                                                            </a><label>&nbsp;&nbsp;&nbsp;</label>
+                                                            <a title="Approve" target="_blank" href="http://myplus/SicknessPage.aspx?EmployeeID=@Model.AllEmployeeSickness.ElementAt(i).EmployeeId&SicknessID=@Model.AllEmployeeSickness.ElementAt(i).Id&Mode=Approve"
+                                                               hidden="@(Model.AllEmployeeSickness.ElementAt(i).ApprovedDateTime != null)">
+                                                                <i class="fal fa-check-circle text-success align-text-bottom" style="font-size:18px;"></i><label>&nbsp;&nbsp;&nbsp;</label>
+                                                            </a><label>&nbsp;&nbsp;&nbsp;</label>
+                                                            <a title="Decline" target="_blank" href="http://myplus/SicknessPage.aspx?EmployeeID=@Model.AllEmployeeSickness.ElementAt(i).EmployeeId&SicknessID=@Model.AllEmployeeSickness.ElementAt(i).Id&Mode=Disapprove"
+                                                               hidden="@(Model.AllEmployeeSickness.ElementAt(i).ApprovedDateTime != null && Model.AllEmployeeSickness.ElementAt(i).RejectedDateTime != null)">
+                                                                <i class="ni ni-ban text-warning align-text-bottom" style="font-size:18px;"></i><label>&nbsp;&nbsp;&nbsp;</label>
+                                                            </a><label>&nbsp;&nbsp;&nbsp;</label>
+                                                            <a title="Delete" data-target="#sickness-deletion-modal" data-toggle="modal" id="@("sickness-delete-icon-" + Model.AllEmployeeSickness.ElementAt(i).Id)" onclick="showDeleteSicknessModal(this)" hidden="@(Model.AllEmployeeSickness.ElementAt(i).ApprovedDateTime != null)">
+                                                                <i class="fal fa-trash-alt text-warning align-text-bottom" style="font-size:18px;"></i>
+                                                            </a>
+                                                        }
+
+                                                    </td>
+                                                }
+
+                                            </tr>
+                                        }
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.EmployeeToBeViewed.Id == Model.loggedInEmployee.Id || Model.Team.Id == 16 || Model.Team.Id == 38 || Model.IsloggedInEmployeeAllowedToApproveHoliday == true)
+    {
+        <div class="col-lg-12">
+            <div class="@(ViewBag.trainingYearFromURL > 0 ? "panel" : "panel panel-collapsed")" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <h2>Training</h2>
+
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                    </div>
+                </div>
+                <div class="@(ViewBag.trainingYearFromURL > 0 ? "panel-container show" : "panel-container collapse")">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div class="row">
+                                <table class="table table-borderless" style="width:100%">
+                                    <tr>
+                                        <td align="left" style="width:200px;">
+                                            <label class="form-label md-header">Training(s) for the year:</label>
+                                            <select class="select2-placeholder-multiple form-control" id="training-year-select" onchange="showTrainingForYear();">
+                                                <option value="0">(Please select)</option>
+                                                @for (var i = 0; i < Model.AllTrainingYears.Count(); i++)
+                                                {
+                                                    <option selected="@(Model.TrainingYearSelected == Model.AllTrainingYears.ElementAt(i) ? true : false)" value="@Model.AllTrainingYears.ElementAt(i)">@Model.AllTrainingYears.ElementAt(i)</option>
+                                                }
+                                            </select>
+                                        </td>
+                                        <td style="text-align:right;">
+                                            &nbsp;
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+
+                            <div class="row">
+                                @if (Model.AllEmployeeTraining.Count > 0)
+                                {
+                                    <table id="training-table" class="table table-bordered table-hover table-sm table-striped w-100">
+                                        <thead style="color:white; background-color:#E84133;">
+                                            <tr align="center">
+                                                <th width="200px">Training name</th>
+                                                <th width="100px">Training officer</th>
+                                                <th width="150px">Training date</th>
+                                                @if (Model.TrainingYearSelected >= 2016)
+                                                {
+                                                    <th width="80px">Time</th>
+                                                    <th width="100px">Location</th>
+                                                }
+                                                <th width="100px" align="center">Status</th>
+                                                @if (Model.loggedInEmployee.Id == 16 || Model.loggedInEmployee.Id == 38 || Model.IsloggedInEmployeeAllowedToApproveHoliday == true)
+                                                {
+                                                    <th width="100px">Action</th>
+                                                }
+
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (var i = 0; i < Model.AllEmployeeTraining.Count(); i++)
+                                            {
+                                                <tr align="center">
+                                                    <td>@Model.AllTrainingCourseNames.ElementAt(i)</td>
+                                                    <td>@Model.AllTrainingTrainerNames.ElementAt(i)</td>
+                                                    <td>@Model.AllEmployeeTraining.ElementAt(i).TrainingSessionDate.ToString("dddd d MMMM yyyy")</td>
+                                                    @if (Model.TrainingYearSelected >= 2016)
+                                                    {
+                                                        <td>
+                                                            @(GeneralUtils.GetHoursAndMinutesIn24HoursFormat(Model.AllEmployeeTraining.ElementAt(i).TrainingStartTimeInHours, Model.AllEmployeeTraining.ElementAt(i).TrainingStartTimeInMinutes) + " to " +
+                                                    GeneralUtils.GetHoursAndMinutesIn24HoursFormat(Model.AllEmployeeTraining.ElementAt(i).TrainingEndTimeInHours, Model.AllEmployeeTraining.ElementAt(i).TrainingEndTimeInMinutes))
+                                                        </td>
+                                                        <td>
+                                                            @Model.AllEmployeeTraining.ElementAt(i).TrainingLocation
+                                                        </td>
+                                                    }
+
+                                                    <td>
+                                                        @if (Model.AllTrainingAttendence.ElementAt(i).AttendedTraining == true && Model.AllEmployeeTraining.ElementAt(i).SignOffDateTime != null)
+                                                        {
+                                                            <i class="ni ni-check fa-1x text-success" style="vertical-align:text-bottom;"></i>
+                                                            <label class="form-label text-success">
+                                                                Attended
+                                                            </label>
+                                                        }
+                                                        else if (Model.AllTrainingAttendence.ElementAt(i).AttendedTraining == false && Model.AllEmployeeTraining.ElementAt(i).SignOffDateTime != null)
+                                                        {
+                                                            <i class="ni ni-ban fa-1x text-warning" style="vertical-align:text-bottom;"></i>
+                                                            <label class="form-label text-warning">Missed</label>
+
+                                                        }
+                                                        else if (Model.AllEmployeeTraining.ElementAt(i).TrainingSessionDate >= DateTime.Today && Model.AllEmployeeTraining.ElementAt(i).SignOffDateTime == null)
+                                                        {
+                                                            <i class="ni ni-info fa-1x text-info" style="vertical-align:text-bottom;"></i>
+                                                            <label class="form-label text-info">Invited</label>
+
+                                                        }
+                                                        else if (Model.AllEmployeeTraining.ElementAt(i).TrainingSessionDate < DateTime.Today && Model.AllEmployeeTraining.ElementAt(i).SignOffDateTime == null)
+                                                        {
+                                                            <i class="ni ni-info fa-1x text-info" style="vertical-align:text-bottom;"></i>
+                                                            <label class="form-label text-info">
+                                                                Unknown
+                                                            </label>
+                                                        }
+                                                    </td>
+                                                    @if (Model.loggedInEmployee.Id == 16 || Model.loggedInEmployee.Id == 38 || Model.IsloggedInEmployeeAllowedToApproveHoliday == true)
+                                                    {
+                                                        <td>
+                                                            <a title="Edit training" target="_blank" href="http://myplus/TrainingSession.aspx?TrainingSessionID=@Model.AllEmployeeTraining.ElementAt(i).Id" hidden="@(Model.AllEmployeeTraining.ElementAt(i).SignOffDateTime != null)">
+                                                                <i class="ni ni-note text-info" style="vertical-align:text-bottom;font-size:18px;"></i>
+                                                            </a>&nbsp;&nbsp;&nbsp;
+                                                            <a title="Delete training" target="_blank" href="http://myplus/ConfirmTrainingDeletion.aspx?TrainingSessionID=@Model.AllEmployeeTraining.ElementAt(i).Id">
+                                                                <i class="fal fa-trash-alt text-warning align-text-bottom" style="font-size:18px;"></i>
+                                                            </a>&nbsp;&nbsp;&nbsp;
+                                                            <a title="Sign-off training" target="_blank" href="http://myplus/TrainingSessionSignOff.aspx?TrainingSessionID=@Model.AllEmployeeTraining.ElementAt(i).Id" hidden="@(Model.AllEmployeeTraining.ElementAt(i).SignOffDateTime != null)">
+                                                                >
+                                                                <i class="fal fa-check-circle text-success align-text-bottom" style="font-size:18px;"></i>
+                                                            </a>
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            }
+                                        </tbody>
+
+                                    </table>
+                                }
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div class="modal modal-alert fade" id="upload-profile-pic-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><label id="header-text"></label></h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                    </button>*@
+            </div>
+            <div class="modal-body">
+                <label id="upload-profile-pic-success-string"></label>
+                <label class="text-warning md-header" id="upload-profile-pic-warning-string"></label>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+@section ScriptsBlock {
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(function () {
+                //debugger;
+                getAllOwnerships();
+
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "Search..."
+                });
+
+
+                $(".js-hide-search").select2({
+                    minimumResultsForSearch: 1 / 0
+                });
+                $(".js-max-length").select2({
+                    maximumSelectionLength: 2,
+                    placeholder: "Select maximum 2 items"
+                });
+                $(".select2-placeholder").select2({
+                    placeholder: "Select a state",
+                    allowClear: true
+                });
+                $(".js-select2-icons").select2({
+                    minimumResultsForSearch: 1 / 0,
+                    templateResult: icon,
+                    templateSelection: icon,
+                    escapeMarkup: function (elm) {
+                        return elm
+                    }
+                });
+
+            });
+        });
+
+        function showHolidayForYear() {
+            var year = document.getElementById('holiday-year-select').value;
+            var employeeId = document.getElementById("employee-hidden-field").value;
+            window.location.href = `hr/EmployeeProfile/${employeeId}/${year}`;
+
+        }
+
+        function showSicknessForYear() {
+            var year = document.getElementById('sickness-year-select').value;
+            var employeeId = document.getElementById("employee-hidden-field").value;
+            window.location.href = `hr/EmployeeProfile/${employeeId}/0/${year}`;
+        }
+
+        function showTrainingForYear() {
+            var year = document.getElementById('training-year-select').value;
+            var employeeId = document.getElementById("employee-hidden-field").value;
+            window.location.href = `hr/EmployeeProfile/${employeeId}/0/0/${year}`;
+        }
+
+        function getEmployeeFromId(employeeId) {
+            var xhr2 = new XMLHttpRequest();
+            xhr2.open("POST", "HR/GetEmployeeObjectById", false);
+            xhr2.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var reponseReturned = xhr2.responseText;
+                    var employeeObj = $.parseJSON(reponseReturned);
+                    document.getElementById('created-by-label').innerText = employeeObj.firstName + ' ' + employeeObj.surname;
+                }
+            };
+            xhr2.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr2.send(employeeId);
+        }
+
+        function getAllOwnerships() {
+            var dataObjectId = @Model.EmployeeToBeViewed.Id;
+            var dataTypeId = 5;
+
+            //var xhr = new XMLHttpRequest();
+            //xhr.onreadystatechange = function () {
+            //    if (this.readyState == 4 && this.status == 200) {
+            //        var response = xhr.responseText;
+            //        dataForOwnershipTable = response;
+            //        debugger;
+            //    }
+            //};
+
+            //xhr.open("POST", "HR/GetAllOwnerships", false);
+            //xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            //xhr.send(employeeId);
+            //debugger;
+            var ownershipTable = document.getElementById('ownership-table');
+            if (ownershipTable != null) {
+                var numberOfColumns = ownershipTable.rows[0].cells.length;
+                if (numberOfColumns == 4) {
+                    $('#ownership-table').dataTable({
+                        processing: true,
+                        "ordering": false,
+                        serverSide: true,
+                        searching: false,
+                        "bAutoWidth": false,
+                        ajax: {
+                            contentType: "application/json; charset=utf-8",
+                            url: "/HR/GetAllOwnerships",
+                            type: 'POST',
+                            data: function (d) {
+                                return JSON.stringify({ parameters: d, dataObjectId, dataTypeId });
+                            }
+                        },
+                        //ajax: {
+                        //    url: "HR/GetAllOwnerships",
+                        //    method: "POST",
+                        //    contentType: "application/json; charset=utf-8",
+                        //    data: function () {
+                        //        debugger;
+                        //        return JSON.stringify({employeeId });
+                        //    }
+                        //},
+                        lengthMenu: [10, 20, 50, 100, 200],
+                        fixedHeader: true,
+                        fixedColumns: false,
+                        colReorder: false,
+                        responsive: true,
+                        dom:
+                            "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                            "<'row'<'col-sm-12'tr>>" +
+                            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                        columns: [
+                            {
+                                "data": "ownershipOrgName",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        if (data == 0) {
+                                            return 'N/A';
+                                        }
+                                        else {
+
+                                            let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.ownershipOrgId}`;
+                                            return '<a align="center" href="' + link + '" target="_blank" >' + data + '</a>';
+                                        }
+                                    }
+                                    return data;
+                                }
+                            },
+                            {
+                                "data": "employeeOwnershipTypeName"
+                            },
+                            { "data": "inForceSinceString" },
+                            {
+                                "data": "ownershipId",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        let ownershipTypeId = row.ownershipTypeId;
+                                        let link1 = `http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=${row.ownershipId}&Mode=Change`;
+                                        let link2 = `http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=${row.ownershipId}&Mode=Modify&Confirm=1`;
+                                        let link3 = `http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=${row.ownershipId}&Mode=Delete`;
+                                        let link4 = `http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=${row.ownershipId}&Mode=Notification`;
+                                        var part1 = '<a title="Change the owner to a different employee" href="' + link1 + '" target="_blank"><i class="ni ni-note text-info" style="vertical-align:text-bottom;font-size:18px;"></i></a>&nbsp;&nbsp;'
+                                        var part2 = "";
+                                        var part3 = '<a title="Delete this owner" href="' + link3 + '" target="_blank"><i class="fal fa-trash-alt text-warning align-text-bottom" style="vertical-align:text-bottom;font-size:18px;"></i></a>'
+
+                                        if (ownershipTypeId == 6) {
+                                            part2 = '<a title="Edit ownership details" href="' + link2 + '" target="_blank"><i class="ni ni-arrow-right text-success" style="vertical-align:text-bottom;font-size:18px;"></i></a>&nbsp;&nbsp;'
+                                        }
+
+                                        var spacesBeforeButtons = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                                        linkToReturn = spacesBeforeButtons + part1 + part2 + part3;
+                                        return linkToReturn;
+
+                                    }
+                                    return data;
+                                }
+                            }
+                        ],
+                        buttons: [
+                            {
+                                extend: 'pageLength',
+                                className: 'btn-outline-default'
+                            }
+                        ]
+                    });
+                }
+                else {
+                    $('#ownership-table').dataTable({
+                        processing: true,
+                        serverSide: true,
+                        searching: false,
+                        "ordering": false,
+                        "bAutoWidth": false,
+                        ajax: {
+                            contentType: "application/json; charset=utf-8",
+                            url: "/HR/GetAllOwnerships",
+                            type: 'POST',
+                            data: function (d) {
+                                return JSON.stringify({ parameters: d, dataObjectId, dataTypeId });
+                            }
+                        },
+                        //ajax: {
+                        //    url: "HR/GetAllOwnerships",
+                        //    method: "POST",
+                        //    contentType: "application/json; charset=utf-8",
+                        //    data: function () {
+                        //        debugger;
+                        //        return JSON.stringify({employeeId });
+                        //    }
+                        //},
+                        lengthMenu: [10, 20, 50, 100, 200],
+                        fixedHeader: true,
+                        fixedColumns: false,
+                        colReorder: false,
+                        responsive: true,
+                        dom:
+                            "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                            "<'row'<'col-sm-12'tr>>" +
+                            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                        columns: [
+                            {
+                                "data": "ownershipOrgName",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        if (data == 0) {
+                                            return 'N/A';
+                                        }
+                                        else {
+
+                                            let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.ownershipOrgId}`;
+                                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                        }
+                                    }
+                                    return data;
+                                }
+                            },
+                            {
+                                "data": "employeeOwnershipTypeName"
+                            },
+                            { "data": "inForceSinceString" },
+                            {
+                                "data": "commissionPercentage",
+                            },
+                            {
+                                "data": "ownershipId",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        let ownershipTypeId = row.ownershipTypeId;
+                                        let link1 = `http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=${row.ownershipId}&Mode=Change`;
+                                        let link2 = `http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=${row.ownershipId}&Mode=Modify&Confirm=1`;
+                                        let link3 = `http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=${row.ownershipId}&Mode=Delete`;
+                                        let link4 = `http://myplus/EmployeeOwnership.aspx?EmployeeOwnershipID=${row.ownershipId}&Mode=Notification`;
+                                        var part1 = '<a title="Change the owner to a different employee" href="' + link1 + '" target="_blank"><i class="ni ni-note text-info" style="vertical-align:text-bottom;font-size:18px;"></i></a>&nbsp;&nbsp;';
+                                        var part2 = "";
+                                        var part3 = '<a title="Delete this owner"  href="' + link3 + '" target="_blank"><i class="fal fa-trash-alt text-warning align-text-bottom" style="vertical-align:text-bottom;font-size:18px;"></i></a>&nbsp;&nbsp;';
+                                        var part4 = '<a title="Update whether or not to receive notifications" href="' + link4 + '" target="_blank"><i class="ni ni-envelope text-info" style="vertical-align:text-bottom;font-size:18px;"></i></a>';
+                                        if (ownershipTypeId == 6) {
+                                            part2 = '<a title="Edit ownership details" href="' + link2 + '" target="_blank"><i class="ni ni-arrow-right text-success" style="vertical-align:text-bottom;font-size:18px;"></i></a>&nbsp;&nbsp;';
+                                        }
+
+                                        linkToReturn = part1 + part2 + part3 + part4;
+                                        return linkToReturn;
+
+                                    }
+                                    return data;
+                                }
+                            }
+
+                        ],
+                        buttons: [
+                            {
+                                extend: 'pageLength',
+                                className: 'btn-outline-default'
+                            }
+                        ]
+                    });
+                }
+            }
+        }
+
+        function showUploadProfilePic() {
+            document.getElementById('edit-employee-profile-pic').hidden = true;
+            document.getElementById('upload-employee-profile-pic').hidden = false;
+
+        }
+
+        function showUploadProfilePicButton() {
+            document.getElementById('upload-employee-profile-pic-button').hidden = false;
+        }
+
+        function uploadProfilePic(empID) {
+            var ProfilePic = $('#employee-profile-pic')[0].files[0];
+            var formData = new FormData();
+            formData.append('Id', empID);
+            formData.append('ProfilePic', ProfilePic);
+            var xhr = new XMLHttpRequest();
+
+            xhr.open("POST", "HR/UploadProfilePic", true);
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var headerText = response.split("$")[0];
+                    document.getElementById('header-text').innerText = headerText;
+                    if (headerText == "Success") {
+
+                        document.getElementById('upload-profile-pic-success-string').innerText = response.split("$")[1];
+                        var empId = response.split("$")[2];
+                        window.location.href = `HR/EmployeeProfile/${empId}`;
+                    }
+                    else {
+
+                        document.getElementById('upload-profile-pic-warning-string').innerText = response.split("$")[1];
+                        document.getElementById('employee-profile-pic').value = '';
+                        document.getElementById('upload-employee-profile-pic-button').hidden = true;
+                    }
+                    $('#upload-profile-pic-modal').modal("show");
+
+
+
+                }
+                else {
+
+                }
+            };
+
+            xhr.send(formData);
+        }
+
+
+    </script>
+}

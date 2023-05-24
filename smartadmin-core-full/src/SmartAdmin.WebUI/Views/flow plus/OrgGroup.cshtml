@@ -1,0 +1,1714 @@
+﻿@{
+    ViewData["Title"] = "Group";
+    ViewData["PageName"] = "Group";
+    ViewData["Category1"] = "flow plus";
+    ViewData["Heading"] = "";
+
+    @using Data;
+    @using ViewModels.OrgGroup;
+    @using Global_Settings;
+    @using System.Text.Json;
+    @model OrgGroupViewModel;
+
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/reactions/reactions.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/jqvmap/jqvmap.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+}
+    <style>
+        .select2-container {
+            width: 75% !important;
+        }
+
+        .bg-danger-50 {
+            background-color: #e2b7ff !important;
+            color: rgba(0, 0, 0, 0.8) !important;
+        }
+
+        .bg-fusion-50 {
+            background-color: #828282 !important;
+            color: white !important;
+        }
+
+        .bg-info-50 {
+            background-color: #b7d4ff !important;
+            color: rgba(0, 0, 0, 0.8) !important;
+        }
+
+        .bg-fusion-50 {
+            background-color: #828282 !important;
+            color: white !important;
+        }
+    </style>
+    <div id="js-page-content">
+        <div class="row justify-content-between px-5">
+            @if (Model.groupDeletedDate != null)
+        {
+            <div class="col-12 mb-3 text-center">
+                <i class="fad fa-exclamation-triangle fa-lg" style="color: red;"></i>
+                <span style="color:red;">
+                    Note that this organisation group has
+                    been deleted. If this was accidental, please do not add a new duplicate organisation group,
+                    but instead contact
+                    <a href="mailto:ITSupport@translateplus.com">IT Support</a>
+                    to un-delete the organisation group.
+                </span>
+            </div>
+        }
+        <div class="col-lg-3 mb-3 text-center">
+
+            <div class="row">
+                <label class="form-label col-lg-2 d-flex align-items-center px-0">Group</label>
+                <label class="col text-left">@Model.GroupID - @Model.GroupName</label>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-6">
+        <div id="panel-1" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-info-circle fa-2x"></i> &nbsp; &nbsp;
+                <h2>
+                    Company information
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%;" id="keyInfoPanel">
+                                <form id="KeyInfo">
+                                    <div class="d-flex flex-row px-3 pt-3 pb-2">
+                                        <table width="100%">
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Group name:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <input onchange="UpdatingValue()" asp-for="@(Model.GroupName)" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Group ID number:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label id="IDinput" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.GroupID</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Description:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <textarea asp-for="@Model.Description" onchange="UpdatingValue()" style="width:100%; height: 100px;"></textarea>
+
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Brand:</label>&nbsp;
+                                                </td>
+                                                <td>
+
+                                                    <select id="itemBrands" onchange="UpdatingValue()" class="form-control" style="width:auto" asp-for="BrandID" asp-items="Model.BrandNames.Select(x => new SelectListItem(x.BrandName,x.Id.ToString()))">
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Client specifically requested their job files stay within:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <select asp-for="JobFilesCountryID" onchange="UpdatingValue()" class="form-control w-100">
+                                                        <option value="0">No preference</option>
+                                                        <option value="1">UK</option>
+                                                        <option value="2">EAA</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    &nbsp;
+                                                </td>
+                                                <td>
+                                                    <div class="custom-control custom-switch col-sm-9">
+                                                        <input type="checkbox" onchange="UpdatingValue()" asp-for="@Model.EncryptedSuppliers" class="custom-control-input" id="EncryptedSuppliers">
+                                                        <label class="custom-control-label" for="EncryptedSuppliers">Encrypted suppliers</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    &nbsp;
+                                                </td>
+                                            </tr>
+
+                                            @if (Model.groupDeletedDate == null && Model.AllowedToEdit == true)
+                                            {
+                                                <tr>
+                                                    <td align="right" colspan="2">
+                                                        <button id="keyInfoSave" class="@(Settings.Theme.IconPrefix) btn btn-outline-default key-info-button" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </table>
+
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div id="panel-2" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-globe-europe fa-2x"></i> &nbsp; &nbsp;
+                <h2>
+                    Sales
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%;">
+                                <form id="Sales">
+                                    <div class="d-flex flex-row px-3 pt-3 pb-2">
+                                        <table width="100%">
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Date of first paid job:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.FirstJobDate</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Spend last financial year:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.SpendLastFinancialYear</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Spend this financial year:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.SpendThisFinancialYear</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Spend last 12 months:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.SpendLast12Months</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Spend last 3 months:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.SpendLast3Months</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Invoiced margin % over the last 3 months: </label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.InvoicedMarginOverLast3Months%</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                @{
+                                                    var contractEnabled = "disabled"; if (ViewBag.loggedInEmployeeDeptID == 1) { contractEnabled = ""; }
+                                                }
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Contract expiry date: </label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    @{
+                                                        var contractDate = Model.ContractExpiryDate.GetValueOrDefault();
+                                                        var dateValue = contractDate != DateTime.MinValue ? contractDate.ToString("yyyy-MM-dd") : "";
+                                                    }
+                                                    <input type="date" id="contract-deadline-input" onchange="UpdatingContractValue()" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value=@dateValue @contractEnabled>
+                                                </td>
+                                            </tr>
+                                            @if (ViewBag.loggedInEmployeeDeptID == 1)
+                                            {
+                                                <tr>
+                                                    <td align="right" colspan="2">
+                                                        <br />
+                                                        <button id="contract-deadline-button" class="@(Settings.Theme.IconPrefix) btn btn-outline-default sales-info-button" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </table>
+
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div id="panel-3" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-info fa-2x"></i> &nbsp; &nbsp;
+                <h2>
+                    Other
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%">
+                                <div class="d-flex flex-row px-3 pt-3 pb-2">
+                                    <table width="100%">
+                                        <tr>
+                                            <td>
+                                                <label class="form-label form-control-md" for="simpleinput">Group added on:</label>
+                                            </td>
+                                            <td>
+                                                <input type="text" readonly="readonly" id="SetUpDateinput" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@Model.groupCreatedOn">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td> <label class="form-label form-control-md" for="simpleinput">Created by:</label></td>
+                                            <td>
+
+                                                <div class="form-group row">
+                                                    <div class="form-label col-sm-9">@await Component.InvokeAsync("EmployeeDetails", new { employeeId = Model.groupCreatedBy })</div>
+                                                </div>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <label class="form-label form-control-md" for="simpleinput">Details last modified on:</label>&nbsp;
+                                            </td>
+                                            <td>
+                                                <input type="text" readonly="readonly" id="LastModifiedDateinput" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@Model.groupModified">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <label class="form-label form-control-md" for="simpleinput">Last modified by:</label>
+                                            </td>
+                                            <td>
+
+                                                <div class="form-group row">
+                                                    @if (Model.groupModifiedBy == null)
+                                                    {
+                                                        <div class="form-label col-sm-9">
+                                                            <label class="form-label form-control-md col-sm-9">N/A</label>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="form-label col-sm-9">
+                                                            @await Component.InvokeAsync("EmployeeDetails", new { employeeId = Model.groupModifiedBy })
+                                                        </div>
+                                                    }
+                                                </div>
+
+
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div id="panel-3" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-info fa-2x"></i> &nbsp; &nbsp;
+                <h2>
+                    i plus/client flow plus settings
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%" id="iplusSettingPanel">
+                                <form id="iplusSetting">
+                                    <div class="d-flex flex-row px-3 pt-3 pb-2">
+                                        <table width="100%">
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Show proofreading option to clients on flow plus external:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <div class="custom-control custom-switch col-sm-9">
+                                                        <input type="checkbox" onchange="updatingiPlusSetting()" asp-for="@Model.ShowProofreadingOptionToClient" class="custom-control-input" id="ShowProofreadingOptionToClient">
+                                                        <label class="custom-control-label" for="ShowProofreadingOptionToClient">On</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>&nbsp;</td>
+                                            </tr>
+                                            @if (Model.groupDeletedDate == null && Model.AllowedToEdit == true)
+                                            {
+                                                <tr>
+                                                    <td align="right" colspan="2">
+                                                        <button id="iplusSettingSave" class="@(Settings.Theme.IconPrefix) btn btn-outline-default iplus-setting-button" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </table>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-file-invoice-dollar fa-2x color-black"></i> &nbsp; &nbsp;
+                <h2>
+                    flow plus - licencing
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div class="container" style="margin-right:0px;margin-left:0px;overflow-x:auto;max-width:1500px;">
+                        @await Component.InvokeAsync("flowPlusLicencing", new { orgOrGroupId = Model.GroupID, typeId = 3 })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @if (Model.groupDeletedDate == null)
+    {
+        <div class="col-lg-12">
+            <div class="panel panel-locked" data-panel-lock="false" data-panel-close="false" data-panel-fullscreen="false" data-panel-collapsed="true" data-panel-color="false" data-panel-locked="false" data-panel-refresh="false" data-panel-reset="false">
+                <div class="panel-hdr">
+                    <h2>
+                        Action Centre
+                    </h2>
+                </div>
+                <div class="panel-hdr">
+                    <div class="panel-toolbar pr-3 align-self-end">
+                        <ul id="demo_panel-tabs" class="nav nav-tabs border-bottom-0 nav-tabs-clean" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-toggle="tab" href="#tab_default-1" role="tab"><i class="fal fa-ballot-check fa-1x"></i>&nbsp;Reports</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-toggle="tab" href="#tab_default-2" role="tab"><i class="fal fa-cogs fa-1x"></i>&nbsp;Contact management</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-toggle="tab" href="#tab_default-3" role="tab"><i class="fal fa-money-bill-wave fa-1x"></i>&nbsp;Price lists</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="tab-content p-3">
+                    <div class="tab-pane fade show active" id="tab_default-1" role="tabpanel">
+                        <div class="row justify-content-center">
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a target="_blank" href='@string.Format("http://myplus/ClientStatusReportGeneric.aspx?GroupID={0}", @Model.GroupID)' class="btn">
+                                        <div class="rounded-top w-100 bg-danger-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base base-7 icon-stack-3x opacity-100 color-success-600" style="color: #af37ff !important"></i>
+                                                    <i class="base base-7 icon-stack-2x opacity-100 color-success-700" style="color: #b951ff !important"></i>
+                                                    <i class="ni ni-list icon-stack-1x opacity-100 text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Client status report</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href='@string.Format("http://myplus/PunctualityReport.aspx?GroupID={0}", @Model.GroupID)' target="_blank" class="btn">
+                                        <div class="rounded-top w-100 bg-danger-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base-7 icon-stack-3x color-primary-500" style="color: #af37ff !important"></i>
+                                                    <i class="base-7 icon-stack-2x color-primary-500" style="color: #b951ff !important"></i>
+                                                    <i class="ni ni-clock color-primary-500 icon-stack-1x text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Punctuality report</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tab_default-2" role="tabpanel">
+                        <div class="row justify-content-center">
+
+                            <div class="col col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href='@string.Format("http://myplus/SalesHotListEntryAddOrRemove.aspx?Mode=Add&AppliesToDataObjectTypeID=3&AppliesToDataObjectID={0}&OwnerEmployeeID=9", @Model.GroupID)' class="btn">
+                                        <div class="rounded-top w-100 bg-info-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base-7 icon-stack-3x color-primary-600" style="color: #3787ff !important"></i>
+                                                    <i class="base-7 icon-stack-2x color-primary-700" style="color: #0468ff !important"></i>
+                                                    <i class="ni ni-plus icon-stack-1x text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Add to sales hot list</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab_default-3" role="tabpanel">
+                        <div class="row justify-content-center">
+                            <div class="col col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href='@string.Format("http://myplus/PriceListAutomationManagement.aspx?OrgGroupID={0}", Model.GroupID)' target="_blank" class="btn">
+                                        <div class="rounded-top w-100 bg-success-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base-7 icon-stack-3x color-primary-600" style="color: #35d28e !important"></i>
+                                                    <i class="base-7 icon-stack-2x color-primary-700" style="color: #2bc381 !important"></i>
+                                                    <i class="ni ni-settings icon-stack-1x text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Price lists for automation</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+
+    <div class="col-lg-12">
+        @*Job orders*@
+        <div class="panel panel-locked" data-panel-locked data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Job orders
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div>
+                        @*<component type="typeof(AllJobOrdersComponent)" render-mode="ServerPrerendered" param-DataObjectId="@Model.Organisation.Id" param-DataTypeId="@(((int)Global_Settings.Enumerations.DataObjectTypes.Org))" />*@
+                        @*@(await Html.RenderComponentAsync<AllJobOrdersComponent>(RenderMode.ServerPrerendered, new {DataObjectId = Model.Organisation.Id, DataTypeId=((int)Global_Settings.Enumerations.DataObjectTypes.Org)}))*@
+                        @*<component type="typeof(SmartAdmin.WebUI.Pages.HelloWorld)" render-mode="ServerPrerendered"></component>*@
+                        <table id="dt-all-orders-component" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color: #e84133">
+                                <tr>
+                                    <th>Job ID</th>
+                                    <th>Enquiry ID</th>
+                                    <th>Job</th>
+                                    <th>Contact</th>
+                                    <th>Source Languages</th>
+                                    <th>Target Languages</th>
+                                    <th>Status</th>
+                                    <th>Submission date</th>
+                                    <th>Delivery deadline</th>
+                                    <th>Margin</th>
+                                    <th>Client costs</th>
+
+                                </tr>
+                            </thead>
+
+                            @*<tfoot>
+                            <tr>
+                            <th>Job ID</th>
+                            <th>Enquiry ID</th>
+                            <th>Job</th>
+                            <th>Contact</th>
+                            <th>Source</th>
+                            <th>Target</th>
+                            <th>Status</th>
+                            <th>Submission date</th>
+                            <th>Delivery deadline</th>
+                            <th>Margin</th>
+                            <th>Client costs</th>
+                            </tr>
+                            </tfoot>*@
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        @*Enquiries*@
+        <div class="panel panel-locked" data-panel-locked data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Enquiries
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div>
+                        <table id="dt-all-enquiries-component" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color: #e84133">
+                                <tr>
+                                    <th>Enquiry ID</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Source Languages</th>
+                                    <th>Target Languages</th>
+                                    <th>Decision Reason</th>
+                                    <th>Value</th>
+                                    <th>Deadline</th>
+                                    <th>Created</th>
+                                    <th>Last Modified</th>
+                                    <th>Created By Employee</th>
+                                    <th>Sales Contact</th>
+                                </tr>
+                            </thead>
+
+                            @*<tfoot>
+                            <tr>
+                            <th>Job ID</th>
+                            <th>Enquiry ID</th>
+                            <th>Job</th>
+                            <th>Contact</th>
+                            <th>Source</th>
+                            <th>Target</th>
+                            <th>Status</th>
+                            <th>Submission date</th>
+                            <th>Delivery deadline</th>
+                            <th>Margin</th>
+                            <th>Client costs</th>
+                            </tr>
+                            </tfoot>*@
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-lg-12">
+        <div id="panel-7" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Organisations belonging to this group
+                    @if (Model.groupDeletedDate == null && Model.isAllowedToAddPriceList == true)
+                    {
+                        <a href="@("http://myplus/Org.aspx?Mode=Add&GroupID=" + Model.GroupID)" target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>
+                    }
+
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%">
+                                <form method="post">
+                                    <div class="px-3 pt-3 pb-2" width="100%">
+                                        <div style="white-space: nowrap;" width="100%">
+                                            @if (Model.OrgResutls != null)
+                                            {
+                                                <table id="OrgTable" class="table table-bordered table-hover table-striped w-100" width="100%">
+                                                    <thead class="bg-warning-200" style="background-color: #e84133">
+                                                        <tr>
+                                                            <th>
+                                                                HQ
+                                                            </th>
+                                                            <th>
+                                                                ID
+                                                            </th>
+                                                            <th>
+                                                                Organisation name
+                                                            </th>
+                                                            <th>
+                                                                Address
+                                                            </th>
+                                                            <th>
+                                                                Country
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+                                                        @foreach (var row in Model.OrgResutls)
+                                                        {
+                                                            <tr>
+                                                                @if (Model.HQOrgID == row.OrgID)
+                                                                {
+                                                                    <td width="20" id="HQOrgColumn"> <input type="radio" id="HQOrg" name="HQOrg" onchange="updateHQ(@row.OrgID)" checked />  </td>
+
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td width="20" id="HQOrgColumn"> <input type="radio" id="HQOrg" name="HQOrg" onchange="updateHQ(@row.OrgID)" />  </td>
+
+                                                                }
+
+                                                                <td><a style="color:#BA9765" href='@string.Format("https://myplusbeta.publicisgroupe.net/Organisation?id={0}",@row.OrgID)'>@row.OrgID</a></td>
+                                                                <td>@row.OrgName</td>
+                                                                <td>@row.Address</td>
+                                                                <td>@row.Country</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            }
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        @*Price Lists*@
+        <div class="panel panel-locked" data-panel-locked data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Price Lists
+                    @if (Model.groupDeletedDate == null && Model.isAllowedToAddPriceList == true)
+                    {
+                        <a href="@("http://myplus/ClientPriceList.aspx?Mode=Add&DataObjectTypeID=3&DataObjectID=" + Model.GroupID)" target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>
+                    }
+
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div>
+                        <table id="dt-all-price-lists" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color:#E84133">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Currency</th>
+                                    <th>In force since</th>
+                                    <th>Applies to</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Currency</th>
+                                    <th>In force since</th>
+                                    <th>Applies to</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        @*Approved/blocked linguistic suppliers*@
+        <div class="panel panel-locked" data-panel-locked data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Approved / blocked linguistic suppliers
+                    @if (Model.groupDeletedDate == null && Model.AllowedToEdit == true)
+                    {
+                        <a href='@string.Format("http://myplus/ApprovedOrBlockedLinguisticSupplier.aspx?Mode=Add&DataObjectID={0}&DataObjectTypeID=3", @Model.GroupID)' target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>
+                    }
+
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div>
+                        <table id="dt-approved-linguists" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color:#E84133">
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Source</th>
+                                    <th>Target</th>
+                                    <th>Linguistic supplier</th>
+                                    <th>Status</th>
+                                    <th>Working pattern</th>
+                                    <th>Working hours (UK time)</th>
+                                    <th>Default software</th>
+                                    <th>Applies to</th>
+                                    <th>Notes</th>
+                                    @*<th>Action</th>*@
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Source</th>
+                                    <th>Target</th>
+                                    <th>Linguistic supplier</th>
+                                    <th>Status</th>
+                                    <th>Working pattern</th>
+                                    <th>Working hours (UK time)</th>
+                                    <th>Default software</th>
+                                    <th>Applies to</th>
+                                    <th>Notes</th>
+                                    @*<th>Action</th>*@
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        @*Quote Templates*@
+        <div class="panel panel-locked" data-panel-locked data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Quote Templates
+                    @if (Model.groupDeletedDate == null && Model.isAllowedToAddPriceList == true)
+                    {
+                        <a href="@("http://myplus/QuoteTemplate.aspx?Mode=Add&DataObjectTypeID=3&DataObjectID=" + Model.GroupID)" target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>
+                    }
+
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div>
+                        <table id="dt-quote-templates" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color:#E84133">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Language</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Last Modified</th>
+                                    <th>Created by</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Language</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Last Modified</th>
+                                    <th>Created by</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ScriptsBlock {
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script type="text/javascript">
+        /* Activate smart panels */
+        $('#js-page-content').smartPanel();
+    </script>
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="~/js/miscellaneous/fullcalendar/fullcalendar.bundle.js"></script>
+    <script src="~/js/statistics/sparkline/sparkline.bundle.js"></script>
+    <script src="~/js/statistics/easypiechart/easypiechart.bundle.js"></script>
+    <script src="~/js/statistics/flot/flot.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/miscellaneous/jqvmap/jqvmap.bundle.js"></script>
+
+    <script>
+
+
+        $('.key-info-button').on('click', function(e) {
+            e.preventDefault();
+
+
+            let data = {
+        @nameof(Model.EmployeCurrentlyLoggedInID) : @Model.EmployeCurrentlyLoggedInID,
+                "@nameof(Model.GroupID)": @Model.GroupID.ToString(),
+                    "@nameof(Model.GroupName)": $('input[name="@(nameof(Model.GroupName))"]').val(),
+                        "@nameof(Model.Description)": $('textarea[name="@(nameof(Model.Description))"]').val(),
+                            "@nameof(Model.BrandID)": $('select[name="@(nameof(Model.BrandID))"]').find(':selected').val(),
+                                "@nameof(Model.EncryptedSuppliers)": $('input[name="@(nameof(Model.EncryptedSuppliers))"]').prop('checked'),
+                                    "@nameof(Model.JobFilesCountryID)": $('select[name="@(nameof(Model.JobFilesCountryID))"]').find(':selected').val()
+        }
+
+
+                    $.ajax({
+            beforeSend: function() {
+                // add loading spinner
+            },
+            url: "api/GroupUpdate",
+            method: 'POST',
+            dataType: 'json',
+            data: data,
+            success: function(data) {
+                //confirm update was successfull
+
+                $('.key-info-button').css('background', 'lightgreen');
+
+                $('.error-span').remove();
+
+                setTimeout(function() { btnWhite(); }, 2500);
+            },
+            error: function(err) {
+                //show that there was an error
+                alert('ERROR');
+                console.log(err);
+            },
+            complete: function() {
+                // remove the spinner
+            }
+        });
+                });
+        $('.sales-info-button').on('click', function(e) {
+            e.preventDefault();
+
+
+            let data = {
+        @nameof(Model.EmployeCurrentlyLoggedInID) : @Model.EmployeCurrentlyLoggedInID,
+                "@nameof(Model.GroupID)": @Model.GroupID.ToString(),
+                    "@nameof(Model.ContractExpiryDate)": $('#contract-deadline-input').val()
+        }
+
+
+                    $.ajax({
+            beforeSend: function() {
+                // add loading spinner
+            },
+            url: "api/GroupContractUpdate",
+            method: 'POST',
+            dataType: 'json',
+            data: data,
+            success: function(data) {
+                //confirm update was successfull
+
+                $('.sales-info-button').css('background', 'lightgreen');
+
+                $('.error-span').remove();
+
+                setTimeout(function() { btnWhite(); }, 2500);
+            },
+            error: function(err) {
+                //show that there was an error
+                alert('ERROR');
+                console.log(err);
+            },
+            complete: function() {
+                // remove the spinner
+            }
+        });
+                });
+        $('.iplus-setting-button').on('click', function(e) {
+            e.preventDefault();
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                $('#iplusSettingSave').css('background', 'lightgreen');
+                setTimeout(function() { $('#iplusSettingSave').css({ background: 'white' }); }, 2500);
+            }
+            var showProofreadingOption = $('input[name="@(nameof(Model.ShowProofreadingOptionToClient))"]').prop('checked');
+            var groupId = @Model.GroupID.ToString();
+            xhr.open("POST", "OrgGroup/UpdateProofreadingOption", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(groupId + "$" + showProofreadingOption);
+
+        });
+
+
+        function UpdatingValue() {
+
+            $('#keyInfoSave').css('background', 'red');
+
+        }
+        function UpdatingContractValue() {
+
+            $('#contract-deadline-button').css('background', 'red');
+
+        }
+
+        function updatingiPlusSetting() {
+
+            $('#iplusSettingSave').css('background', 'red');
+
+        }
+
+        function updateHQ(OrgID) {
+
+            let data = {
+        @nameof(Model.EmployeCurrentlyLoggedInID) : @Model.EmployeCurrentlyLoggedInID,
+                "@nameof(Model.GroupID)": @Model.GroupID.ToString(),
+                    "@nameof(Model.HQOrgID)": OrgID
+
+
+        }
+
+
+        $.ajax({
+            beforeSend: function() {
+                // add loading spinner
+            },
+            url: "api/GroupUpdate",
+            method: 'POST',
+            dataType: 'json',
+            data: data,
+            success: function(data) {
+                //confirm update was successfull
+                var d = document.getElementsByName('HQOrg');
+                for (var i = 0; i < d.length; i++) {
+                    if (d[i].checked) {
+                        d[i].parentNode.bgColor = "#90ee90";
+                    }
+
+                }
+
+                setTimeout(function() { tdWhite() }, 2500);
+            },
+            error: function(err) {
+                //show that there was an error
+                alert('ERROR');
+                console.log(err);
+            },
+            complete: function() {
+                // remove the spinner
+            }
+        });
+                }
+
+        function getDateString(date) {
+            var dataObj = new Date(date);
+            var dayofweek = dataObj.toLocaleString('default', { weekday: 'short' });
+            var month = dataObj.toLocaleString('default', { month: 'long' });
+            var day = dataObj.getUTCDate();
+            var year = dataObj.getUTCFullYear();
+            return dayofweek + " " + day + " " + month + " " + year;
+
+        }
+        function btnWhite() {
+            $('#keyInfoSave').css({ background: 'white' });
+        }
+        function tdWhite() {
+            var d = document.getElementsByName('HQOrg');
+            for (var i = 0; i < d.length; i++) {
+                if (d[i].checked) {
+                    d[i].parentNode.bgColor = "#FFFFFF";
+                }
+
+            }
+
+        }
+        function initializeJobOrdersTable() {
+            var dataObjectId = @Model.GroupID;
+            var dataTypeId = @(((int)Global_Settings.Enumerations.DataObjectTypes.OrgGroup));
+
+            $("#dt-all-orders-component").dataTable(
+                {
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        contentType: "application/json; charset=utf-8",
+                        url: "/api/components/GetAllJobOrdersDataTableComponentData",
+                        type: 'POST',
+                        data: function(d) {
+                            return JSON.stringify({ parameters: d, dataObjectId, dataTypeId });
+                        }
+                    },
+                    searching: true,
+                    order: [[7, "desc"]],
+                    lengthMenu: [10, 20, 50, 100, 200],
+                    columns: [
+                        {
+                            "data": "jobOrderId",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/tmsjoborder/joborder?joborderid=${row.jobOrderId}`;
+
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "enquiryId",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == 0) {
+                                        return 'N/A';
+                                    }
+                                    else {
+                                        let link = `https://myplusbeta.publicisgroupe.net/enquiry?ID=${row.enquiryId}`;
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "jobOrderName"
+                        },
+
+                        {
+                            "data": "contactName",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/Contact?ContactID=${row.contactId}`;
+
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        { "data": "sourceLangsCombined" },
+                        { "data": "targetLangsCombined" },
+                        { "data": "status" },
+                        {
+                            "data": "submittedDate",
+                            render: function(data, type, row, meta) {
+                                if (data == "1989-01-01T00:00:00") {
+                                    return "";
+                                }
+                                else {
+                                    return getDateString(data);
+                                }
+
+
+                            }
+                        },
+                        {
+                            "data": "deliveryDeadline",
+                            render: function(data, type, row, meta) {
+                                if (data == "1989-01-01T00:00:00") {
+                                    return "";
+                                }
+                                else {
+                                    return getDateString(data);
+                                }
+
+
+                            }
+                        },
+                        {
+                            "data": "margin",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    const fraction = new Intl.NumberFormat('en-GB', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    });
+
+                                    return `${fraction.format(data)}`;
+
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "value",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    const fraction = new Intl.NumberFormat('en-GB', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    });
+
+                                    return `${row.currency}${fraction.format(data)}`;
+
+                                }
+                                return data;
+                            }
+                        }
+                    ],
+                    fixedHeader: true,
+                    colReorder: true,
+                    responsive: true,
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    buttons: [
+                        {
+                            extend: 'pageLength',
+                            className: 'btn-outline-default'
+                        },
+                        {
+                            extend: 'colvis',
+                            text: 'Column Visibility',
+                            titleAttr: 'Col visibility',
+                            className: 'btn-outline-default'
+                        }
+                    ]
+                });
+        }
+
+        function initializeEnquiriesTable() {
+            var dataObjectId = @Model.GroupID;
+            var dataTypeId = @(((int)Global_Settings.Enumerations.DataObjectTypes.OrgGroup));
+
+            $("#dt-all-enquiries-component").dataTable(
+                {
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        contentType: "application/json; charset=utf-8",
+                        url: "/api/components/GetAllEnquiriesDataTableComponentData",
+                        type: 'POST',
+                        data: function(d) {
+                            return JSON.stringify({ parameters: d, dataObjectId, dataTypeId });
+                        }
+                    },
+                    lengthMenu: [10, 20, 50, 100, 200],
+                    order: [[8, "desc"]],
+                    columns: [
+                        {
+                            "data": "id",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == 0) {
+                                        return 'N/A';
+                                    }
+                                    else {
+                                        let link = `https://myplusbeta.publicisgroupe.net/enquiry?ID=${row.id}`;
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "enqName"
+                        },
+                        { "data": "enqStatus" },
+                        { "data": "sourceLanguagesCombined" },
+                        { "data": "targetLanguagesCombined" },
+                        { "data": "enqReason" },
+                        {
+                            "data": "enqCurrencyName",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == '(none)') {
+                                        return 'N/A';
+                                    }
+                                    else {
+                                        if (data == "") {
+                                            return "";
+                                        }
+                                        else {
+                                            const fraction = new Intl.NumberFormat('en-GB', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2,
+                                            });
+
+
+                                            return `${data}${fraction.format(row.enqValue)}`;
+                                        }
+
+                                    }
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "deadline",
+                            render: function(data, type, row, meta) {
+                                if (data == "1989-01-01T00:00:00") {
+                                    return "";
+                                }
+                                else {
+                                    return getDateString(data);
+                                }
+
+
+                            }
+                        },
+                        {
+                            "data": "submittedDateTime",
+                            render: function(data, type, row, meta) {
+                                if (data == "1989-01-01T00:00:00") {
+                                    return "";
+                                }
+                                else {
+                                    return getDateString(data);
+                                }
+
+
+                            }
+                        },
+                        {
+                            "data": "enqModified",
+                            render: function(data, type, row, meta) {
+                                if (data == "1989-01-01T00:00:00") {
+                                    return "";
+                                }
+                                else {
+                                    return getDateString(data);
+                                }
+
+
+                            }
+                        },
+                        {
+                            "data": "submittedBy",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == '(none)') {
+                                        return 'N/A';
+                                    }
+                                    else {
+                                        let link = `https://myplusbeta.publicisgroupe.net/HR/EmployeeProfile/${row.submittedByID}`;
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "enqSales",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == '(none)') {
+                                        return 'N/A';
+                                    }
+                                    else {
+                                        let link = `https://myplusbeta.publicisgroupe.net/HR/EmployeeProfile/${row.enqSalesID}`;
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                }
+                                return data;
+                            }
+                        }
+                    ],
+                    fixedHeader: true,
+                    colReorder: true,
+                    responsive: true,
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    buttons: [
+                        {
+                            extend: 'pageLength',
+                            className: 'btn-outline-default'
+                        },
+                        {
+                            extend: 'colvis',
+                            text: 'Column Visibility',
+                            titleAttr: 'Col visibility',
+                            className: 'btn-outline-default'
+                        }
+                    ]
+                });
+        }
+        function initializePriceListsTable() {
+            var dataSet = @Html.Raw(JsonSerializer.Serialize(Model.AllPriceLists));
+
+            $('#dt-all-price-lists').dataTable(
+                {
+                    data: dataSet,
+                    searching: true,
+                    dataSrc: "",
+                    columns: [
+                        {
+                            "data": "Id",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == 0) {
+                                        return 'N/A';
+                                    }
+                                    else {
+                                        let link = `http://myplus/ClientPriceList.aspx?PriceListID=${row.Id}`;
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "Name"
+                        },
+                        { "data": "CurrencyName" },
+                        {
+                            "data": "InForce",
+                            render: function(data, type, row, meta) {
+                                if (data == "1989-01-01T00:00:00") {
+                                    return "";
+                                }
+                                else {
+                                    return getDateString(data);
+                                }
+
+
+                            }
+                        },
+                        { "data": "AppliesToTypeString" }
+                    ],
+                    colReorder: true,
+                    responsive: true,
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    buttons: [
+                        {
+                            extend: 'pageLength',
+                            className: 'btn-outline-default'
+                        },
+                        {
+                            extend: 'colvis',
+                            text: 'Column Visibility',
+                            titleAttr: 'Col visibility',
+                            className: 'btn-outline-default'
+                        }
+                    ],
+
+                    initComplete: function() {
+                        this.api().columns().every(function() {
+                            var column = this;
+                            var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function() {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function(d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            });
+                        });
+                    }
+                });
+        }
+        function initializeQuoteTemplatesTable() {
+            var dataSet = @Html.Raw(JsonSerializer.Serialize( Model.AllQuoteTemplates ));
+
+            $('#dt-quote-templates').dataTable(
+                {
+                    data: dataSet,
+                    searching: true,
+                    responsive: true,
+                    "bLengthChange": false,
+                    buttons: [],
+                    "bAutoWidth": false,
+                    dataSrc: "",
+                    columns: [
+                        {
+                            "data": "Id",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == 0) {
+                                        return 'N/A';
+                                    }
+                                    else {
+                                        let link = `http://myplus/QuoteTemplate.aspx?QuoteTemplateID=${row.Id}`;
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "Name"
+                        },
+                        { "data": "Language" },
+                        { "data": "ApplicableToHTMLLiteral" },
+                        {
+                            "data": "CreatedOn",
+                            render: function(data, type, row, meta) {
+                                if (data == "1989-01-01T00:00:00") {
+                                    return "";
+                                }
+                                else {
+                                    return getDateString(data);
+                                }
+
+
+                            }
+                        },
+                        {
+                            "data": "ModifiedOn",
+                            render: function(data, type, row, meta) {
+                                if (data == null) {
+                                    return "";
+                                }
+                                else {
+                                    return getDateString(data);
+                                }
+
+
+                            }
+                        },
+                        {
+                            "data": "CreatedByEmployeeName",
+                            render: function(data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == 0) {
+                                        return 'N/A';
+                                    }
+                                    else {
+                                        let link = `https://myplusbeta.publicisgroupe.net/HR/EmployeeProfile/${row.CreatedByEmployeeId}`;
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                }
+                                return data;
+                            }
+                        }
+                    ],
+                    colReorder: true,
+                    responsive: true,
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+                    initComplete: function() {
+                        this.api().columns().every(function() {
+                            var column = this;
+                            var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function() {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function(d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            });
+                        });
+                    }
+                });
+        }
+        function initializeApprovedLinguistsTable() {
+            var dataSet = @Html.Raw(JsonSerializer.Serialize( Model.ApprovedOrBlockedLinguists ));
+
+            $('#dt-approved-linguists').dataTable(
+                {
+                    data: dataSet,
+                    searching: true,
+                    dataSrc: "",
+                    columns: [
+                        { "data": "LanguageServiceName" },
+                        { "data": "SourceLangName" },
+                        { "data": "TargetLangName" },
+                        {
+                            "data": "LinguistName",
+                            "defaultContent": "N/A",
+                            render: function(data, type, row, meta) {
+                                if (type == "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/Linguist?id=${row.LinguistId}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                        },
+                        {
+                            "data": "StatusString",
+                            "defaultContent": "N/A",
+                            render: function(data, type, row, meta) {
+                                if (type == "display") {
+
+                                    switch (row.Status) {
+                                        case @((int)Enumerations.SupplierStatus.Blocked):
+                                            //return `<span style="color: red;">Blocked (don't use for this client)</span>`;
+                                            return `<span style="color: red;">${data}</span>`;
+                                            break;
+                                        case @((int)Enumerations.SupplierStatus.TemporarilyUnavailable):
+                                            //return `<span style="color: red;">Temporarily unavailable</span>`;
+                                            return `<span style="color: red;">${data}</span>`;
+                                            break;
+                                        case @((int)Enumerations.SupplierStatus.ApprovedByTheEndClient):
+                                            //return `<span style="color: green;">Approved (by the client)</span>`;
+                                            return `<span style="color: green;">${data}</span>`;
+                                            break;
+                                        case @((int)Enumerations.SupplierStatus.ApprovedByUsOnly):
+                                            //return `<span style="color: green;">Approved (by us, but not by the client)</span>`;
+                                            return `<span style="color: green;">${data}</span>`;
+                                            break;
+                                        default:
+                                            return 'N/A';
+                                    }
+                                }
+                            }
+                        },
+                        { "data": "WorkingPatternString" },
+                        { "data": "WorkingTime" },
+                        { "data": "SoftwareApplication" },
+                        { "data": "AppliesToTypeString" },
+                        { "data": "Notes" }//,
+                        //{
+                        //    "data": null,
+                        //    "defaultContent": "N/A",
+                        //    render: function (data, type, row, meta) {
+                        //        if (type == "display") {
+                        //            //return '<a class="delete-iplusfileBtn" href="javascript:void(0);" >' + data + '</a>';
+                        //            return '<div class="d-flex"><button href="javascript:void(0);" class="btn btn-sm btn-icon btn-outline-warning rounded-circle mr-1" data-absolutepath="" ><i class="fal fa-ellipsis-v"></i></button>' + '<button href="javascript:void(0);" class="btn btn-sm btn-icon btn-outline-danger rounded-circle" ><i class="fal fa-times"></i></button></div>';
+                        //        }
+                        //    }
+                        //}
+                    ],
+                    "order": [[3, "asc"]],
+                    colReorder: true,
+                    responsive: true,
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    buttons: [
+                        {
+                            extend: 'pageLength',
+                            className: 'btn-outline-default'
+                        },
+                        {
+                            extend: 'colvis',
+                            text: 'Column Visibility',
+                            titleAttr: 'Col visibility',
+                            className: 'btn-outline-default'
+                        }
+                    ],
+
+                    initComplete: function() {
+                        this.api().columns().every(function() {
+                            var column = this;
+                            var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function() {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function(d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            });
+                        });
+                    }
+                });
+        }
+
+
+
+        $(document).ready(function() {
+            $(function() {
+                $('.select2').select2();
+            });
+
+            var isGroupDeleted = @(JsonSerializer.Serialize(Model.groupDeletedDate != null));
+
+            var keyInfo = '#' + @Html.Raw(JsonSerializer.Serialize("keyInfoPanel")) + ' :input';
+            var flowPlusLicencing = '#' + @Html.Raw(JsonSerializer.Serialize("flow-plus-licencing")) + ' :input';
+            var iplusSetting = '#' + @Html.Raw(JsonSerializer.Serialize("iplusSettingPanel")) + ' :input';
+
+
+            if (isGroupDeleted == true || @(JsonSerializer.Serialize(Model.AllowedToEdit == false))) {
+                $(keyInfo).attr("disabled", true);
+                $(iplusSetting).attr("disabled", true);
+            }
+
+            if (isGroupDeleted == true || @(JsonSerializer.Serialize(Model.flowpluslicencingButton == false))) {
+                $(flowPlusLicencing).attr("disabled", true);
+            }
+
+            initializeJobOrdersTable();
+            initializeEnquiriesTable();
+            initializeApprovedLinguistsTable();
+            initializeQuoteTemplatesTable();
+            initializePriceListsTable();
+
+            //$('#JobOrdersTable').dataTable(
+            //    {
+
+            //        searching: false,
+            //        responsive: true,
+            //        "bLengthChange": false,
+            //        "bAutoWidth": false,
+            //        buttons: [],
+            //        "pageLength": 10
+            //    });
+
+            $('#OrgTable').dataTable(
+                {
+
+                    searching: true,
+                    responsive: true,
+                    "order": [[1, "asc"]],
+                    "bLengthChange": false,
+                    "bAutoWidth": false,
+                    buttons: [],
+                    "pageLength": 10
+                });
+
+
+        });
+
+
+    </script>
+}

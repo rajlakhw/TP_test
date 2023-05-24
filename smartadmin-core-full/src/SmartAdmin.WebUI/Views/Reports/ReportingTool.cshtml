@@ -1,0 +1,1758 @@
+﻿@{
+    ViewData["Title"] = "Reporting tool";
+    ViewData["Category1"] = "Reports";
+
+    @using ViewModels.Reports;
+    @model ReportingToolModel;
+
+
+    @using Services;
+
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+
+<h3>Reporting tool</h3>
+<div id="panel-1" class="panel">
+    <div class="panel-hdr">
+
+        <h2>Report based on</h2>
+
+        <!--<div class="panel-toolbar">
+            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+            <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>-->
+        @*<button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="Close"></button>*@
+        <!--</div>-->
+    </div>
+
+
+    <div class="panel-container show">
+        <div class="panel-content">
+            <div class="form-group">
+                <table class="table table-borderless">
+                    <tr>
+                        <td colspan="2">
+                            @*<label class="form-label md-header">Report based on</label>
+                                <br /><br />*@
+                            <div class="frame-wrap">
+                                <div class="demo">
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" class="custom-control-input" id="job-item-radio" name="jobItemAndJobOrdersRadioButton" onchange="showJobItemFilters(this)" checked="">
+                                        <label class="custom-control-label" for="job-item-radio">Job items</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" class="custom-control-input" id="job-order-radio" onchange="showJobOrderFilters(this)" name="jobItemAndJobOrdersRadioButton">
+                                        <label class="custom-control-label" for="job-order-radio">Job orders</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:700px;">
+                            <label class="form-label md-header" for="date-range-div">Date range:</label>
+
+                            <div class="input-daterange input-group" id="date-range-div" style="width:700px;">
+                                <input type="text" name="start" id="start-date" class="form-control" required onchange="validateDate(this)" onclick="validateDate(this)" onload="validateDate(this)">
+                                <div class="input-group-append input-group-prepend">
+                                    <span class="input-group-text fs-xl"><i class="@(Settings.Theme.IconPrefix) fa-ellipsis-h"></i></span>
+                                </div>
+                                <input type="text" class="form-control" name="end" id="end-date" required onchange="validateDate(this)" onclick="validateDate(this)" onload="validateDate(this)">
+                            </div>
+
+                        </td>
+                        <td id="job-items-date-filters" style="vertical-align:text-bottom;">
+                            <div class="frame-wrap">
+                                <div class="demo">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="created-on-radio" name="jobItemDateRangeRadioButton" checked="">
+                                        <label class="custom-control-label" for="created-on-radio">Created on</label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="supplier-completion-date-radio" name="jobItemDateRangeRadioButton">
+                                        <label class="custom-control-label" for="supplier-completion-date-radio">Supplier completion date</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td id="job-orders-date-filters" style="vertical-align:text-bottom;" hidden>
+                            <div class="frame-wrap">
+                                <div class="demo">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="submission-date-radio" name="jobOrderDateRangeRadioButton" checked="">
+                                        <label class="custom-control-label" for="submission-date-radio">Submitted on</label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="order-completion-date-radio" name="jobOrderDateRangeRadioButton">
+                                        <label class="custom-control-label" for="order-completion-date-radio">Job order completion date</label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="invoice-date-radio" name="jobOrderDateRangeRadioButton">
+                                        <label class="custom-control-label" for="invoice-date-radio">Client invoice date</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                    </tr>
+                    @*@if (Model.AllDepartments != null)
+                        {
+                            <tr>
+                                <td colspan="2">
+                                    <label class="form-label md-header">Department:</label>
+                                    <select class="select2-placeholder-multiple form-control" multiple="multiple" id="dept-select" onchange="updateTeamsAndEmployeeList();">
+
+                                        @for (var i = 0; i < Model.AllDepartments.Count(); i++)
+                                        {
+                                            <option value="@Model.AllDepartments.ElementAt(i).Id">@Model.AllDepartments.ElementAt(i).Name</option>
+                                        }
+
+
+                                    </select>
+                                </td>
+                            </tr>
+                        }
+                        @if (Model.AllTeams != null)
+                        {
+                            <tr>
+                                <td colspan="2">
+                                    <label class="form-label md-header">Team:</label>
+                                    <select class="select2-placeholder-multiple form-control" multiple="multiple" id="team-select" onchange="updateEmployeeList();">
+
+                                        @for (var i = 0; i < Model.AllTeams.Count(); i++)
+                                        {
+                                            <option value="@Model.AllTeams.ElementAt(i).Id">@Model.AllTeams.ElementAt(i).Name</option>
+                                        }
+
+
+                                    </select>
+                                </td>
+                            </tr>
+                        }
+                        <tr>
+                            <td colspan="2">
+                                <label class="form-label md-header">Employee:</label>
+                                <select class="select2-placeholder-multiple form-control" multiple="multiple" id="employee-select">
+
+                                    @for (var i = 0; i < Model.AllEmployees.Count(); i++)
+                                    {
+
+                                        <option value="@Model.AllEmployees.ElementAt(i).Id">@Model.AllEmployees.ElementAt(i).FirstName @Model.AllEmployees.ElementAt(i).Surname</option>
+                                    }
+                                </select>
+                            </td>
+                        </tr>*@
+                </table>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+<div id="panel-2" class="panel" data-panel-close="false">
+    <div class="panel-hdr">
+        <h2>Filtered by</h2>
+        <div class="panel-toolbar">
+            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Expand/Collapse"></button>
+        </div>
+    </div>
+    <div class="panel-container collapse">
+        <div class="panel-content">
+            <div class="form-group">
+                <table class="table table-borderless">
+                    <tr>
+                        <td colspan="2">
+                            <label class="form-label md-header">Show jobs for:</label>
+                            <div class="frame-wrap">
+                                <div class="demo">
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" class="custom-control-input" id="all-clients-radio" checked="" name="interanlExternalRadioButton" onchange="updateClientList()">
+                                        <label class="custom-control-label" for="all-clients-radio">All clients</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" class="custom-control-input" id="internal-radio" name="interanlExternalRadioButton" onchange="updateClientList()">
+                                        <label class="custom-control-label" for="internal-radio">Internal clients</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" class="custom-control-input" id="external-radio" name="interanlExternalRadioButton" onchange="updateClientList()">
+                                        <label class="custom-control-label" for="external-radio">External clients</label>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="2">
+                            <label class="form-label md-header">Org group:</label>
+                            <span id="org-group-span">
+                                <select class="select2-placeholder-multiple form-control" multiple="multiple" id="org-group-select" onchange="updateOrgList();">
+
+                                    @if (Model.AllOrgGroupsIdAndName != null)
+                                    {
+                                        @for (var i = 0; i < Model.AllOrgGroupsIdAndName.Count(); i++)
+                                        {
+                                            var currentKey = Model.AllOrgGroupsIdAndName.ElementAt(i).Key;
+                                            <option value="@currentKey">@currentKey - @Model.AllOrgGroupsIdAndName.ElementAt(i).Value</option>
+                                        }
+                                    }
+
+                                </select>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <label class="form-label md-header">Org:</label>
+                            <span id="org-span">
+                                <select class="select2-placeholder-multiple form-control" multiple="multiple" id="org-select">
+
+                                    @if (Model.AllOrgsIdAndName != null)
+                                    {
+                                        @for (var i = 0; i < Model.AllOrgsIdAndName.Count(); i++)
+                                        {
+                                            var currentKey = Model.AllOrgsIdAndName.ElementAt(i).Key;
+                                            <option value="@currentKey">@currentKey - @Model.AllOrgsIdAndName.ElementAt(i).Value</option>
+                                        }
+                                    }
+
+                                </select>
+                            </span>
+                        </td>
+                    </tr>
+                    @if (Model.AllEndClients != null)
+                    {
+                        <tr>
+                            <td colspan="2">
+                                <label class="form-label md-header">End clients:</label>
+                                <span id="org-span">
+                                    <select class="select2-placeholder-multiple form-control" multiple="multiple" id="end-client-select" onchange="updateEndClientDetails();">
+                                        @for (var i = 0; i < Model.AllEndClients.Count(); i++)
+                                        {
+                                            <option value="@Model.AllEndClients.ElementAt(i).Id">@Model.AllEndClients.ElementAt(i).Name</option>
+                                        }
+                                    </select>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                    @if (Model.AllBrands != null)
+                    {
+                        <tr>
+                            <td colspan="2">
+                                <label class="form-label md-header">Brands:</label>
+                                <span id="org-span">
+                                    <select class="select2-placeholder-multiple form-control" multiple="multiple" id="brand-select">
+                                        @for (var i = 0; i < Model.AllBrands.Count(); i++)
+                                        {
+                                            <option value="@Model.AllBrands.ElementAt(i).Id">@Model.AllBrands.ElementAt(i).DataObjectName</option>
+                                        }
+                                    </select>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                    @if (Model.AllCategories != null)
+                    {
+                        <tr>
+                            <td colspan="2">
+                                <label class="form-label md-header">Categories:</label>
+                                <span id="org-span">
+                                    <select class="select2-placeholder-multiple form-control" multiple="multiple" id="category-select">
+                                        @for (var i = 0; i < Model.AllCategories.Count(); i++)
+                                        {
+                                            <option value="@Model.AllCategories.ElementAt(i).Id">@Model.AllCategories.ElementAt(i).DataObjectName</option>
+                                        }
+                                    </select>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                    @if (Model.AllCampaigns != null)
+                    {
+                        <tr>
+                            <td colspan="2">
+                                <label class="form-label md-header">Campaigns:</label>
+                                <span id="org-span">
+                                    <select class="select2-placeholder-multiple form-control" multiple="multiple" id="campaign-select">
+                                        @for (var i = 0; i < Model.AllCampaigns.Count(); i++)
+                                        {
+                                            <option value="@Model.AllCampaigns.ElementAt(i).Id">@Model.AllCampaigns.ElementAt(i).DataObjectName</option>
+                                        }
+                                    </select>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+
+
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="panel" data-panel-close="false">
+    <div class="panel-hdr">
+        <h2>Results to include</h2>
+        <div class="panel-toolbar">
+            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Expand/Collapse"></button>
+        </div>
+    </div>
+    <div class="panel-container collapse">
+        <div class="panel-content" id="job-item-default-div" >
+            <div class="panel-tag">
+                <h5><b>Included by default</b></h5><br />
+                <table class="table-borderless" id="job-item-default-table">
+                    <tr>
+                        <td>
+
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="job-item-checkbox" checked="" disabled="">
+                                <label class="custom-control-label" for="job-item-checkbox">Job items</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="job-order-checkbox-1" checked="" disabled="">
+                                <label class="custom-control-label" for="job-order-checkbox-1">Job order</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="org-group-checkbox-1" checked="">
+                                <label class="custom-control-label" for="org-group-checkbox-1">Org group</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="org-checkbox-1" checked="">
+                                <label class="custom-control-label" for="org-checkbox-1">Org</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="client-currency-checkbox-1" checked="">
+                                <label class="custom-control-label" for="client-currency-checkbox-1">Client currency</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="client-charge-checkbox-1" checked="">
+                                <label class="custom-control-label" for="client-charge-checkbox-1">Client charge</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="client-charge-GBP-checkbox-1" checked="">
+                                <label class="custom-control-label" for="client-charge-GBP-checkbox-1">Client charge in GBP</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="supplier-currency-checkbox" checked="">
+                                <label class="custom-control-label" for="supplier-currency-checkbox">Supplier currency</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="supplier-cost-checkbox" checked="">
+                                <label class="custom-control-label" for="supplier-cost-checkbox">Supplier cost</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="supplier-cost-GBP-checkbox-1" checked="">
+                                <label class="custom-control-label" for="supplier-cost-GBP-checkbox-1">Supplier cost in GBP</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="margin-in-gbp-1" checked="">
+                                <label class="custom-control-label" for="margin-in-gbp-1">Margin in GBP</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="margin-in-percentage-1" checked="">
+                                <label class="custom-control-label" for="margin-in-percentage-1">Margin in %</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="created-datetime-checkbox" checked="">
+                                <label class="custom-control-label" for="created-datetime-checkbox">Created on</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+
+                        </td>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+        <div class="panel-content" id="job-order-default-div" hidden="hidden">
+            <div class="panel-tag">
+                <h5><b>Included by default</b></h5><br />
+                <table class="table-borderless">
+                    <tr>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="job-order-checkbox-2" checked="" disabled="">
+                                <label class="custom-control-label" for="job-order-checkbox-2">Job order</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="org-group-checkbox-2" checked="">
+                                <label class="custom-control-label" for="org-group-checkbox-2">Org group</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="org-checkbox-2" checked="">
+                                <label class="custom-control-label" for="org-checkbox-2">Org</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="client-currency-checkbox-2" checked="">
+                                <label class="custom-control-label" for="client-currency-checkbox-2">Client currency</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="client-charge-checkbox-2" checked="">
+                                <label class="custom-control-label" for="client-charge-checkbox-2">Client charge</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="client-charge-GBP-checkbox-2" checked="">
+                                <label class="custom-control-label" for="client-charge-GBP-checkbox-2">Client charge in GBP</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="supplier-cost-GBP-checkbox-2" checked="">
+                                <label class="custom-control-label" for="supplier-cost-GBP-checkbox-2">Supplier cost in GBP</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr>
+
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="margin-in-gbp-2" checked="">
+                                <label class="custom-control-label" for="margin-in-gbp-2">Margin in GBP</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="margin-in-percentage-2" checked="">
+                                <label class="custom-control-label" for="margin-in-percentage-2">Margin in %</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="job-submission-date-checkbox" checked="">
+                                <label class="custom-control-label" for="job-submission-date-checkbox">Job submitted on</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+
+                        </td>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="panel-container collapse">
+        <div class="panel-content" id="job-item-optional-div">
+            <div class="form-group">
+                <table class="table-borderless" id="job-item-optional-table">
+                    <tr>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="end-client-checkbox-1">
+                                <label class="custom-control-label" for="end-client-checkbox-1">End client</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="brand-checkbox-1">
+                                <label class="custom-control-label" for="brand-checkbox-1">Brand</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="categories-checkbox-1">
+                                <label class="custom-control-label" for="categories-checkbox-1">Category</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="campaign-checkbox-1">
+                                <label class="custom-control-label" for="campaign-checkbox-1">Campaign</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="project-manager-checkbox-1">
+                                <label class="custom-control-label" for="project-manager-checkbox-1">Project manager</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="team-checkbox-1">
+                                <label class="custom-control-label" for="team-checkbox-1">Team</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="department-checkbox-1">
+                                <label class="custom-control-label" for="department-checkbox-1">Department</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="supplier-sent-checkbox">
+                                <label class="custom-control-label" for="supplier-sent-checkbox">Sent to supplier date</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="supplier-deadline-checkbox">
+                                <label class="custom-control-label" for="supplier-deadline-checkbox">Supplier deadline</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="supplier-completion-checkbox">
+                                <label class="custom-control-label" for="supplier-completion-checkbox">Supplier completion date</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="job-item-completion-checkbox">
+                                <label class="custom-control-label" for="job-item-completion-checkbox">Job item completion date</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="supplier-invoice-checkbox">
+                                <label class="custom-control-label" for="supplier-invoice-checkbox">Supplier invoice date</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="client-charge-after-discount-surcharges-checkbox" />
+                                <label class="custom-control-label" for="client-charge-after-discount-surcharges-checkbox">Client charge after discount/ surcharge</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="margin-after-discount-surcharges-checkbox-1">
+                                <label class="custom-control-label" for="margin-after-discount-surcharges-checkbox-1">Margin after discount/ surcharge</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-market-checkbox">
+                                <label class="custom-control-label" for="cls-market-checkbox">CLS - Market</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-service">
+                                <label class="custom-control-label" for="cls-service">CLS - Service</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-asset-overview">
+                                <label class="custom-control-label" for="cls-asset-overview">CLS - Assets overview</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-air-date">
+                                <label class="custom-control-label" for="cls-air-date">CLS - Air date</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-copy-deck-stored">
+                                <label class="custom-control-label" for="cls-copy-deck-stored">CLS - Copy deck stored</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-vo-talent">
+                                <label class="custom-control-label" for="cls-vo-talent">CLS - VO talent</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-buyout-agreement-signed">
+                                <label class="custom-control-label" for="cls-buyout-agreement-signed">CLS - Buyout agreement signed</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-usage-type">
+                                <label class="custom-control-label" for="cls-usage-type">CLS - Usage type</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-usage-duration">
+                                <label class="custom-control-label" for="cls-usage-duration">CLS - Usage duration</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-usage-start-date">
+                                <label class="custom-control-label" for="cls-usage-start-date">CLS - Usage start date</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-usage-end-date">
+                                <label class="custom-control-label" for="cls-usage-end-date">CLS - Usage end date</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="panel-content" id="job-order-optional-div" hidden="hidden">
+            <div class="form-group">
+                <table class="table-borderless">
+                    <tr>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="end-client-checkbox-2">
+                                <label class="custom-control-label" for="end-client-checkbox-2">End client</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="brand-checkbox-2">
+                                <label class="custom-control-label" for="brand-checkbox-2">Brand</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="categories-checkbox-2">
+                                <label class="custom-control-label" for="categories-checkbox-2">Category</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="campaign-checkbox-2">
+                                <label class="custom-control-label" for="campaign-checkbox-2">Campaign</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="project-manager-checkbox-2">
+                                <label class="custom-control-label" for="project-manager-checkbox-2">Project manager</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="team-checkbox-2">
+                                <label class="custom-control-label" for="team-checkbox-2">Team</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="department-checkbox-2">
+                                <label class="custom-control-label" for="department-checkbox-2">Department</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="job-order-completion-checkbox">
+                                <label class="custom-control-label" for="job-order-completion-checkbox">Job order completion date</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="discount-checkbox">
+                                <label class="custom-control-label" for="discount-checkbox">Discount</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="surcharge-checkbox" />
+                                <label class="custom-control-label" for="surcharge-checkbox">Surcharge</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+
+                        </td>
+                        @*<td>
+            <div class="custom-control custom-checkbox custom-control-inline">
+                <input type="checkbox" class="custom-control-input" id="margin-after-discount-surcharges-checkbox-2">
+                <label class="custom-control-label" for="margin-after-discount-surcharges-checkbox-2">Margin after discount/ surcharge</label>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            </div>
+
+        </td>*@
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-third-party-id">
+                                <label class="custom-control-label" for="cls-third-party-id">CLS - Third party ID</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-production-contact">
+                                <label class="custom-control-label" for="cls-production-contact">CLS - Production contact</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-project-status">
+                                <label class="custom-control-label" for="cls-project-status">CLS - Project status</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-ICPO-number">
+                                <label class="custom-control-label" for="cls-ICPO-number">CLS - ICPO number</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-glossary-updated">
+                                <label class="custom-control-label" for="cls-glossary-updated">CLS - Glossary updated</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-BS-HFM-number">
+                                <label class="custom-control-label" for="cls-BS-HFM-number">CLS - BS HFM number</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-IS-number">
+                                <label class="custom-control-label" for="cls-IS-number">CLS - IS number</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-end-client-charge-currency">
+                                <label class="custom-control-label" for="cls-end-client-charge-currency">CLS - End client charge currency</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-approved-end-client-charge">
+                                <label class="custom-control-label" for="cls-approved-end-client-charge">CLS - Approved end client charge</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-approved-end-client-charge-GBP">
+                                <label class="custom-control-label" for="cls-approved-end-client-charge-GBP">CLS - Approved end client charge (GBP)</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-checkbox custom-control-inline">
+                                <input type="checkbox" class="custom-control-input" id="cls-variance">
+                                <label class="custom-control-label" for="cls-variance">CLS - Variance</label>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            </div>
+                        </td>
+                    </tr>
+                    @*<tr>
+                        <td>
+                            &nbsp;
+                        </td>
+                    </tr>
+                    <tr>
+                        
+                    </tr>*@
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+@*<div id="job-order-div" class="panel" data-panel-close="false" hidden="hidden">
+    <div class="panel-hdr">
+        <h2>Results to include</h2>
+        <div class="panel-toolbar">
+            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Expand/Collapse"></button>
+        </div>
+    </div>
+    <div class="panel-container collapse">
+        
+    </div>
+    <div class="panel-container collapse">
+        
+    </div>
+
+</div>*@
+<table class="table table-borderless">
+    <tr>
+        <td>
+            <div class="alert border-faded bg-transparent text-secondary fade show" role="alert" id="alert-div" hidden="hidden">
+                <div class="d-flex align-items-center">
+                    <div class="flex-1">
+                        <span class="h5 color-success-600">Request submitted!</span>
+                        <br>
+                        Your report is being processed and will be emailed to you once ready.
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-warning" role="alert" hidden="hidden" id="field-validation-message">
+                Please select a valid date range
+            </div>
+            <a class="btn btn-success" id="export-button" onclick="emailReport();event.preventDefault();">Email me the report</a>
+        </td>
+    </tr>
+</table>
+@section ScriptsBlock {
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script>
+    var controls = {
+			leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+			rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+		}
+		var runDatePicker = function () {
+            // range picker
+            $('#date-range-div').datepicker({
+                todayHighlight: true,
+                orientation: "bottom right",
+				templates: controls,
+				format: "dd/mm/yyyy",
+               });
+
+            //var today = new Date();
+            //var endDateString = today.getDate().toString() + '/' + (today.getMonth() + 1).toString() + '/' + today.getFullYear().toString();
+            //var startDate = new Date();
+            //startDate.setMonth(startDate.getMonth() - 1);
+            //var startDateString = startDate.getDate().toString() + '/' + (startDate.getMonth() + 1).toString() + '/' + startDate.getFullYear().toString();
+
+            //$('#start-date').datepicker("update", startDate);
+            //$('#end-date').datepicker("update", today);
+
+		}
+		$(document).ready(function () {
+            $(function () {
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "Search..."
+                });
+
+
+				$(".js-hide-search").select2({
+					minimumResultsForSearch: 1 / 0
+				});
+				$(".js-max-length").select2({
+					maximumSelectionLength: 2,
+					placeholder: "Select maximum 2 items"
+				});
+				$(".select2-placeholder").select2({
+					placeholder:"Select a state",
+					allowClear: true
+				});
+				$(".js-select2-icons").select2({
+					minimumResultsForSearch: 1 / 0,
+					templateResult: icon,
+					templateSelection: icon,
+					escapeMarkup: function (elm) {
+						return elm
+					}
+				});
+				function icon(elm) {
+					elm.element;
+					return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+				}
+				$(".js-data-example-ajax").select2({
+				  ajax: {
+				    url: "https://api.github.com/search/repositories",
+				    dataType: 'json',
+				    delay: 250,
+				    data: function (params) {
+				      return {
+				        q: params.term, // search term
+				        page: params.page
+				      };
+				    },
+				    processResults: function (data, params) {
+				      // parse the results into the format expected by Select2
+				      // since we are using custom formatting functions we do not need to
+				      // alter the remote JSON data, except to indicate that infinite
+				      // scrolling can be used
+				      params.page = params.page || 1;
+				      return {
+				        results: data.items,
+				        pagination: {
+				          more: (params.page * 30) < data.total_count
+				        }
+				      };
+				    },
+				    cache: true
+				  },
+				  placeholder: 'Search for a repository',
+				  escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+				  minimumInputLength: 1,
+				  templateResult: formatRepo,
+				  templateSelection: formatRepoSelection
+				});
+				function formatRepo (repo) {
+				  if (repo.loading) {
+				    return repo.text;
+				  }
+				  var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+				    "<div class='select2-result-repository__avatar mr-2'><img src='" + repo.owner.avatar_url + "' class='width-2 height-2 mt-1 rounded' /></div>" +
+				    "<div class='select2-result-repository__meta'>" +
+				      "<div class='select2-result-repository__title fs-lg fw-500'>" + repo.full_name + "</div>";
+				  if (repo.description) {
+				    markup += "<div class='select2-result-repository__description fs-xs opacity-80 mb-1'>" + repo.description + "</div>";
+				  }
+				  markup += "<div class='select2-result-repository__statistics d-flex fs-sm'>" +
+				    "<div class='select2-result-repository__forks mr-2'><i class='@(Settings.Theme.IconPrefix) fa-lightbulb'></i> " + repo.forks_count + " Forks</div>" +
+				    "<div class='select2-result-repository__stargazers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+				    "<div class='select2-result-repository__watchers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+				  "</div>" +
+				  "</div></div>";
+				  return markup;
+				}
+				function formatRepoSelection (repo) {
+				  return repo.full_name || repo.text;
+                }
+
+			});
+            runDatePicker();
+
+        });
+
+
+        function validateDate(dateControl) {
+            var dateSelected = Date.parse(dateControl.value);
+            var exportButton = document.getElementById('export-button');
+            //debugger;
+            if (dateControl.value == '') {
+                dateControl.setAttribute("class", "form-control is-invalid");
+                return false;
+            }
+            else {
+
+                //refreshGroupList();
+                //refreshOrgList();
+
+                dateControl.setAttribute("class", "form-control is-valid");
+                return true;
+            }
+
+        }
+
+        function refreshGroupList() {
+
+            var startDate = document.getElementById('start-date').value;
+            var endDate = document.getElementById('end-date').value;
+
+            var stringToSend = startDate + '$' + endDate;
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var allGroups = $.parseJSON(response);
+                    var groupSelect = document.getElementById('org-group-select');
+                    groupSelect.innerHTML = '';
+                    for (var i = 0; i < allGroups.length; i++) {
+                        var groupOption = document.createElement("option");
+                        var groupId = allGroups[i].split(" - ")[0];
+                        groupOption.setAttribute("value", groupId);
+                        groupOption.innerText = allGroups[i];
+                        groupSelect.appendChild(groupOption);
+                    }
+                }
+            }
+            xhr.open("POST", "Reports/GetAllOrgGroupsForDateRange", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(stringToSend);
+        }
+
+        function refreshOrgList() {
+
+        }
+        function showJobItemFilters(jobItemRadios) {
+            if (jobItemRadios.checked == true) {
+                document.getElementById("job-items-date-filters").hidden = false;
+                document.getElementById("job-orders-date-filters").hidden = true;
+                document.getElementById("job-item-default-div").hidden = false;
+                document.getElementById("job-order-default-div").hidden = true;
+                document.getElementById("job-item-optional-div").hidden = false;
+                document.getElementById("job-order-optional-div").hidden = true;
+            }
+            else {
+                document.getElementById("job-items-date-filters").hidden = true;
+                document.getElementById("job-orders-date-filters").hidden = false;
+                document.getElementById("job-item-default-div").hidden = true;
+                document.getElementById("job-order-default-div").hidden = false;
+                document.getElementById("job-item-optional-div").hidden = true;
+                document.getElementById("job-order-optional-div").hidden = false;
+            }
+        }
+
+        function showJobOrderFilters(jobOrderRadios) {
+            if (jobOrderRadios.checked == true) {
+                document.getElementById("job-items-date-filters").hidden = true;
+                document.getElementById("job-orders-date-filters").hidden = false;
+                document.getElementById("job-item-default-div").hidden = true;
+                document.getElementById("job-order-default-div").hidden = false;
+                document.getElementById("job-item-optional-div").hidden = true;
+                document.getElementById("job-order-optional-div").hidden = false;
+            }
+            else {
+                document.getElementById("job-items-date-filters").hidden = false;
+                document.getElementById("job-orders-date-filters").hidden = true;
+                document.getElementById("job-item-default-div").hidden = false;
+                document.getElementById("job-order-default-div").hidden = true;
+                document.getElementById("job-item-optional-div").hidden = false;
+                document.getElementById("job-order-optional-div").hidden = true;
+            }
+        }
+
+        function updateOrgList() {
+            var groupSelect = document.getElementById('org-group-select');
+            var orgSelect = document.getElementById('org-select');
+            var allSelectedOptions = '';
+            for (var i = 0; i < groupSelect.options.length; i++) {
+                if (groupSelect.options[i].selected == true) {
+                    allSelectedOptions += groupSelect.options[i].value + ',';
+                }
+            }
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var allOrgs = $.parseJSON(response);
+                    orgSelect.innerHTML = '';
+                    for (var i = 0; i < allOrgs.length; i++) {
+                        var orgOption = document.createElement("option");
+                        var orgId = allOrgs[i].split(" - ")[0];
+                        orgOption.setAttribute("value", orgId);
+                        orgOption.innerText = allOrgs[i];
+                        orgSelect.appendChild(orgOption);
+                    }
+                }
+            }
+            xhr.open("POST", "Reports/GetAllOrgsForOrgGroups", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(allSelectedOptions);
+
+        }
+
+        function updateEndClientDetails() {
+
+            var endClientSelect = document.getElementById('end-client-select');
+            var brandSelect = document.getElementById('brand-select');
+            var categorySelect = document.getElementById('category-select');
+            var campaignSelect = document.getElementById('campaign-select');
+
+            var allSelectedOptions = '';
+            for (var i = 0; i < endClientSelect.options.length; i++) {
+                if (endClientSelect.options[i].selected == true) {
+                    allSelectedOptions += endClientSelect.options[i].value + ',';
+                }
+            }
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var allBrands = $.parseJSON(response);
+                    brandSelect.innerHTML = '';
+                    for (var i = 0; i < allBrands.length; i++) {
+                        var brandOption = document.createElement("option");
+                        brandOption.setAttribute("value", allBrands[i].id);
+                        brandOption.innerText = allBrands[i].dataObjectName;
+                        brandSelect.appendChild(brandOption);
+                    }
+                }
+            }
+            xhr.open("POST", "Reports/GetAllBrandsForEndClients", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(allSelectedOptions);
+
+            var xhr1 = new XMLHttpRequest();
+            xhr1.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr1.responseText;
+                    var allCategories = $.parseJSON(response);
+                    categorySelect.innerHTML = '';
+                    for (var i = 0; i < allCategories.length; i++) {
+                        var categoryOption = document.createElement("option");
+                        categoryOption.setAttribute("value", allCategories[i].id);
+                        categoryOption.innerText = allCategories[i].dataObjectName;
+                        categorySelect.appendChild(categoryOption);
+                    }
+                }
+            }
+            xhr1.open("POST", "Reports/GetAllCategoriesForEndClients", true);
+            xhr1.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr1.send(allSelectedOptions);
+
+            var xhr2 = new XMLHttpRequest();
+            xhr2.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr2.responseText;
+                    var allCampaigns = $.parseJSON(response);
+                    campaignSelect.innerHTML = '';
+                    for (var i = 0; i < allCampaigns.length; i++) {
+                        var campaignOption = document.createElement("option");
+                        campaignOption.setAttribute("value", allCampaigns[i].id);
+                        campaignOption.innerText = allCampaigns[i].dataObjectName;
+                        campaignSelect.appendChild(campaignOption);
+                    }
+                }
+            }
+            xhr2.open("POST", "Reports/GetAllCampaignsForEndClients", true);
+            xhr2.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr2.send(allSelectedOptions);
+        }
+
+        function updateClientList() {
+
+            var internalClientsRadio = document.getElementById('internal-radio');
+            var externalClientsRadio = document.getElementById('external-radio');
+            var allClientsRadio = document.getElementById('all-clients-radio');
+
+            //const allExternalClients = [72112, 72113, 72114, 72115];
+            var internalExternalOrAll;
+            if (internalClientsRadio.checked == true) {
+                internalExternalOrAll = "internal";
+            }
+            else if (externalClientsRadio.checked == true) {
+                internalExternalOrAll = "external";
+            }
+            else if (allClientsRadio.checked == true) {
+                internalExternalOrAll = "all";
+            }
+
+            var groupSelect = document.getElementById('org-group-select');
+            var orgSelect = document.getElementById('org-select');
+
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var allGroups = $.parseJSON(response);
+
+                    groupSelect.innerHTML = '';
+                    for (var i = 0; i < allGroups.length; i++) {
+                        var groupOption = document.createElement("option");
+                        var groupId = allGroups[i].split(" - ")[0];
+                        groupOption.setAttribute("value", groupId);
+                        groupOption.innerText = allGroups[i];
+                        groupSelect.appendChild(groupOption);
+                    }
+
+                    var xhr1 = new XMLHttpRequest();
+                    xhr1.onreadystatechange = function () {
+                        if (this.readyState == 4 && this.status == 200) {
+                            var response = xhr1.responseText;
+                            var allOrgs = $.parseJSON(response);
+                            orgSelect.innerHTML = '';
+                            for (var i = 0; i < allOrgs.length; i++) {
+                                var orgOption = document.createElement("option");
+                                var orgId = allOrgs[i].split(" - ")[0];
+                                orgOption.setAttribute("value", orgId);
+                                orgOption.innerText = allOrgs[i];
+                                orgSelect.appendChild(orgOption);
+                            }
+                        }
+                    }
+                    xhr1.open("POST", "Reports/GetAllOrgsForInternalExternalFilter", true);
+                    xhr1.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr1.send(internalExternalOrAll);
+                }
+
+            }
+
+            xhr.open("POST", "Reports/GetAllGroupsForInternalExternalFilter", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(internalExternalOrAll);
+
+
+        }
+
+        function emailReport() {
+
+            var startDateInput = document.getElementById('start-date');
+            var endDateInput = document.getElementById('end-date');
+
+            if (validateDate(startDateInput) == false || validateDate(startDateInput) == false) {
+                document.getElementById('field-validation-message').hidden = false;
+            }
+            else {
+                document.getElementById('field-validation-message').hidden = true;
+
+                var groupSelect = document.getElementById('org-group-select');
+                var allGroupsOptions = '';
+                if (groupSelect != null) {
+                    for (var i = 0; i < groupSelect.options.length; i++) {
+                        if (groupSelect.options[i].selected == true) {
+                            allGroupsOptions += groupSelect.options[i].value + ',';
+                        }
+                    }
+                }
+
+                var jobItemRadio = document.getElementById('job-item-radio');
+                var jobOrderRadio = document.getElementById('job-order-radio');
+
+                var isJobItemOrJobOrder = "";
+                var dateFilter = "";
+
+                if (jobItemRadio.checked == true) {
+                    isJobItemOrJobOrder = "JobItem";
+                    var jobItemCreatedOnRadio = document.getElementById('created-on-radio');
+                    var supplierCompletionDateRadio = document.getElementById('supplier-completion-date-radio');
+                    if (jobItemCreatedOnRadio.checked == true) {
+                        dateFilter = "jobItemCreatedOn";
+                    }
+                    else if (supplierCompletionDateRadio.checked == true) {
+                        dateFilter = "jobItemSupplierCompletionDate";
+                    }
+                }
+                else if (jobOrderRadio.checked == true){
+                    isJobItemOrJobOrder = "JobOrder";
+                    var submissionDateRadio = document.getElementById('submission-date-radio');
+                    var orderCompletionRadio = document.getElementById('order-completion-date-radio');
+                    var invoiceDateRadio = document.getElementById('invoice-date-radio');
+
+                    if (submissionDateRadio.checked == true) {
+                        dateFilter = "jobOrderSubmissionDate";
+                    }
+                    else if (orderCompletionRadio.checked == true) {
+                        dateFilter = "jobOrderCompletionDate";
+                    }
+                    else if (invoiceDateRadio.checked == true) {
+                        dateFilter = "jobOrderInvoiceDate";
+                    }
+                }
+
+                var allClientsRadio = document.getElementById('all-clients-radio');
+                var internalClientsRadio = document.getElementById('internal-radio');
+                var externalClientsRadio = document.getElementById('all-clients-radio');
+
+                var internalExternalOrAll;
+                if (internalClientsRadio.checked == true) {
+                    internalExternalOrAll = "internal";
+                }
+                else if (externalClientsRadio.checked == true) {
+                    internalExternalOrAll = "external";
+                }
+                else if (allClientsRadio.checked == true) {
+                    internalExternalOrAll = "all";
+                }
+
+
+                var orgSelect = document.getElementById('org-select');
+                var allOrgsOptions = '';
+                if (orgSelect != null) {
+                    for (var i = 0; i < orgSelect.options.length; i++) {
+                        if (orgSelect.options[i].selected == true) {
+                            allOrgsOptions += orgSelect.options[i].value + ',';
+                        }
+                    }
+                }
+
+
+                var endClientSelect = document.getElementById('end-client-select');
+                var allEndClientsOptions = '';
+                if (endClientSelect != null) {
+                    for (var i = 0; i < endClientSelect.options.length; i++) {
+                        if (endClientSelect.options[i].selected == true) {
+                            allEndClientsOptions += endClientSelect.options[i].value + ',';
+                        }
+                    }
+                }
+
+
+                var brandSelect = document.getElementById('brand-select');
+                var allBrandsOptions = '';
+                if (brandSelect != null) {
+                    for (var i = 0; i < brandSelect.options.length; i++) {
+                        if (brandSelect.options[i].selected == true) {
+                            allBrandsOptions += brandSelect.options[i].value + ',';
+                        }
+                    }
+                }
+
+                var categorySelect = document.getElementById('category-select');
+                var allCategoriesOptions = '';
+                if (categorySelect != null) {
+                    for (var i = 0; i < categorySelect.options.length; i++) {
+                        if (categorySelect.options[i].selected == true) {
+                            allCategoriesOptions += categorySelect.options[i].value + ',';
+                        }
+                    }
+                }
+
+
+                var campaignSelect = document.getElementById('campaign-select');
+                var allCampaignsOptions = '';
+                if (campaignSelect != null) {
+                    for (var i = 0; i < campaignSelect.options.length; i++) {
+                        if (campaignSelect.options[i].selected == true) {
+                            allCampaignsOptions += campaignSelect.options[i].value + ',';
+                        }
+                    }
+                }
+
+                var allCheckboxesToInclude = "";
+
+                var jobItemDefaultDiv = document.getElementById('job-item-default-div');
+                var jobOrderDefaultDiv = document.getElementById('job-order-default-div');
+                var jobItemOptionalDiv = document.getElementById('job-item-optional-div');
+                var jobOrderOptionalDiv = document.getElementById('job-order-optional-div');
+
+                if (jobItemDefaultDiv.hidden == false) {
+                    if (document.getElementById('job-item-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'jobItem,';
+                    }
+
+                    if (document.getElementById('job-order-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'jobOrder,';
+                    }
+
+                    if (document.getElementById('org-group-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'orgGroup,';
+                    }
+
+                    if (document.getElementById('org-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'org,';
+                    }
+
+                    if (document.getElementById('client-currency-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'clientCurrency,';
+                    }
+
+                    if (document.getElementById('client-charge-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'clientCharge,';
+                    }
+
+                    if (document.getElementById('client-charge-GBP-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'clientChargeGBP,';
+                    }
+
+                    if (document.getElementById('supplier-currency-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'supplierCurrency,';
+                    }
+
+                    if (document.getElementById('supplier-cost-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'supplierCost,';
+                    }
+
+                    if (document.getElementById('supplier-cost-GBP-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'supplierCostGBP,';
+                    }
+
+                    if (document.getElementById('margin-in-gbp-1').checked == true) {
+                        allCheckboxesToInclude += 'marginGBP,';
+                    }
+
+                    if (document.getElementById('margin-in-percentage-1').checked == true) {
+                        allCheckboxesToInclude += 'marginPercentage,';
+                    }
+
+                    if (document.getElementById('created-datetime-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'createdDate,';
+                    }
+
+                }
+
+                if (jobItemOptionalDiv.hidden == false) {
+                    if (document.getElementById('end-client-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'endClient,';
+                    }
+
+                    if (document.getElementById('brand-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'brand,';
+                    }
+
+                    if (document.getElementById('categories-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'category,';
+                    }
+
+                    if (document.getElementById('campaign-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'campaign,';
+                    }
+
+                    if (document.getElementById('project-manager-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'projectManager,';
+                    }
+
+                    if (document.getElementById('team-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'team,';
+                    }
+
+                    if (document.getElementById('department-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'department,';
+                    }
+
+                    if (document.getElementById('supplier-sent-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'supplierSentDate,';
+                    }
+
+                    if (document.getElementById('supplier-deadline-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'supplierDeadline,';
+                    }
+
+                    if (document.getElementById('supplier-completion-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'supplierCompletionDate,';
+                    }
+
+                    if (document.getElementById('job-item-completion-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'jobItemCompletionDate,';
+                    }
+
+                    if (document.getElementById('supplier-invoice-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'supplierInvoiceDate,';
+                    }
+
+                    if (document.getElementById('client-charge-after-discount-surcharges-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'clientChargeAfterDiscountSurcharge,';
+                    }
+
+                    if (document.getElementById('margin-after-discount-surcharges-checkbox-1').checked == true) {
+                        allCheckboxesToInclude += 'marginAfterDiscountSurcharge,';
+                    }
+
+                    if (document.getElementById('cls-market-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'clsMarket,';
+                    }
+
+                    if (document.getElementById('cls-service').checked == true) {
+                        allCheckboxesToInclude += 'clsService,';
+                    }
+
+                    if (document.getElementById('cls-asset-overview').checked == true) {
+                        allCheckboxesToInclude += 'clsAssetOverview,';
+                    }
+
+                    if (document.getElementById('cls-air-date').checked == true) {
+                        allCheckboxesToInclude += 'clsAirDate,';
+                    }
+
+                    if (document.getElementById('cls-copy-deck-stored').checked == true) {
+                        allCheckboxesToInclude += 'clsCopyDeckStored,';
+                    }
+
+                    if (document.getElementById('cls-vo-talent').checked == true) {
+                        allCheckboxesToInclude += 'clsVOTalent,';
+                    }
+
+                    if (document.getElementById('cls-buyout-agreement-signed').checked == true) {
+                        allCheckboxesToInclude += 'clsBuyoutAgreementSigned,';
+                    }
+
+                    if (document.getElementById('cls-usage-type').checked == true) {
+                        allCheckboxesToInclude += 'clsUsageType,';
+                    }
+
+                    if (document.getElementById('cls-usage-duration').checked == true) {
+                        allCheckboxesToInclude += 'clsUsageDuration,';
+                    }
+
+                    if (document.getElementById('cls-usage-start-date').checked == true) {
+                        allCheckboxesToInclude += 'clsUsageStartDate,';
+                    }
+
+                    if (document.getElementById('cls-usage-end-date').checked == true) {
+                        allCheckboxesToInclude += 'clsUsageEndDate,';
+                    }
+
+                }
+
+                if (jobOrderDefaultDiv.hidden == false) {
+                    if (document.getElementById('job-order-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'jobOrder,';
+                    }
+
+                    if (document.getElementById('org-group-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'orgGroup,';
+                    }
+
+                    if (document.getElementById('org-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'org,';
+                    }
+
+                    if (document.getElementById('client-currency-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'clientCurrency,';
+                    }
+
+                    if (document.getElementById('client-charge-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'clientCharge,';
+                    }
+
+                    if (document.getElementById('client-charge-GBP-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'clientChargeGBP,';
+                    }
+
+                    if (document.getElementById('supplier-cost-GBP-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'supplierCostGBP,';
+                    }
+
+                    if (document.getElementById('margin-in-gbp-2').checked == true) {
+                        allCheckboxesToInclude += 'marginInGBP,';
+                    }
+
+                    if (document.getElementById('margin-in-percentage-2').checked == true) {
+                        allCheckboxesToInclude += 'marginInPercentage,';
+                    }
+
+                    if (document.getElementById('job-submission-date-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'jobSubmissionDate,';
+                    }
+
+                }
+
+                if (jobOrderOptionalDiv.hidden == false) {
+
+                    if (document.getElementById('end-client-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'endClient,';
+                    }
+
+                    if (document.getElementById('brand-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'brand,';
+                    }
+
+                    if (document.getElementById('categories-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'category,';
+                    }
+
+                    if (document.getElementById('campaign-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'campaign,';
+                    }
+
+                    if (document.getElementById('project-manager-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'projectManager,';
+                    }
+
+                    if (document.getElementById('team-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'team,';
+                    }
+
+                    if (document.getElementById('department-checkbox-2').checked == true) {
+                        allCheckboxesToInclude += 'department,';
+                    }
+
+                    if (document.getElementById('job-order-completion-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'jobOrderCompletionDate,';
+                    }
+
+                    if (document.getElementById('discount-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'discount,';
+                    }
+
+                    if (document.getElementById('surcharge-checkbox').checked == true) {
+                        allCheckboxesToInclude += 'surcharge,';
+                    }
+
+                    //if (document.getElementById('margin-after-discount-surcharges-checkbox-2').checked == true) {
+                    //    allCheckboxesToInclude += 'marginAfterDiscountSurcharges,';
+                    //}
+
+                    if (document.getElementById('cls-third-party-id').checked == true) {
+                        allCheckboxesToInclude += 'clsThirdParty,';
+                    }
+
+                    if (document.getElementById('cls-production-contact').checked == true) {
+                        allCheckboxesToInclude += 'clsProductionContact,';
+                    }
+
+                    if (document.getElementById('cls-project-status').checked == true) {
+                        allCheckboxesToInclude += 'clsProjectStatus,';
+                    }
+
+                    if (document.getElementById('cls-ICPO-number').checked == true) {
+                        allCheckboxesToInclude += 'clsICPONumber,';
+                    }
+
+                    if (document.getElementById('cls-glossary-updated').checked == true) {
+                        allCheckboxesToInclude += 'clsGlossaryUpdated,';
+                    }
+
+                    if (document.getElementById('cls-BS-HFM-number').checked == true) {
+                        allCheckboxesToInclude += 'clsBSHFMNumber,';
+                    }
+
+                    if (document.getElementById('cls-IS-number').checked == true) {
+                        allCheckboxesToInclude += 'clsISNumber,';
+                    }
+
+                    if (document.getElementById('cls-end-client-charge-currency').checked == true) {
+                        allCheckboxesToInclude += 'clsEndClientChargeCurrency,';
+                    }
+
+                    if (document.getElementById('cls-approved-end-client-charge').checked == true) {
+                        allCheckboxesToInclude += 'clsApprovedEndClientCharge,';
+                    }
+
+                    if (document.getElementById('cls-approved-end-client-charge-GBP').checked == true) {
+                        allCheckboxesToInclude += 'clsApprovedEndClientChargeGBP,';
+                    }
+
+                    if (document.getElementById('cls-variance').checked == true) {
+                        allCheckboxesToInclude += 'clsVariance,';
+                    }
+
+
+                }
+
+                const exportDetails = {
+                    startDate: startDateInput.value.toString("dd-MM-yyyy"), endDate: endDateInput.value.toString("dd-MM-yyyy"),
+                    filterByJobItemOrJobOrder: isJobItemOrJobOrder, filterByDate: dateFilter, internalExternalOrAll: internalExternalOrAll, 
+                    orgGroupString: allGroupsOptions, orgString: allOrgsOptions, endClientString: allEndClientsOptions,
+                    brandString: allBrandsOptions, categoryString: allCategoriesOptions, campaignString: allCampaignsOptions,
+                    resultsToInclude: allCheckboxesToInclude
+                };
+
+                var arraytoReturn = new Array();
+                arraytoReturn.push(exportDetails);
+
+                var exportDetailsString = JSON.stringify(arraytoReturn);
+
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "Reports/ExportReport", false);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(exportDetailsString);
+
+                //show message on screen
+                document.getElementById('alert-div').hidden = false;
+                document.getElementById('export-button').style.display = "none";
+            }
+
+
+        }
+    </script>
+}

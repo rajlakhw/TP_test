@@ -1,0 +1,1902 @@
+﻿@{
+    ViewData["Title"] = "Enquiries Dashboard";
+    ViewData["PageName"] = "Enquiries Dashboard";
+    ViewData["Category1"] = "flow plus";
+
+    @using System.Text.Json;
+    @using Global_Settings;
+    @using ViewModels.Enquiries;
+    @model EnquiriesViewModel;
+}
+
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+<input type="hidden" name="PendingEnqToUpdate" id="PendingEnqToUpdate" value="" />
+<input type="hidden" name="startDateSent" id="startDateSent" value="" />
+<input type="hidden" name="endDateSent" id="endDateSent" value="" />
+<input type="hidden" name="startDateApproved" id="startDateApproved" value="" />
+<input type="hidden" name="endDateApproved" id="endDateApproved" value="" />
+<input type="hidden" name="empForEnq" id="empForEnq" value="" />
+<input type="hidden" name="SentEnqToUpdate" id="SentEnqToUpdate" value="" />
+<div class="row">
+    <div class="col text-center">
+        <label class="form-label fs-xxl">Enquiries Dashboard</label>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="custom-control custom-switch col-sm-12 text-center">
+        @if (ViewBag.onlyForMe == "true")
+        {
+            <input type="checkbox" checked name="assignedToMe" class="custom-control-input" id="assignedToMeId" />
+        }
+        else
+        {
+            <input type="checkbox" name="assignedToMe" class="custom-control-input" id="assignedToMeId" />
+        }
+
+        <label class="custom-control-label" for="assignedToMeId">Show assigned to me</label>
+    </div>
+</div>
+<br />
+
+
+<div id="js-page-content">
+    <div class="row">
+        <div class="col-12">
+            @*Enquiries to be actioned*@
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <h2>Enquiries to be actioned</h2>
+                </div>
+                <div class="panel-container collapse">
+                    <div class="panel-content" contenteditable="false">
+                        <div class="form-group-row" style="text-align:center">
+                            <div class="custom-control custom-switch col-sm-12">
+                                @if (ViewBag.IncludePGD == "true")
+                                {
+                                    <input type="checkbox" checked name="includePGD" class="custom-control-input" id="includePGD" />
+                                }
+                                else
+                                {
+                                    <input type="checkbox" name="includePGD" class="custom-control-input" id="includePGD" />
+                                }
+                                <label class="custom-control-label" for="includePGD">Include PGD Groups</label>
+                            </div>
+
+                        </div>
+                        <table id="dt-all-pending-enquiries" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color: #e84133;  color: #212529;">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Created date</th>
+                                    <th>Organisation</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>SLA</th>
+                                    <th>Enquiry deadline</th>
+                                    <th>Assigned to</th>
+                                    <th>Source</th>
+                                    <th>Target</th>
+                                    <th>Internal Notes</th>
+                                    <th>Source languages</th>
+                                    <th>Target languages</th>
+                                    <th>Sales owner</th>
+                                    <th>Win chance</th>
+                                    <th>Estimated client decision date</th>
+                                </tr>
+                            </thead>
+
+
+                        </table>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            @*Enquiries sent*@
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <h2>Enquiries sent</h2>
+                </div>
+                <div class="panel-container collapse">
+                    <div class="panel-content">
+                        <div class="form-group row" style="float:left">
+                            <label class="col-form-label col-12 col-lg-3 form-label">Date range:</label>
+                            <div class="col-12 col-lg-8" style="float:left">
+                                <div class="input-daterange input-group" id="datepicker-5" onchange="getSentDatePicker()">
+                                    <input type="text" class="form-control" name="start" id="startSentDate" asp-for="@Model.startDateSent">
+                                    <div class="input-group-append input-group-prepend">
+                                        <span class="input-group-text fs-xl"><i class="@(Settings.Theme.IconPrefix) fa-ellipsis-h"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control" name="end" id="endSentDate" asp-for="@Model.endDateSent">
+                                    <button id="searchSent" class="fal fa-search border-0 ml-1" style="background:none;" onclick="updateDateSent()"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <br /> <br />   <br /><br />
+                        <table id="dt-all-sent-enquiries" contenteditable="false" class="table-sm table-bordered table-hover table-striped table-responsive-sm w-100">
+                            <thead style="background-color: #e84133; color: #212529;">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Created date</th>
+                                    <th>Organisation</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Assigned to</th>
+                                    <th>Charge to client</th>
+                                    <th>Charge to client GBP</th>
+                                    <th>Sales owner</th>
+                                    <th>Internal Notes</th>
+                                </tr>
+                            </thead>
+
+
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-12">
+            @*Enquiries approved / rejected*@
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <h2>Enquiries approved / rejected</h2>
+                </div>
+                <div class="panel-container collapse">
+                    <div class="panel-content">
+                        <div class="form-group row" style="float:left">
+                            <label class="col-form-label col-12 col-lg-3 form-label">Date range:</label>
+                            <div class="col-12 col-lg-8" style="float:left">
+                                <div class="input-daterange input-group" id="datepicker-6" onchange="getApprovedDate()">
+                                    <input type="text" class="form-control" name="start" id="approvedStartDate" value="@Model.startDateApproved">
+                                    <div class="input-group-append input-group-prepend">
+                                        <span class="input-group-text fs-xl"><i class="@(Settings.Theme.IconPrefix) fa-ellipsis-h"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control" name="end" id="approvedEndDate" value="@Model.endDateApproved">
+                                    <button id="searchApproved" class="fal fa-search border-0 ml-1" style="background:none;" onclick="updateDateSent()"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <br /> <br />   <br /><br />
+                        <table id="dt-all-rejectedOrApproved-enquiries" class="table-sm table-bordered table-hover table-striped table-responsive-sm w-100">
+                            <thead style="background-color: #e84133; color: #212529;">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Created date</th>
+                                    <th>Organisation</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Assigned to</th>
+                                    <th>Charge to client</th>
+                                    <th>Charge to client GBP</th>
+                                    <th>Sales owner</th>
+                                    <th>Internal Notes</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+
+
+    <script>
+        $('#js-page-content').smartPanel();
+    </script>
+
+    <script>
+
+        $.fn.dataTable.ext.order['dom-text'] = function (settings, col) {
+            return this.api().column(col, { order: 'index' }).nodes().map(function (td, i) {
+                return $('input', td).val();
+            });
+        };
+
+       var controls = {
+			leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+			rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+		}
+		var runDatePicker = function () {
+			// minimum setup
+			$('#datepicker-1').datepicker({
+				todayHighlight: true,
+				orientation: "bottom left",
+				templates: controls
+			});
+			// input group layout
+			$('#datepicker-2').datepicker({
+				todayHighlight: true,
+				orientation: "bottom left",
+				templates: controls
+			});
+			// input group layout for modal demo
+			$('#datepicker-modal-2').datepicker({
+				todayHighlight: true,
+				orientation: "bottom left",
+				templates: controls
+			});
+			// enable clear button
+			$('#datepicker-3').datepicker({
+				todayBtn: "linked",
+				clearBtn: true,
+				todayHighlight: true,
+				templates: controls
+			});
+			// enable clear button for modal demo
+			$('#datepicker-modal-3').datepicker({
+				todayBtn: "linked",
+				clearBtn: true,
+				todayHighlight: true,
+				templates: controls
+			});
+			// orientation
+			$('#datepicker-4-1').datepicker({
+				orientation: "top left",
+				todayHighlight: true,
+				templates: controls
+			});
+			$('#datepicker-4-2').datepicker({
+				orientation: "top right",
+				todayHighlight: true,
+				templates: controls
+			});
+			$('#datepicker-4-3').datepicker({
+				orientation: "bottom left",
+				todayHighlight: true,
+				templates: controls
+			});
+			$('#datepicker-4-4').datepicker({
+				orientation: "bottom right",
+				todayHighlight: true,
+				templates: controls
+			});
+			// range picker
+            $('#datepicker-5').datepicker({
+				todayHighlight: true,
+                templates: controls,
+                format: 'dd/mm/yyyy'
+			});
+			 // inline picker
+			$('#datepicker-6').datepicker({
+				todayHighlight: true,
+                templates: controls,
+                format: 'dd/mm/yyyy'
+			});
+		}
+
+            //var today = new Date();
+            //var endDateString = today.getDate().toString() + '/' + (today.getMonth() + 1).toString() + '/' + today.getFullYear().toString();
+            //var startDate = new Date();
+            //startDate.setMonth(startDate.getMonth() - 1);
+            //var startDateString = startDate.getDate().toString() + '/' + (startDate.getMonth() + 1).toString() + '/' + startDate.getFullYear().toString();
+
+            //$('#start-date').datepicker("update", startDate);
+            //$('#end-date').datepicker("update", today);
+
+
+
+        $(document).ready(function () {
+
+
+
+            $(function () {
+
+
+                var className = document.getElementsByClassName("fal fa-trash");
+                  var valTrash = '@ViewBag.OkToEdit';
+                if (valTrash == "false") {
+                    for (var index = 0; index < className.length; index++) {
+                        $("#" + className[index].id).attr('disabled', 'disabled');
+                    }
+                }
+
+
+
+                $('textarea').each(function () {
+                    var selectID = $(this).attr('id');
+
+                    if (selectID.search('notesText') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+
+                        $(this).attr('disabled', 'disabled');
+                        }}
+                });
+
+                $('textarea').each(function () {
+                    var selectID = $(this).attr('id');
+
+                    if (selectID.search('notesText') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+
+                        $(this).attr('disabled', 'disabled');
+                        }}
+                });
+
+                $('select').each(function () {
+
+
+                    var selectID = $(this).attr('id');
+
+                    if (selectID.search('prioritySelect') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+                            $(this).attr('disabled', 'disabled');
+                        }
+                        if ($(this).val() == "1") {
+
+                            $(this).css('color', 'orangered');
+                        }
+                        else if ($(this).val() == "2") {
+                            $(this).css('color', 'red');
+                        }
+                        else if ($(this).val() == "0") {
+
+                            $(this).css('color', 'forestgreen');
+                        }
+                        else {
+                            $(this).css('color', 'grey');
+                        }
+                    }
+                    else if (selectID.search('employeeSelect') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+                            $(this).attr('disabled', 'disabled');
+                        }
+                    }
+                });
+
+
+            });
+
+            initializePendingEnquiriesTable();
+            initializeSentEnquiriesTable();
+         initializeRejectedOrApprovedEnquiriesTable();
+
+
+            $('.select2').select2();
+            runDatePicker();
+
+        });
+
+        function priorityChangePending(selectObject) {
+
+            var selectId = selectObject.id;
+
+            var enqID = selectId.match(/\d+/);
+            var priorityValue = $('#' + selectId).val();
+
+
+            var values = $('#' + selectId).val();
+
+            if (values == "1") {
+                $('#' + selectId).css('color', 'orangered');
+            }
+            else if (values == "2") {
+                $('#' + selectId).css('color', 'red');
+            }
+            else if (values == "0") {
+                $('#' + selectId).css('color', 'forestgreen');
+            }
+            else {
+                $('#' + selectId).css('color', 'grey');
+            }
+
+       let data = {
+           "@nameof(Model.enqToUpdate)": enqID,
+           "@nameof(Model.enqPriorityToUpdate)": priorityValue,
+           "@nameof(Model.enqAssignedToUpdate)": "0",
+           "@nameof(Model.enqNotesToUpdate)": " (none) "
+            }
+
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/EnquiryToUpdate",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    //confirm update was successfull
+
+
+                    $('.error-span').remove();
+
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+
+        }
+
+        function priorityChangeSent(selectObject) {
+
+            var selectId = selectObject.id;
+
+            var enqID = selectId.match(/\d+/);
+            var priorityValue = $('#' + selectId).val();
+
+
+            var values = $('#' + selectId).val();
+
+            if (values == "1") {
+                $('#' + selectId).css('color', 'orangered');
+            }
+            else if (values == "2") {
+                $('#' + selectId).css('color', 'red');
+            }
+            else if (values == "0") {
+                $('#' + selectId).css('color', 'forestgreen');
+            }
+            else {
+                $('#' + selectId).css('color', 'grey');
+            }
+
+
+       let data = {
+           "@nameof(Model.enqToUpdate)": enqID,
+           "@nameof(Model.enqPriorityToUpdate)": priorityValue,
+           "@nameof(Model.enqAssignedToUpdate)": "0",
+           "@nameof(Model.enqNotesToUpdate)": " (none) "
+            }
+
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/EnquiryToUpdate",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    //confirm update was successfull
+
+
+                    $('.error-span').remove();
+
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+        }
+
+        function initializePendingEnquiriesTable() {
+        var dataSet = @Html.Raw(JsonSerializer.Serialize(Model.PendingOrNotStartedEnquiriesList));
+
+            $('#dt-all-pending-enquiries').dataTable(
+                {
+                    "drawCallback": function (settings) {
+
+                        $(function () {
+
+                            var className = document.getElementsByClassName("fal fa-trash");
+                             var valTrash = '@ViewBag.OkToEdit';
+                            if (valTrash == "false") {
+                            for (var index = 0; index < className.length; index++) {
+                                $("#" + className[index].id).attr('disabled', 'disabled');
+                                }
+                            }
+
+                $('textarea').each(function () {
+                    var selectID = $(this).attr('id');
+
+                    if (selectID.search('notesText') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+
+                        $(this).attr('disabled', 'disabled');
+                        }}
+                });
+
+
+                $('select').each(function () {
+
+
+                    var selectID = $(this).attr('id');
+
+                    if (selectID.search('prioritySelect') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+                            $(this).attr('disabled', 'disabled');
+                        }
+                        if ($(this).val() == "1") {
+
+                            $(this).css('color', 'orangered');
+                        }
+                        else if ($(this).val() == "2") {
+                            $(this).css('color', 'red');
+                        }
+                        else if ($(this).val() == "0") {
+
+                            $(this).css('color', 'forestgreen');
+                        }
+                        else {
+                            $(this).css('color', 'grey');
+                        }
+                    }
+                    else if (selectID.search('employeeSelect') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+                            $(this).attr('disabled', 'disabled');
+                        }
+                    }
+                });
+
+
+            });
+                    },
+
+
+                    data: dataSet,
+                    searching: true,
+                    responsive: true,
+                    dataSrc: "",
+                    "autoWidth": true,
+                columns: [
+                    {
+                        "data": "EnquiryID"
+                        ,
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplusbeta.publicisgroupe.net/enquiry?ID=${row.EnquiryID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }},
+                    {
+                        "data": "createdDate",
+                        render: function (data, type, row, meta) {
+                            if (data == "1989-01-01T00:00:00") {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        }},
+                    {
+                        "data": "orgName"
+                        ,
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.orgID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }},
+
+                    { "data": "orgStatus"},
+                    { "data": "enquiryStatus"},
+                    {
+
+                        "data": "enqPriorityID",
+                        "defaultContent": "N/A",
+                            render: function (data, type, row, meta) {
+                                if (type == "display") {
+                                    if (data == "0") {
+                                        return '<select id="prioritySelectPending' + row.EnquiryID + '" name="priorityType" onchange="priorityChangePending(this)" style="border: none; width:auto; background: transparent;" class="form-control"> <option value = "0" selected="selected" style="color: forestgreen"> Low</option><option value="1" style="color: orangered">Medium</option><option value="2" style="color: red">High</option></select >';
+                                    }
+                                    else if (data == "1") {
+                                        return '<select id="prioritySelectPending' + row.EnquiryID + '" name="priorityType" onchange="priorityChangePending(this)" style="border: none; width:auto; background: transparent;" class="form-control"> <option value = "0" style="color: forestgreen"> Low</option><option value="1" selected="selected" style="color: orangered">Medium</option><option value="2" style="color: red">High</option></select >';
+                                    }
+                                    else if (data == "2") {
+                                        return '<select id="prioritySelectPending' + row.EnquiryID + '" name="priorityType" onchange="priorityChangePending(this)" style="border: none; width:auto; background: transparent;" class="form-control">  <option value = "0" style="color: forestgreen"> Low</option><option value="1" style="color: orangered">Medium</option><option value="2" selected="selected" style="color: red">High</option></select >';
+                                    }
+                                    else {
+                                        if (row.orgStatus == "Bronze" || row.orgStatus == "E-mail only") {
+                                            return '<select id="prioritySelectPending' + row.EnquiryID + '" name="priorityType" onchange="priorityChangePending(this)" style="border: none; width:auto; background: transparent;" class="form-control"> <option value = "0" selected="selected" style="color: forestgreen"> Low</option><option value="1" style="color: orangered">Medium</option><option value="2" style="color: red">High</option></select >';
+                                        }
+                                        else if (row.orgStatus == "Gold" || row.orgStatus == "Platinum") {
+                                            return '<select id="prioritySelectPending' + row.EnquiryID + '" name="priorityType" onchange="priorityChangePending(this)" style="border: none; width:auto; background: transparent;" class="form-control">  <option value = "0" style="color: forestgreen"> Low</option><option value="1" style="color: orangered">Medium</option><option value="2" selected="selected" style="color: red">High</option></select >';
+                                        }
+                                        else if (row.orgStatus == "Silver") {
+                                            return '<select id="prioritySelectPending' + row.EnquiryID + '" name="priorityType" onchange="priorityChangePending(this)" style="border: none; width:auto; background: transparent;" class="form-control"> <option value = "0" style="color: forestgreen"> Low</option><option value="1" selected="selected" style="color: orangered">Medium</option><option value="2" style="color: red">High</option></select >';
+                                        }
+                                        else {
+                                            return '<select id="prioritySelectPending' + row.EnquiryID + '" name="priorityType" onchange="priorityChangePending(this)" style="border: none; width:auto; background: transparent;" class="form-control"> <option value="99" selected="selected" style="color: grey">None</option> <option value = "0" style="color: forestgreen"> Low</option><option value="1" style="color: orangered">Medium</option><option value="2" style="color: red">High</option></select >';
+                                        }
+
+                                    }
+
+                            }
+                        } },
+                    {
+
+                        "data": "orgSLA",
+                        "defaultContent": "N/A",
+                    
+                        render: function (data, type, row, meta) {
+                            if (type == "display") {
+                                if (data == "(none)") {
+                                    return data;
+                                }
+                                else {
+                                    return '<label style="width:65px;">' + Math.round(data)  + ' hours</label>' ;
+                                }
+
+
+                            }
+                        }
+                         
+
+                    },
+                    {
+
+                        "data": "clientDeadline",
+                        "defaultContent": "N/A",
+                        "width": "100px",
+
+                        render: function (data, type, row, meta) {
+                            //debugger;
+                            if (row.clientDeadline != "1989-01-01T00:00:00") { return getDateString(row.clientDeadline) }
+                            //else {
+                            //    if (row.orgSLA != "(none)") {
+                            //        return add_bus_daysSLA(row.createdDate, row.orgSLA);
+                            //    }
+                            //    if (type == "display") {
+                            //        return add_bus_days(row.createdDate, 2);
+                            //    }
+                            //}
+                            else{
+                                return ""
+                            }
+                        }
+                    },
+
+                    {
+                        "data": "assignedToEmployeeID",
+                        "defaultContent": "N/A",
+                        render: function (data, type, row, meta) {
+                            if (type == "display") {
+                                if (data != 0) {
+
+                                    var btnEmplRemove = '<button id="emplRemovePending' + row.EnquiryID + '" onclick="removeLinkPending(this)" class="fal fa-trash border-0 ml-1" style="background:none;"></button>'
+                                    let link = `https://myplus.publicisgroupe.net/Employee.aspx?EmployeeID=${row.assignedToEmployeeID}`;
+                                    var test = '<a id="employeeLinkPending' + row.EnquiryID + '" href="' + link + '" target="_blank" name="' + row.assignedToEmployeeName + '" >' + row.assignedToEmployeeName + '</a>';
+
+                                    @*return test + '<br/><select class="select2-placeholder-multiple form-control" style="width:auto"  onchange="saveChangesAssignedToPending(this)" id="employeeSelectPending' + row.EnquiryID + '"><option value="0">(none)</option>@for (var i = 0; i < Model.EmployeesList.Count(); i++){<option value="@Model.EmployeesList.ElementAt(i).Id">@Model.EmployeesList.ElementAt(i).FirstName @Model.EmployeesList.ElementAt(i).Surname</option>}</select>';*@
+                                    return test + btnEmplRemove + '<br/><br/><select class="select2-placeholder-multiple form-control" style="width:auto"  onchange="saveChangesAssignedToPending(this)" id="employeeSelectPending' + row.EnquiryID + '"><option value="0"></option>@for (var i = 0; i < Model.EmployeesList.Count(); i++){<option value="@Model.EmployeesList.ElementAt(i).Id">@Model.EmployeesList.ElementAt(i).FirstName @Model.EmployeesList.ElementAt(i).Surname</option>}</select>'
+                                }
+                                else {
+                                    return '<select class="select2-placeholder-multiple form-control" style="width:auto"  onchange="saveChangesAssignedToPending(this)" id="employeeSelectPending' + row.EnquiryID + '"><option value="0"></option>@for (var i = 0; i < Model.EmployeesList.Count(); i++){<option value="@Model.EmployeesList.ElementAt(i).Id">@Model.EmployeesList.ElementAt(i).FirstName @Model.EmployeesList.ElementAt(i).Surname</option>}</select>';
+                                }
+
+                            }
+                        }
+
+                    },
+                    { "data": "sourceLanguagesCount" },
+                    { "data": "targetLanguagesCount" },
+
+                    {
+                        "data": "enquiryNotes",
+                        "defaultContent": "N/A",
+                        render: function (data, type, row, meta) {
+                            if (type == "display") {
+                                if (data == "") {
+                                    return '<textarea id="notesText' + row.EnquiryID + '" onchange="notesChanged(this)" style="width: 300px; height: 80px; border: none">' + data + '</textarea>';
+                                }
+                                else {
+                                    return '<textarea id="notesText' + row.EnquiryID + '" onchange="notesChanged(this)"  style="width: 300px; height: 100px; border: none">' + data + '</textarea>';
+                                }
+
+                            }
+                        }
+
+                    },
+                    { "data": "sourceLanguages" },
+                    { "data": "targetLanguages" },
+                    {
+                        "data": "SalesOwner"
+                        ,
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplus.publicisgroupe.net/Employee.aspx?EmployeeID=${row.SalesOwnerID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }
+                    },
+                    {
+
+                        "data": "WinChance",
+                        "defaultContent": "N/A",
+                        "width": "100px",
+
+                        render: function (data, type, row, meta) {
+                            
+                            if (row.WinChance != "-1") { return row.WinChance + "%" }
+                            
+                            else{
+                                return ""
+                            }
+                        }
+                    },
+                    {
+
+                        "data": "ClientDecisionDate",
+                        "defaultContent": "N/A",
+                        "width": "100px",
+
+                        render: function (data, type, row, meta) {
+                            
+                            if (row.ClientDecisionDate != "1989-01-01T00:00:00") { return getDateString(row.ClientDecisionDate) }
+                            
+                            else{
+                                return ""
+                            }
+                        }
+                    }
+                    ],
+                    "order": [[0, "desc"]],
+                    "columnDefs": [
+                        {
+                            "targets": [12],
+                            "visible": false,
+                            "searchable": false
+
+                        },
+                        {
+                            "targets": [13],
+                            "visible": false,
+                            "searchable": false
+                        },
+                        {
+                            "targets": [8],
+                            "bSortable": false
+                        },
+                        {
+                            "targets": [11],
+                            "bSortable": false
+                        },
+                        {
+                            "targets": [5],
+                            "bSortable": false
+                        },
+                        {
+                            "targets": [14],
+                            "visible": false
+                        },
+                        {
+                            "targets": [6],
+                            "bSortable": false
+                        },
+                        {
+                            "targets": [7],
+                            "bSortable": false
+                        },
+                        {
+                            "targets": [15],
+                            "bSortable": false
+                        },
+                        {
+                            "targets": [16],
+                            "bSortable": false
+                        }
+                        ],
+                    lengthMenu: [10, 20, 50, 100, 200],
+
+                colReorder: true,
+                responsive: true,
+                dom:
+                    "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [
+                    {
+                        extend: 'pageLength'
+                    },
+                    {
+                        extend: 'colvis',
+                        text: 'Column Visibility',
+                        titleAttr: 'Col visibility'
+
+                    }
+                ],
+
+                initComplete: function () {
+                    this.api().columns().every(function () {
+                        var column = this;
+                        var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                            .appendTo($(column.footer()).empty())
+                            .on('change', function () {
+                                var val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            select.append('<option value="' + d + '">' + d + '</option>')
+                        });
+                    });
+                }
+            });
+        }
+
+
+        function validateDate(dateControl) {
+            var dateSelected = Date.parse(dateControl.value);
+
+
+            if (dateControl.value == '') {
+                dateControl.setAttribute("class", "form-control is-invalid");
+                return false;
+            }
+            else {
+
+
+
+                dateControl.setAttribute("class", "form-control is-valid");
+                return true;
+            }
+
+        }
+
+           function initializeRejectedOrApprovedEnquiriesTable() {
+        var dataSet = @Html.Raw(JsonSerializer.Serialize(Model.GoneOrRejectedEnquiriesList));
+
+            $('#dt-all-rejectedOrApproved-enquiries').dataTable(
+                {
+                    "drawCallback": function (settings) {
+
+                         $(function () {
+
+
+                             var className = document.getElementsByClassName("fal fa-trash");
+                          var valTrash = '@ViewBag.OkToEdit';
+                             if (valTrash == 'false') {
+                                 for (var index = 0; index < className.length; index++) {
+                                     $("#" + className[index].id).attr('disabled', 'disabled');
+                                 }
+                             }
+
+
+                $('textarea').each(function () {
+                    var selectID = $(this).attr('id');
+
+                    if (selectID.search('notesText') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+
+                        $(this).attr('disabled', 'disabled');
+                        }}
+                });
+
+
+                $('select').each(function () {
+
+
+                    var selectID = $(this).attr('id');
+
+                    if (selectID.search('prioritySelect') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+                            $(this).attr('disabled', 'disabled');
+                        }
+                        if ($(this).val() == "1") {
+
+                            $(this).css('color', 'orangered');
+                        }
+                        else if ($(this).val() == "2") {
+                            $(this).css('color', 'red');
+                        }
+                        else if ($(this).val() == "0") {
+
+                            $(this).css('color', 'forestgreen');
+                        }
+                        else {
+                            $(this).css('color', 'grey');
+                        }
+                    }
+                    else if (selectID.search('employeeSelect') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+                            $(this).attr('disabled', 'disabled');
+                        }
+                    }
+                });
+
+
+            });
+                    },
+                    data: dataSet,
+                    searching: true,
+                    dataSrc: "",
+                    "autoWidth": true,
+                columns: [
+                    {
+                        "data": "EnquiryID"
+                        ,
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplusbeta.publicisgroupe.net/enquiry?ID=${row.EnquiryID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }},
+                    {
+                        "data": "createdDate",
+                        render: function (data, type, row, meta) {
+                            if (data == "1989-01-01T00:00:00") {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        }},
+                    {
+                        "data": "orgName"
+                        ,
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.orgID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }
+                    },
+
+                    {
+                        "data": "enqReason"
+                     },
+                    {
+                        "data": "enquiryStatus",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else if (data == "Rejected")
+                                {
+                                    return `<span style="color: red;">${data}</span>`;
+                                }
+                                else {
+                                    let link = `https://myplusbeta.publicisgroupe.net/tmsjoborder/joborder?joborderid=${row.approvedJobOrderID}`;
+                                    return `<span style="color: forestgreen;">${data}</span>` + ' ' + '<a href="' + link + '" target="_blank" >' + row.approvedJobOrderID + '</a>';
+                                }
+                            }
+                            return data;
+                        }
+
+                    },
+                       { "data": "assignedTo" },
+
+                    {
+                        "data": "chargetToClient",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                const fraction = new Intl.NumberFormat('en-GB', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                });
+
+                                return `${row.enqPrefix}${fraction.format(data)}`;
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "chargetToClientGBP",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                const fraction = new Intl.NumberFormat('en-GB', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                });
+
+                                return `£${fraction.format(data)}`;
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "SalesOwner"
+                        ,
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplus.publicisgroupe.net/Employee.aspx?EmployeeID=${row.SalesOwnerID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "enquiryNotes",
+                        "defaultContent": "N/A",
+                        render: function (data, type, row, meta) {
+                            if (type == "display") {
+                                if (data == "") {
+                                    return '<textarea id="notesText' + row.EnquiryID + '" onchange="notesChanged(this)" style="width: 300px; height: 80px; border: none">' + data + '</textarea>';
+                                }
+                                else {
+                                    return '<textarea id="notesText' + row.EnquiryID + '" onchange="notesChanged(this)"  style="width: 300px; height: 100px; border: none">' + data + '</textarea>';
+                                }
+
+                            }
+                        }
+
+                    }
+
+                   //,
+                    //{
+                    //    "data": null,
+                    //    "defaultContent": "N/A",
+                    //    render: function (data, type, row, meta) {
+                    //        if (type == "display") {
+                    //            //return '<a class="delete-iplusfileBtn" href="javascript:void(0);" >' + data + '</a>';
+                    //            return '<div class="d-flex"><button href="javascript:void(0);" class="btn btn-sm btn-icon btn-outline-warning rounded-circle mr-1" data-absolutepath="" ><i class="fal fa-ellipsis-v"></i></button>' + '<button href="javascript:void(0);" class="btn btn-sm btn-icon btn-outline-danger rounded-circle" ><i class="fal fa-times"></i></button></div>';
+                    //        }
+                    //    }
+                    //}
+                    ],
+                    "order": [[0, "desc"]],
+                    "columnDefs": [
+                        {
+                            "targets": [3],
+                            "visible": false,
+                            "searchable": false
+                        },
+                        {
+                            "targets": [8],
+                            "visible": false
+                        }],
+                    lengthMenu: [10, 20, 50, 100, 200],
+                colReorder: true,
+                responsive: true,
+                dom:
+                    "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [
+                    {
+                        extend: 'pageLength'
+                    },
+                    {
+                        extend: 'colvis',
+                        text: 'Column Visibility',
+                        titleAttr: 'Col visibility'
+                    }
+                ],
+
+                initComplete: function () {
+                    this.api().columns().every(function () {
+                        var column = this;
+                        var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                            .appendTo($(column.footer()).empty())
+                            .on('change', function () {
+                                var val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            select.append('<option value="' + d + '">' + d + '</option>')
+                        });
+                    });
+                }
+            });
+        }
+        function initializeSentEnquiriesTable() {
+        var dataSet = @Html.Raw(JsonSerializer.Serialize(Model.SentEnquiriesList));
+
+            $('#dt-all-sent-enquiries').dataTable(
+                {
+                    "drawCallback": function (settings) {
+
+                        $(function () {
+
+                            var className = document.getElementsByClassName("fal fa-trash");
+                            var valTrash = '@ViewBag.OkToEdit';
+                            if (valTrash == 'false') {
+                                for (var index = 0; index < className.length; index++) {
+
+                                    $("#" + className[index].id).attr('disabled', 'disabled');
+                                }
+                            }
+
+
+                $('textarea').each(function () {
+                    var selectID = $(this).attr('id');
+
+                    if (selectID.search('notesText') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+
+                        $(this).attr('disabled', 'disabled');
+                        }}
+                });
+
+
+                $('select').each(function () {
+
+
+                    var selectID = $(this).attr('id');
+
+                    if (selectID.search('prioritySelect') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+                            $(this).attr('disabled', 'disabled');
+                        }
+                        if ($(this).val() == "1") {
+
+                            $(this).css('color', 'orangered');
+                        }
+                        else if ($(this).val() == "2") {
+                            $(this).css('color', 'red');
+                        }
+                        else if ($(this).val() == "0") {
+
+                            $(this).css('color', 'forestgreen');
+                        }
+                        else {
+                            $(this).css('color', 'grey');
+                        }
+                    }
+                    else if (selectID.search('employeeSelect') != -1) {
+                        var val = '@ViewBag.OkToEdit';
+                        if (val == "false") {
+                            $(this).attr('disabled', 'disabled');
+                        }
+                    }
+                });
+
+
+            });
+                    },
+                    data: dataSet,
+                    searching: true,
+                    dataSrc: "",
+                    "autoWidth": true,
+                columns: [
+                    {
+                        "data": "EnquiryID"
+                        ,
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplusbeta.publicisgroupe.net/enquiry?ID=${row.EnquiryID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }},
+                    {
+                        "data": "createdDate",
+                        render: function (data, type, row, meta) {
+                            if (data == "1989-01-01T00:00:00") {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        }},
+                    {
+                        "data": "orgName"
+                        ,
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.orgID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }
+                    },
+
+
+
+                    { "data": "enquiryStatus" },
+                    {
+
+                        "data": "enqPriorityID",
+                        "defaultContent": "N/A",
+                        render: function (data, type, row, meta) {
+                            if (type == "display") {
+                                if (data == "0") {
+                                    return '<select id="prioritySelectSent' + row.EnquiryID + '" name="priorityType" onchange="priorityChangeSent(this)" style="border: none; background: transparent; width:100px;" class="form-control">  <option value = "0" selected="selected" style="color: forestgreen"> Low</option><option value="1" style="color: orangered">Medium</option><option value="2" style="color: red">High</option></select >';
+                                }
+                                else if (data == "1") {
+                                    return '<select id="prioritySelectSent' + row.EnquiryID + '" name="priorityType" onchange="priorityChangeSent(this)" style="border: none; background: transparent; width:100px;"  class="form-control">   <option value = "0" style="color: forestgreen"> Low</option><option value="1" selected="selected" style="color: orangered">Medium</option><option value="2" style="color: red">High</option></select >';
+                                }
+                                else if (data == "2") {
+                                    return '<select id="prioritySelectSent' + row.EnquiryID + '" name="priorityType" onchange="priorityChangeSent(this)" style="border: none; background: transparent; width:100px;" class="form-control">  <option value = "0" style="color: forestgreen"> Low</option><option value="1" style="color: orangered">Medium</option><option value="2" selected="selected" style="color: red">High</option></select >';
+                                }
+                                else {
+                                    return '<select id="prioritySelectSent' + row.EnquiryID + '" name="priorityType" onchange="priorityChangeSent(this)" style="border: none; background: transparent; width:100px;"  class="form-control"> <option value="99" selected="selected" style="color: grey">None</option>  <option value = "0" style="color: forestgreen"> Low</option><option value="1" style="color: orangered">Medium</option><option value="2" style="color: red">High</option></select >';
+                                }
+
+                            }
+                        }
+                    },
+                    {
+                        "data": "assignedToID",
+                        "defaultContent": "N/A",
+                        render: function (data, type, row, meta) {
+                            if (type == "display") {
+                                if (data != 0) {
+                                    var btnEmplRemove = '<button id="emplRemoveSent' + row.EnquiryID + '" onclick="removeLinkSent(this)" class="fal fa-trash border-0 ml-1" style="background:none;"></button>'
+                                    let link = `https://myplus.publicisgroupe.net/Employee.aspx?EmployeeID=${row.assignedToID}`;
+                                    var test = '<a id="employeeLinkSent' + row.EnquiryID + '" href="' + link + '" target="_blank" name="' + row.assignedToEmployeeName +'" >' + row.assignedToEmployeeName + '</a>';
+                                    return test + btnEmplRemove + '<br/><br/><select class="select2-placeholder-multiple form-control" style="width:auto"  onchange="saveChangesAssignedToSent(this)" id="employeeSelectSent' + row.EnquiryID + '"> <option value="0"><option>  @for (var i = 0; i < Model.EmployeesList.Count(); i++) { <option value="@Model.EmployeesList.ElementAt(i).Id">@Model.EmployeesList.ElementAt(i).FirstName @Model.EmployeesList.ElementAt(i).Surname</option> }  </select>';
+                                }
+                                else {
+                                     return '<select class="select2-placeholder-multiple form-control" style="width:auto"  onchange="saveChangesAssignedToSent(this)" id="employeeSelectSent' + row.EnquiryID + '"> <option value="0"></option>  @for (var i = 0; i < Model.EmployeesList.Count(); i++) { <option value="@Model.EmployeesList.ElementAt(i).Id">@Model.EmployeesList.ElementAt(i).FirstName @Model.EmployeesList.ElementAt(i).Surname</option> }  </select>';
+                                }
+
+
+                            }
+                        }
+
+                    },
+
+                    {
+                        "data": "chargetToClient",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                const fraction = new Intl.NumberFormat('en-GB', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                });
+
+                                return `${row.enqPrefix}${fraction.format(data)}`;
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "chargetToClientGBP",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                const fraction = new Intl.NumberFormat('en-GB', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                });
+                                if (parseInt(data) > 5000) {
+                                    setPriorityToHigh(row.EnquiryID)
+                                }
+                                return `£${fraction.format(data)}`;
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "SalesOwner"
+                        ,
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplus.publicisgroupe.net/Employee.aspx?EmployeeID=${row.SalesOwnerID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "enquiryNotes",
+                        "defaultContent": "N/A",
+                        render: function (data, type, row, meta) {
+                            if (type == "display") {
+                                if (data == "") {
+                                    return '<textarea id="notesText' + row.EnquiryID + '" onchange="notesChanged(this)" style="width: 300px; height: 80px; border: none">' + data + '</textarea>';
+                                }
+                                else {
+                                    return '<textarea id="notesText' + row.EnquiryID + '" onchange="notesChanged(this)"  style="width: 300px; height: 100px; border: none">' + data + '</textarea>';
+                                }
+
+                            }
+                        }
+
+                    }
+
+                   //,
+                    //{
+                    //    "data": null,
+                    //    "defaultContent": "N/A",
+                    //    render: function (data, type, row, meta) {
+                    //        if (type == "display") {
+                    //            //return '<a class="delete-iplusfileBtn" href="javascript:void(0);" >' + data + '</a>';
+                    //            return '<div class="d-flex"><button href="javascript:void(0);" class="btn btn-sm btn-icon btn-outline-warning rounded-circle mr-1" data-absolutepath="" ><i class="fal fa-ellipsis-v"></i></button>' + '<button href="javascript:void(0);" class="btn btn-sm btn-icon btn-outline-danger rounded-circle" ><i class="fal fa-times"></i></button></div>';
+                    //        }
+                    //    }
+                    //}
+                    ],
+                    "order": [[0, "desc"]],
+                    "columnDefs": [
+                        {
+                            "targets": [4],
+                            "bSortable": false,
+
+                        },
+                        {
+                            "targets": [5],
+                            "bSortable": false
+
+                        },
+                        {
+                            "targets": [8],
+                            "visible": false
+                        }
+                    ],
+                    lengthMenu: [10, 20, 50, 100, 200],
+                colReorder: true,
+                responsive: true,
+                dom:
+                    "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [
+                    {
+                        extend: 'pageLength'
+                    },
+                    {
+                        extend: 'colvis',
+                        text: 'Column Visibility',
+                        titleAttr: 'Col visibility'
+                    }
+                ],
+
+                initComplete: function () {
+                    this.api().columns().every(function () {
+                        var column = this;
+                        var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                            .appendTo($(column.footer()).empty())
+                            .on('change', function () {
+                                var val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            select.append('<option value="' + d + '">' + d + '</option>')
+                        });
+                    });
+                }
+            });
+        }
+
+        function notesChanged(textObject) {
+            var selectId = textObject.id;
+            var enqID = selectId.match(/\d+/);
+
+            var notesValue = $('#' + selectId).val();
+
+
+              let data = {
+           "@nameof(Model.enqToUpdate)": enqID,
+           "@nameof(Model.enqPriorityToUpdate)": "99",
+           "@nameof(Model.enqAssignedToUpdate)": "0",
+                  "@nameof(Model.enqNotesToUpdate)": notesValue
+            }
+
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/EnquiryToUpdate",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    //confirm update was successfull
+
+                    //buttonClicked.css({ background: 'lightgreen' });
+                    //setTimeout(function () { buttonClicked.css({ background: 'white' }); }, 2500);
+
+                    $('.error-span').remove();
+
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+        }
+
+        function saveChangesAssignedToPending(selectObject) {
+            var selectId = selectObject.id;
+            var enqID = selectId.match(/\d+/);
+            var assignedToValue = $('#' + selectId).val();
+
+       let data = {
+           "@nameof(Model.enqToUpdate)": enqID,
+           "@nameof(Model.enqPriorityToUpdate)": "99",
+           "@nameof(Model.enqAssignedToUpdate)": assignedToValue,
+           "@nameof(Model.enqNotesToUpdate)": " (none) "
+            }
+
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/EnquiryToUpdate",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    //confirm update was successfull
+
+                    //buttonClicked.css({ background: 'lightgreen' });
+                    //setTimeout(function () { buttonClicked.css({ background: 'white' }); }, 2500);
+                    const link = document.getElementById('employeeLinkPending' + enqID);
+
+                    link.textContent = selectObject.options[selectObject.selectedIndex].text;
+                    link.href = 'https://myplus.publicisgroupe.net/Employee.aspx?EmployeeID=' + assignedToValue;
+                    $('.error-span').remove();
+
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+        }
+
+        function getSentDatePicker() {
+            $('#startDateSent').val($('#startSentDate').val());
+            $('#endDateSent').val($('#endSentDate').val());
+        }
+
+        function getApprovedDate() {
+            $('#startDateApproved').val($('#approvedStartDate').val());
+            $('#endDateApproved').val($('#approvedEndDate').val());
+        }
+
+        function saveChangesAssignedToSent(selectObject) {
+            var selectId = selectObject.id;
+            var enqID = selectId.match(/\d+/);
+            var assignedToValue = $('#' + selectId).val();
+
+               let data = {
+           "@nameof(Model.enqToUpdate)": enqID,
+           "@nameof(Model.enqPriorityToUpdate)": "99",
+           "@nameof(Model.enqAssignedToUpdate)": assignedToValue,
+           "@nameof(Model.enqNotesToUpdate)": " (none) "
+            }
+
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/EnquiryToUpdate",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    //confirm update was successfull
+
+                    const link = document.getElementById('employeeLinkSent' + enqID);
+
+                    link.textContent = selectObject.options[selectObject.selectedIndex].text;
+                    link.href = 'https://myplus.publicisgroupe.net/Employee.aspx?EmployeeID=' + assignedToValue;
+                    //buttonClicked.css({ background: 'lightgreen' });
+                    //setTimeout(function () { buttonClicked.css({ background: 'white' }); }, 2500);
+
+                    $('.error-span').remove();
+
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+        }
+
+
+        function getDateString(date) {
+            var dataObj = new Date(date);
+            var month = dataObj.getMonth() + 1;
+            var day = dataObj.getDate();
+
+            var year = dataObj.getFullYear();
+
+            var hour = dataObj.getHours();
+            var minutes = dataObj.getMinutes();
+            hour = ("0" + hour).slice(-2);
+            minutes = ("0" + minutes).slice(-2);
+
+            return  day + "/" + month + "/" + year + " " + hour + ":" + minutes;
+
+        }
+
+        function SplitTime(numOfSeconds) {
+
+
+            if (numOfSeconds < 0) {
+
+                               var days = Math.floor(Math.abs(numOfSeconds) / (3600 * 24));
+                var Hours = Math.floor(Math.abs(numOfSeconds) % (3600 * 24) / 3600);
+                var Minutes = Math.floor(Math.abs(numOfSeconds) % 3600 / 60);
+                var concat = Math.abs(days) + ":" + Math.abs(Hours) + ":" + String(Math.abs(Minutes)).padStart(2,'0')
+                return `<br/ ><span style="color: red;">-${concat}</span>`;
+
+            }
+            else {
+                var days = Math.floor(numOfSeconds / (3600 * 24));
+                var Hours = Math.floor(numOfSeconds % (3600 * 24) / 3600);
+                var Minutes = Math.floor(numOfSeconds % 3600 / 60);
+                var concat = Math.abs(days) + ":" + Math.abs(Hours) + ":" + String(Math.abs(Minutes)).padStart(2, '0')
+                return `<br/ ><span style="color: forestgreen;">${concat}</span>`;
+            }
+
+        }
+
+        function removeLinkSent(btnObject) {
+            var selectId = btnObject.id;
+            var enqID = selectId.match(/\d+/);
+
+
+                    let data = {
+           "@nameof(Model.enqToUpdate)": enqID,
+           "@nameof(Model.enqPriorityToUpdate)": "99",
+           "@nameof(Model.enqAssignedToUpdate)": "delete",
+           "@nameof(Model.enqNotesToUpdate)": " (none) "
+            }
+
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/EnquiryToUpdate",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    //confirm update was successfull
+
+                    $('#employeeLinkSent' + enqID).attr('hidden', 'hidden');
+                    $('#' + selectId).attr('hidden', 'hidden');
+                    //buttonClicked.css({ background: 'lightgreen' });
+                    //setTimeout(function () { buttonClicked.css({ background: 'white' }); }, 2500);
+
+                    $('.error-span').remove();
+
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+        }
+
+         function removeLinkPending(btnObject) {
+            var selectId = btnObject.id;
+            var enqID = selectId.match(/\d+/);
+
+
+                    let data = {
+           "@nameof(Model.enqToUpdate)": enqID,
+           "@nameof(Model.enqPriorityToUpdate)": "99",
+           "@nameof(Model.enqAssignedToUpdate)": "delete",
+           "@nameof(Model.enqNotesToUpdate)": " (none) "
+            }
+
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/EnquiryToUpdate",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    //confirm update was successfull
+
+                    $('#employeeLinkPending' + enqID).attr('hidden', 'hidden');
+                    $('#' + selectId).attr('hidden', 'hidden');
+                    //buttonClicked.css({ background: 'lightgreen' });
+                    //setTimeout(function () { buttonClicked.css({ background: 'white' }); }, 2500);
+
+                    $('.error-span').remove();
+
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+        }
+
+        function setPriorityToHigh(enqID) {
+            if ($('#prioritySelectSent' + enqID).val != "99") {
+                $('#prioritySelectSent' + enqID).val("2");
+
+                 let data = {
+           "@nameof(Model.enqToUpdate)": enqID,
+           "@nameof(Model.enqPriorityToUpdate)": "2",
+           "@nameof(Model.enqAssignedToUpdate)": "0",
+           "@nameof(Model.enqNotesToUpdate)": " (none) "
+            }
+
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/EnquiryToUpdate",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    //confirm update was successfull
+
+
+                    $('.error-span').remove();
+
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+            }
+
+
+
+
+        }
+
+        function add_bus_daysSLA(date, busHours) { // add business days to a date
+            var Days = (busHours / 24);//var Days = Math.floor(busHours / 24);
+            newDate = new Date(date);
+            var newDateUTC = new Date(date);
+            var wkdy = newDateUTC.getDay(); // get weekday number
+            var hour = newDateUTC.getHours(); // get weekday number
+            var addDays = (wkdy > 5 || (wkdy = 5 && hour > 16)) ? (busHours + 48) : busHours; // if it's wednesday or later set add days to 5 instead of 3 to account for the weekend
+
+            //newDate.setDate(newDateUTC.getDate() + addDays); // add days to current date
+            //newDate.setHours(newDateUTC.getHours() + addDays);
+            newDate.setTime(newDate.getTime() + addDays * 60 * 60 * 1000);
+            //alert(newDate);
+            return getDateString(newDate) + getRemainingTime(newDate, "@ViewBag.CurrentDate")
+        }
+
+        function add_bus_days(date, busDays) { // add business days to a date
+            newDate = new Date(date);
+            var newDateUTC = new Date(newDate);
+            var wkdy = newDateUTC.getDay(); // get weekday number
+            var addDays = wkdy >= 4 ? (busDays + 2) : busDays; // if it's wednesday or later set add days to 5 instead of 3 to account for the weekend
+
+            newDateUTC.setDate(newDateUTC.getDate() + addDays); // add days to current date
+
+            return getDateString(newDateUTC) + getRemainingTime(newDateUTC, "@ViewBag.CurrentDate")
+        }
+        // usage
+
+
+
+        function getRemainingTime(deadlineDate, currentTime) {
+
+            var deadlineDateTime = new Date(deadlineDate);
+            var todayDate = new Date(currentTime);
+
+            var milliseconds = deadlineDateTime.getTime() - todayDate.getTime();
+
+            var seconds = Math.floor(milliseconds / 1000);
+       /*     var hours = Math.floor(milliseconds / (60 * 60 * 1000));*/
+            return SplitTime(seconds)
+        }
+
+        function getRemainingSLATime(createdDate, orgSLA) {
+            var createdDateTime = new Date(createdDate);
+            var SLADeadlineDate = new Date(createdDateTime.getTime() + (orgSLA * 60 * 60 * 1000));
+            var todayDate = new Date();
+            var milliseconds = SLADeadlineDate.getTime() - todayDate.getTime();
+            var seconds = Math.floor(milliseconds / 1000);
+            /*     var hours = Math.floor(milliseconds / (60 * 60 * 1000));*/
+            return SplitTime(seconds)
+        }
+
+        const checkbox = document.getElementById('includePGD')
+
+        checkbox.addEventListener('change', (event) => {
+            var includePGD = "false";
+            var onlyMe = "false";
+            if (document.getElementById('assignedToMeId').checked) {
+                onlyMe = "true";
+            }
+            if (event.currentTarget.checked) {
+                 includePGD = "true";
+            }
+            var sentStartDate = $('#startSentDate').val();
+            var endDateSent = $('#endSentDate').val();
+            var approvedStartDate = $('#approvedStartDate').val();
+            var endDateApproved = $('#approvedEndDate').val();
+
+               $.ajax({
+        // do the rest of work here
+        type: "POST",
+                   data: { startSent: sentStartDate, endSent: endDateSent, startApproved: approvedStartDate, endApproved: endDateApproved, includePGD: includePGD, forEmployee: onlyMe},
+        url: '@Url.Action("Index", "EnquiriesDashboard")',
+        async: true,
+        success: function (data) {
+            // do something
+            window.location.href = `EnquiriesDashboard/Index?startSent=${sentStartDate}&endSent=${endDateSent}&startApproved=${approvedStartDate}&endApproved=${endDateApproved}&includePGD=${includePGD}&forEmployee=${onlyMe}`;
+        }
+    });
+        })
+
+        const checkboxOnlyMe = document.getElementById('assignedToMeId')
+
+        checkboxOnlyMe.addEventListener('change', (event) => {
+            var includePGD = "false";
+         
+            var onlyMe = "false";
+            if (document.getElementById('includePGD').checked) {
+                includePGD = "true";
+            }
+            if (event.currentTarget.checked) {
+                onlyMe = "true";
+            }
+           
+            var sentStartDate = $('#startSentDate').val();
+            var endDateSent = $('#endSentDate').val();
+            var approvedStartDate = $('#approvedStartDate').val();
+            var endDateApproved = $('#approvedEndDate').val();
+
+               $.ajax({
+        // do the rest of work here
+        type: "POST",
+                   data: { startSent: sentStartDate, endSent: endDateSent, startApproved: approvedStartDate, endApproved: endDateApproved, includePGD: includePGD, forEmployee: onlyMe},
+        url: '@Url.Action("Index", "EnquiriesDashboard")',
+        async: true,
+        success: function (data) {
+            // do something
+            window.location.href = `EnquiriesDashboard/Index?startSent=${sentStartDate}&endSent=${endDateSent}&startApproved=${approvedStartDate}&endApproved=${endDateApproved}&includePGD=${includePGD}&forEmployee=${onlyMe}`;
+        }
+    });
+        })
+
+
+
+        function updateDateSent() {
+
+            var sentStartDate = $('#startSentDate').val();
+            var endDateSent = $('#endSentDate').val();
+            var approvedStartDate = $('#approvedStartDate').val();
+            var endDateApproved = $('#approvedEndDate').val();
+            const checkbox = document.getElementById('includePGD')
+            var includePGD = "false";
+            if (checkbox.checked) {
+                includePGD = "true";
+            }
+            $.ajax({
+        // do the rest of work here
+        type: "POST",
+                data: { startSent: sentStartDate, endSent: endDateSent, startApproved: approvedStartDate, endApproved: endDateApproved, includePGD: includePGD },
+        url: '@Url.Action("Index", "EnquiriesDashboard")',
+        async: true,
+        success: function (data) {
+            // do something
+            window.location.href = `EnquiriesDashboard/Index?startSent=${sentStartDate}&endSent=${endDateSent}&startApproved=${approvedStartDate}&endApproved=${endDateApproved}&includePGD=${includePGD}`;
+        }
+    });
+        }
+
+
+
+
+
+    </script>
+
+}

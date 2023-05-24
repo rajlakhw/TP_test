@@ -1,0 +1,167 @@
+﻿@{
+    @using System;
+    @model ViewModels.EmployeeModels.EmployeeAccessMatrix.MatrixPageViewModel
+}
+
+<div id="js-page-content-demopanels">
+    <div class="row">
+        <div class="col-lg-12">
+            <div id="panel-1" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <h2>
+                        Create Access Matrix Level
+                    </h2>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div class="container">
+                            <form method="post" asp-action="Create">
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Create New Access Level</label>
+                                    <input type="number" name="id" id="createAccessLevelId" class="col-sm-1 form-control form-control-lg rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="6">
+                                    <input type="text" name="notes" id="createAccessLevelNotes" class="col-sm-4 form-control form-control-lg rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="All Staff(Everyone)">
+                                </div>
+                                <div class="form-group-row d-flex flex-row-reverse">
+                                    <button class="@(Settings.Theme.IconPrefix) btn btn-outline-success" id="createAccessLevel" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="js-page-content-demopanels">
+    <div class="row">
+        <div class="col-lg-12">
+            <div id="panel-2" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <h2>
+                        Employee Access Matrix
+                    </h2>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div class="container">
+                            <form id="accessForm">
+                                @*<div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Create New Access Level</label>
+                                    <input type="number" id="createAccessLevelId" class="col-sm-1 form-control form-control-lg rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="6">
+                                    <input type="text" id="createAccessLevelNotes" class="col-sm-4 form-control form-control-lg rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="All Staff(Everyone)">
+                                    <div class="col-sm-4 d-flex flex-sm-column-reverse">
+                                        <button id="createAccessLevel" class="@(Settings.Theme.IconPrefix) btn btn-outline-success" type="submit" title="Save">Create</button>
+                                    </div>
+                                </div>*@
+                                <div class="form-group row">
+                                    <h3 class="form-label col-12 text-center">Access Levels</h3>
+                                    @foreach (var access in Model.AccessMatrixViewModel)
+                                    {
+                                        <div class="custom-control custom-switch col-sm-2">
+                                            <input type="radio" name="levels" class="custom-control-input accessLevels" value="@access.Id" id="@access.Id">
+                                            <label class="custom-control-label" for="@access.Id">@(access.Id + "-" + access.Notes)</label>
+                                        </div>
+                                    }
+                                </div>
+                                <br />
+                                <hr />
+                                <div class="form-group row">
+                                    <h3 class="form-label col-12 text-center">Controls</h3>
+                                    <div id="accessControls" style="display: contents;">
+                                    @foreach (var accessControl in Model.AccessMatrixControlViewModel)
+                                    {
+                                        <div class="custom-control custom-switch col-sm-2">
+                                            <input type="checkbox" class="custom-control-input accessControls" value="@accessControl.Id" id="@(accessControl.Id + "-" + accessControl.ControlName)">
+                                            <label class="custom-control-label" for="@(accessControl.Id + "-" + accessControl.ControlName)">@accessControl.ControlName</label>
+                                            <span class="help-block col-sm d-flex">@accessControl.Page - id(@accessControl.Id)</span>
+                                        </div>
+                                    }
+                                    </div>
+                                </div>
+                                @*<div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">County/State</label>
+                                    <input type="text" id="example-input-material" class="col-sm-9 form-control form-control-lg rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="Material">
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Country</label>
+                                    <select id="lg-dropdown-overlay" class="col-sm-9 form-control form-control-lg rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="Material">
+                                        
+                                    </select>
+                                </div>*@
+                                <div class="form-group-row d-flex flex-row-reverse">
+                                    <button class="@(Settings.Theme.IconPrefix) btn btn-outline-success" id="saveControls" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock{
+    <script>
+        $(document).ready(function(){
+            $('#accessControls input').prop('disabled', true)
+        })
+
+        var relationships = @(Json.Serialize(Model.AccessLevelControlRelationshipsViewModel))
+        $('.accessLevels').click(function(){
+
+            let controlIds = relationships.filter(obj => {
+              return obj.employeeAccessLevelId === Number(this.id)
+            }).map(x=> x.accessMatrixControlId)
+
+            $('#accessControls input').prop('disabled', false)
+            $('#accessControls input').prop('checked', false)
+
+            if(controlIds.length > 0){
+                $('#accessControls').find('[value=' + controlIds.join('], [value=') + ']').prop('checked', true)
+            }
+        })
+
+        $('#saveControls').click(function(e){
+            e.preventDefault();
+            let level = $('input[name=levels]:checked', '#accessForm').val()
+
+            var controlIds = [];
+            $.each($('.accessControls:checked'), function(){            
+                controlIds.push($(this).val());
+            });
+
+            let data = { id: level, controlIds }
+
+            $.ajax({
+            beforeSend: function () {
+                // add loading spinner
+            },
+            url: "api/EmployeeAccessMatrix/Update",
+            method: 'POST',
+            dataType: 'json',
+            data: data,
+            success: function (data) {
+                //confirm update was successfull
+                alert('Successful update');
+            },
+            error: function (err) {
+                //show that there was an error
+                alert('ERROR');
+                console.log(err);
+            },
+            complete: function () {
+                // remove the spinner
+            }
+        });
+        })
+
+        //$('#createAccessLevel').on('click', function(e){
+        //    e.preventDefault();
+
+        //    let Id = $('#createAccessLevelId').val();
+        //    let Notes = $('#createAccessLevelNotes').val();
+        //    alert(Id+' '+Notes)
+        //})
+    </script>
+}

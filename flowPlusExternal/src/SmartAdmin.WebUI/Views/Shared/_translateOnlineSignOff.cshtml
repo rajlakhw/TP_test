@@ -1,0 +1,34 @@
+﻿<div class="modal fade" id="signoff-modal" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <img src="~/img/translate-logo.png" style="width:35px;height:32px;">
+                &nbsp;&nbsp;
+                <h3>translate online: Mark translation as complete</h3>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body bg-faded">
+                <div>
+                    <p>You are about to sign off the translation for job item number <b><label id="job-item-id"></label></b>. You can optionally add any general comments about the document/translation.</p>
+                    <p>Please be aware that once you approve this document, you will no longer be able to edit the document again. Please contact you project manager if you need to do this.</p>
+
+
+                    <label id="translation-not-started-label" hidden class="text-warning">Please be aware that by clicking <b>Confirm</b> you will be approving a document which has not been translated. To translate the document first, please click <b>Cancel</b> and then select the <i class="ni ni-arrow-right fa-2x text-success"></i> icon against this document.<br /><br /></label>
+
+                    <p><span><i class="fal fa-info-circle fa-1x" style="color: #000000"></i></span> Please note that after clicking <b>Confirm</b> you will not be able to make any further changes to the translation. If you wish to continue making changes to the translation, please click <b>Cancel</b>.</p>
+                    <p><label id="translations-changed-label"></label></p>
+                </div>
+                <label class="form-label md-header">Comments (optional):</label>
+                <textarea class="form-control" placeholder="Enter comments" rows="5" id="comment-textarea"></textarea><br /><br />
+                <button type="button" id="confirm-signoff-button" class="btn btn-success text-white" style="color:white;">Confirm</button>&nbsp;&nbsp;
+                <a class="btn btn-secondary text-white" data-dismiss="modal">Cancel</a>
+            </div>
+        </div>
+    </div>
+
+
+</div>

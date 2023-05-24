@@ -1,0 +1,614 @@
+﻿@{
+    @model ViewModels.LinguisticSupplier.AddLinguistModel ;
+
+    @using System.Text.Json;
+
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/reactions/reactions.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/jqvmap/jqvmap.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/ion-rangeslider/ion-rangeslider.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+}
+
+
+<div class="row">
+    <div class="col text-center">
+        <h3>Add supplier </h3>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="panel-content" style="width:100%">
+
+        <div id="js-page-content">
+            <div class="row">
+
+
+                <div class="col-3">
+                </div>
+                <div class="col-6">
+                    @*Enquiries to be actioned*@
+                    <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                        <div class="panel-hdr">
+                            <i class="ni ni-user fa-2x color-black"></i> &nbsp; &nbsp;
+                            <h2>Key information</h2>
+                        </div>
+                        <div class="panel-container">
+                            <div class="panel-content">
+
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Supplier type</label>
+                                    <div class="col-sm-6">
+
+                                        <select name="@nameof(Model.linguistTypes)" class="select2 form-control" id="supplier-type-select" onchange="onValue();">
+                                            <option value="">(Please select)</option>
+                                            @foreach (var type in Model.linguistTypes)
+                                            {
+
+                                                <option value="@type.Id">@type.Name</option>
+
+                                            }
+                                        </select>
+                                        <label id="linguistTypesRequired" class="text-danger" hidden>You must select type of the supplier.</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Vendor type</label>
+                                    <div class="col-sm-6">
+
+                                        <select name="@nameof(Model.linguistVendorTypes)" class="select2 form-control" multiple="multiple" id="vendor-select" onchange="onValue();">
+                                            
+                                            @foreach (var type in Model.linguistVendorTypes)
+                                            {
+
+                                                <option value="@type.Id">@type.Name</option>
+
+                                            }
+                                        </select>
+                                        <label id="linguistVendorTypesRequired" class="text-danger" hidden>You must select type of the vendor.</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Company name:</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.AgencyOrTeamName)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Registration number:</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.AgencyCompanyRegistrationNumber)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Number of collaborators:</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.AgencyNumberOfLinguists)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Number of multimedia operators:</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.AgencyNumberOfDtporMultimediaOps)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Main contact first name</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.MainContactFirstName)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput" oninput="onValue();">
+                                        <label id="MainContactFirstNameRequired" class="text-danger" hidden>You must enter name of the supplier.</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Main contact surname:</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.MainContactSurname)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Gender</label>
+                                    <div class="col-sm-6">
+
+                                        <select name="@nameof(Model.MainContactGender)" class="select2 form-control" id="gender-select" onchange="onValue();">
+                                            <option value="">(Please select)</option>
+                                            <option value="2">Unknown/not applicable</option>
+                                            <option value="1">Female</option>
+                                            <option value="0">Male</option>
+
+                                        </select>
+                                        <label id="MainContactGenderRequired" class="text-danger" hidden>You must specify a gender.</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem;">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Date of birth</label>
+                                    <div class="input-daterange input-group col-sm-6" id="datepicker-5">
+
+
+                                        <input class="form-control" type="date" name="date" style="width:150px;" asp-for="@Model.MainContactDob" id="dob-select" />
+
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Country of nationality</label>
+                                    <div class="col-sm-6">
+
+                                        <select name="@nameof(Model.MainContactNationalityCountryId)" class="select2 form-control" id="countryNationality-select">
+                                            <option value="">(Please select)</option>
+                                            @foreach (var country in Model.AllCountries)
+                                            {
+
+                                                <option value="@country.Id">@country.CountryName</option>
+
+                                            }
+                                        </select>
+
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Address:</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.Address1)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput" oninput="onValue();">
+                                        <label id="Address1Required" class="text-danger" hidden>You must enter at least first line of the address.</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">City:</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.CountyOrState)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput" oninput="onValue();">
+                                        <label id="CountyOrStateRequired" class="text-danger" hidden>You must specify a city.</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Postcode/zip::</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.PostcodeOrZip)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput" oninput="onValue();">
+                                        <label id="PostcodeOrZipRequired" class="text-danger" hidden>You must specify postcode or zip.</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Country of residence:</label>
+                                    <div class="col-sm-6">
+
+                                        <select name="@nameof(Model.CountryId)" class="select2 form-control" id="country-select" onchange="SelectedCountry(this);onValue();">
+                                            <option value="">(Please select)</option>
+                                            @foreach (var country in Model.AllCountries)
+                                            {
+
+                                                <option value="@country.Id">@country.CountryName</option>
+
+                                            }
+                                        </select>
+                                        <label id="CountryIdRequired" class="text-danger" hidden>You must specify a country.</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">E-mail address:</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.EmailAddress)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput" oninput="onValue();">
+                                        <label id="EmailAddressRequired" class="text-danger" hidden>You must enter an email address.</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Secondary e-mail address:</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.SecondaryEmailAddress)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Skype:</label>
+                                    <div class="col-sm-6">
+
+                                        <input asp-for="@(Model.SkypeId)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Main landline:</label>
+                                    <div class="col-sm-6 form-group row">
+                                        <div class="col-sm-5">
+                                            <select name="@nameof(Model.MainLandlineCountryId)" class="select2 form-control" id="main-landline-select">
+                                                <option value=""></option>
+                                                @foreach (var main_landline in Model.CountryNamesAndPrefix)
+                                                {
+
+                                                    <option value="@main_landline.Id.ToString()">+@main_landline.Prefix</option>
+
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-7">
+                                            <input asp-for="@(Model.MainLandlineNumber)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Secondary landline:</label>
+                                    <div class="col-sm-6 form-group row">
+                                        <div class="col-sm-5">
+                                            <select name="@nameof(Model.SecondaryLandlineCountryId)" class="select2 form-control" id="secondary-landline-select">
+                                                <option value=""></option>
+                                                @foreach (var secondary_landline in Model.CountryNamesAndPrefix)
+                                                {
+
+                                                    <option value="@secondary_landline.Id.ToString()">+@secondary_landline.Prefix</option>
+
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-7">
+                                            <input asp-for="@(Model.SecondaryLandlineNumber)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="form-group row" style="margin-bottom:0.5rem">
+                                    <label class="form-label col-sm-4 d-flex align-items-center">Mobile:</label>
+                                    <div class="col-sm-6 form-group row">
+                                        <div class="col-sm-5">
+                                            <select name="@nameof(Model.MobileCountryId)" class="select2 form-control" id="mobile-select">
+                                                <option value=""></option>
+                                                @foreach (var mobile_select in Model.CountryNamesAndPrefix)
+                                                {
+
+                                                    <option value="@mobile_select.Id.ToString()">+@mobile_select.Prefix</option>
+
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-7">
+                                            <input asp-for="@(Model.MobileNumber)" style="color: black;" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <br />
+                                <br />
+                                <div class="form-group-row d-flex" style="float:right;">
+                                    <button id="AddLinguistSave" class="btn btn-success" type="submit" title="Save" onclick="AddLinguist();">Add supplier</button>&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <button class="btn btn-default" type="submit" title="Cancel" onclick="Cancel();">Cancel</button>
+                                </div>
+                                <br />
+                                <br />
+                                <br />
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+
+    .form-group {
+        margin-bottom: 0.8rem;
+    }
+
+    .bg-tp-red {
+        /*background-image: linear-gradient(250deg, #E84133, #bd3e29);*/
+        background-color: #E84133;
+    }
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    /* Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+
+    .custom-control-input:checked ~ .custom-control-label::before {
+        color: #ffffff;
+        border-color: #717e86;
+        background-color: lightgreen;
+    }
+
+    .custom-control-label::before {
+        background-color: #d5d5d5;
+    }
+</style>
+@section ScriptsBlock
+{
+
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="~/js/formplugins/ion-rangeslider/ion-rangeslider.js"></script>
+    <script src="~/js/miscellaneous/fullcalendar/fullcalendar.bundle.js"></script>
+    <script src="~/js/statistics/sparkline/sparkline.bundle.js"></script>
+    <script src="~/js/statistics/easypiechart/easypiechart.bundle.js"></script>
+    <script src="~/js/statistics/flot/flot.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/miscellaneous/jqvmap/jqvmap.bundle.js"></script>
+    <script>
+        $('#js-page-content').smartPanel();
+    </script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(function () {
+                $('.select2').select2();
+                $('.select2-placeholder-multiple').select2();
+
+            });
+
+
+        });
+
+        function SelectedCountry(selectObject) {
+            //debugger;
+            var selectednumbers = [];
+            $('#country-select :selected').each(function (i, selected) {
+                selectednumbers[i] = $(selected).val();
+            });
+            var selectId = selectObject.id;
+            var values = $('#' + selectId).val();
+            var hiddenId = "hidden" + selectId;
+            $('#' + hiddenId + 'Values').val(values);
+            var data = @Html.Raw(JsonSerializer.Serialize( Model.CountryNamesAndPrefix ));
+            var MainLandline = $("#main-landline-select");
+            MainLandline.empty();
+            for (let index = 0; index < data.length; ++index) {
+                const element = data[index];
+                if (element.Id == values) {
+                    var opt = document.createElement('option');
+                    opt.value = element.Id;
+                    opt.innerHTML = "+" + element.Prefix;
+                    MainLandline.append(opt);
+                }
+            }
+            var SecondaryLandline = $("#secondary-landline-select");
+            SecondaryLandline.empty();
+            for (let index = 0; index < data.length; ++index) {
+                const element = data[index];
+                if (element.Id == values) {
+                    var opt = document.createElement('option');
+                    opt.value = element.Id;
+                    opt.innerHTML = "+" + element.Prefix;
+                    SecondaryLandline.append(opt);
+                }
+            }
+            var MobileLandline = $("#mobile-select");
+            MobileLandline.empty();
+            for (let index = 0; index < data.length; ++index) {
+                const element = data[index];
+                if (element.Id == values) {
+                    var opt = document.createElement('option');
+                    opt.value = element.Id;
+                    opt.innerHTML = "+" + element.Prefix;
+                    MobileLandline.append(opt);
+                }
+            }
+        }
+
+        function AddLinguist() {
+            //debugger;
+            
+            var count = 0;
+            if ($('#supplier-type-select').val() == "")
+            {
+                document.getElementById('linguistTypesRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('#vendor-select').val() == "") {
+                document.getElementById('linguistVendorTypesRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('input[name="@(nameof(Model.MainContactFirstName))"]').val() == "")
+            {
+                document.getElementById('MainContactFirstNameRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('#gender-select').val() == "")
+            {
+                document.getElementById('MainContactGenderRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('input[name="@(nameof(Model.Address1))"]').val() == "")
+            {
+                document.getElementById('Address1Required').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('input[name="@(nameof(Model.CountyOrState))"]').val() == "")
+            {
+                document.getElementById('CountyOrStateRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('input[name="@(nameof(Model.PostcodeOrZip))"]').val() == "")
+            {
+                document.getElementById('PostcodeOrZipRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('#country-select').val() == "")
+            {
+                document.getElementById('CountryIdRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('input[name="@(nameof(Model.EmailAddress))"]').val() == "")
+            {
+                document.getElementById('EmailAddressRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if (count == 0) {
+                //debugger;
+                var formData = new FormData();
+                var vendorType = document.getElementById('vendor-select');
+                var allVendorType = '';
+                if (vendorType != null) {
+                    for (var i = 0; i < vendorType.length; i++) {
+                        if (vendorType[i].selected == true) {
+                            allVendorType += vendorType[i].value + ',';
+
+                        }
+                    }
+
+                }
+                formData.append('SupplierTypeId', document.getElementById('supplier-type-select').value);
+                formData.append('VendorTypeID', allVendorType);
+                if ($('input[name="@(nameof(Model.AgencyOrTeamName))"]').val() != "") {
+                    formData.append('AgencyOrTeamName', $('input[name="@(nameof(Model.AgencyOrTeamName))"]').val());
+                }
+                if ($('input[name="@(nameof(Model.MainContactSurname))"]').val() != "") {
+                    formData.append('MainContactSurname', $('input[name="@(nameof(Model.MainContactSurname))"]').val());
+                }
+                formData.append('MainContactFirstName', $('input[name="@(nameof(Model.MainContactFirstName))"]').val());
+                if (document.getElementById('gender-select').value == 0) {
+                    formData.append('MainContactGender', "false");
+                }
+                if (document.getElementById('gender-select').value == 1) {
+                    formData.append('MainContactGender', "true");
+                }
+                if (document.getElementById('dob-select').value != "") {
+                    formData.append('MainContactDob', document.getElementById('dob-select').value);
+                }
+                
+                if (document.getElementById('countryNationality-select').value != "") {
+                    formData.append('MainContactNationalityCountryId', document.getElementById('countryNationality-select').value);
+                }
+                if ($('input[name="@(nameof(Model.AgencyCompanyRegistrationNumber))"]').val() != "") {
+                    formData.append('AgencyCompanyRegistrationNumber', $('input[name="@(nameof(Model.AgencyCompanyRegistrationNumber))"]').val());
+                }
+                if ($('input[name="@(nameof(Model.AgencyNumberOfLinguists))"]').val() != "") {
+                    formData.append('AgencyNumberOfLinguists', $('input[name="@(nameof(Model.AgencyNumberOfLinguists))"]').val());
+                }
+                if ($('input[name="@(nameof(Model.AgencyNumberOfDtporMultimediaOps))"]').val() != "") {
+                    formData.append('AgencyNumberOfDtporMultimediaOps', $('input[name="@(nameof(Model.AgencyNumberOfDtporMultimediaOps))"]').val());
+                }
+
+                formData.append('Address1', $('input[name="@(nameof(Model.Address1))"]').val());
+                formData.append('CountyOrState', $('input[name="@(nameof(Model.CountyOrState))"]').val());
+                formData.append('PostcodeOrZip', $('input[name="@(nameof(Model.PostcodeOrZip))"]').val());
+                formData.append('CountryId', document.getElementById('country-select').value);
+                if ($('input[name="@(nameof(Model.MainLandlineNumber))"]').val() != "") {
+                    formData.append('MainLandlineCountryId', document.getElementById('main-landline-select').value);
+                    formData.append('MainLandlineNumber', $('input[name="@(nameof(Model.MainLandlineNumber))"]').val());
+                }
+                if ($('input[name="@(nameof(Model.SecondaryLandlineNumber))"]').val() != "") {
+                    formData.append('SecondaryLandlineCountryId', document.getElementById('secondary-landline-select').value);
+                    formData.append('SecondaryLandlineNumber', $('input[name="@(nameof(Model.SecondaryLandlineNumber))"]').val());
+                }
+                if ($('input[name="@(nameof(Model.MobileNumber))"]').val() != "") {
+                    formData.append('MobileCountryId', document.getElementById('mobile-select').value);
+                    formData.append('MobileNumber', $('input[name="@(nameof(Model.MobileNumber))"]').val());
+                }
+                formData.append('EmailAddress', $('input[name="@(nameof(Model.EmailAddress))"]').val());
+                if ($('input[name="@(nameof(Model.SecondaryEmailAddress))"]').val() != "") {
+                    formData.append('SecondaryEmailAddress', $('input[name="@(nameof(Model.SecondaryEmailAddress))"]').val());
+                }
+                if ($('input[name="@(nameof(Model.SkypeId))"]').val() != "") {
+                    formData.append('SkypeId', $('input[name="@(nameof(Model.SkypeId))"]').val());
+                }
+                var xhr = new XMLHttpRequest();
+
+                xhr.open("POST", "Linguist/AddLinguist", true);
+                xhr.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        
+                        
+                        var response = xhr.responseText;
+                        window.location.href = `Linguist/Index?id=${response}`;
+
+
+                    }
+                    else {
+
+                    }
+                };
+
+                xhr.send(formData);
+            }
+        }
+        function onValue() {
+
+            if ($('#supplier-type-select').val() != "")
+            {
+                document.getElementById('linguistTypesRequired').hidden = true;
+
+            }
+            if ($('#vendor-select').val() != "") {
+                document.getElementById('linguistVendorTypesRequired').hidden = true;
+
+            }
+        if ($('input[name="@(nameof(Model.MainContactFirstName))"]').val() != "")
+            {
+                document.getElementById('MainContactFirstNameRequired').hidden = true;
+
+            }
+            if ($('#gender-select').val() != "")
+            {
+                document.getElementById('MainContactGenderRequired').hidden = true;
+
+            }
+            if ($('input[name="@(nameof(Model.Address1))"]').val() != "")
+            {
+                document.getElementById('Address1Required').hidden = true;
+
+            }
+            if ($('input[name="@(nameof(Model.CountyOrState))"]').val() != "")
+            {
+                document.getElementById('CountyOrStateRequired').hidden = true;
+
+            }
+            if ($('input[name="@(nameof(Model.PostcodeOrZip))"]').val() != "")
+            {
+                document.getElementById('PostcodeOrZipRequired').hidden = true;
+
+            }
+            if ($('#country-select').val() != "")
+            {
+                document.getElementById('CountryIdRequired').hidden = true;
+
+            }
+            if ($('input[name="@(nameof(Model.EmailAddress))"]').val() != "")
+            {
+                document.getElementById('EmailAddressRequired').hidden = true;
+
+            }
+        }
+
+        function Cancel() {
+            window.location.href = `Home/Index`;
+        }
+
+    </script>
+}

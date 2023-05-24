@@ -1,0 +1,155 @@
+﻿@page
+@model LoginModel
+@{
+    ViewData["PageName"] = "login";
+}
+
+@section Header {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="/css/formplugins/select2/select2.bundle.css">
+}
+
+<style>
+    .bg-tp-red {
+        background-color: #E84133;
+    }
+
+    .bg-tp-blue {
+        background-color: #46bfe0;
+    }
+</style>
+
+
+@*@section PageHeading {
+        <div class="col col-md-6 col-lg-7 hidden-sm-down">
+            <h2 class="fs-xxl fw-500 text-white">
+                The simplest UI toolkit for developers &amp; programmers
+                <small class="h3 fw-300 mt-3 mb-5 text-white opacity-60">
+                    Presenting you with the next level of innovative UX design and engineering. The most modular toolkit available with over 600+ layout permutations. Experience the simplicity of SmartAdmin, everywhere you go!
+                </small>
+            </h2>
+            <a href="#" class="fs-lg fw-500 text-white opacity-70">Learn more &gt;&gt;</a>
+            <div class="d-sm-flex flex-column align-items-center justify-content-center d-md-block">
+                <div class="px-0 py-1 mt-5 text-white fs-nano opacity-50">
+                    Find us on social media
+                </div>
+                <div class="d-flex flex-row">
+                    <a href="#" class="mr-2 fs-xxl" style="color: #708fd0;">
+                        <i class="fab fa-facebook-square"></i>
+                    </a>
+                    <a href="#" class="mr-2 fs-xxl" style="color: #38A1F3">
+                        <i class="fab fa-twitter-square"></i>
+                    </a>
+                    <a href="#" class="mr-2 fs-xxl" style="color: #da4d51;">
+                        <i class="fab fa-google-plus-square"></i>
+                    </a>
+                    <a href="#" class="mr-2 fs-xxl" style="color: #459dcc;">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    }*@
+
+
+<div class="col-sm-12 col-md-6 col-lg-4 col-xl-4 mx-auto">
+    <div class="card p-4 rounded-plus bg-tp-blue opacity-95">
+        @*<div style="width:120px; align-self:end;">
+                <select class="select2 form-control w-50 float-right" onchange="updateCurrentUILanguage(this)" style="width:50px;">
+                    <option value="da" selected="@(Model.CurrentUILang == "da")">Dansk</option>
+                    <option value="de" selected="@(Model.CurrentUILang == "de")">Deutsch</option>
+                    <option value="en" selected="@(Model.CurrentUILang == "en")">English</option>
+                    <option value="sv" selected="@(Model.CurrentUILang == "sv")">Svenska</option>
+                </select>
+            </div>
+            <br /><br />*@
+        <div class="form-group">
+            <div class="form-group mx-auto col-md-5">
+                @*<div class="card bg-white rounded-right col-md-5 mx-auto">
+                        <br />
+                        <img src="~/img/translate plus-Publicis-vermilion.png" width="130"> &nbsp;
+                    </div>*@
+                <img src="~/img/flow-plus-white.png" width="135" height="120" />
+            </div>
+        </div>
+        <form id="js-login" method="post">
+            <div asp-validation-summary="All" class="alert alert-primary text-dark"></div>
+            <div class="form-group">
+                <div class="input-group bg-white shadow-inset-2 rounded-pill">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text bg-transparent border-right-0 border-left-0 border-bottom-0 border-top-0">
+                            <i class="fas fa-user"></i>
+                        </span>
+                    </div>
+
+                    <input type="email" asp-for="Input.Email" class="form-control rounded-pill bg-transparent border-right-0 border-left-0 border-bottom-0 border-top-0" placeholder="Username" required="required" />
+                    <span class="invalid-feedback" asp-validation-for="Input.Email">Sorry, you missed this one.</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group bg-white shadow-inset-2 rounded-pill">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text bg-transparent border-right-0 border-left-0 border-bottom-0 border-top-0">
+                            <i class="fas fa-lock-alt"></i>
+                        </span>
+                    </div>
+                    @*<input type="text" class="form-control border-left-0 bg-transparent pl-0 border-right-0 border-left-0 border-bottom-0 border-top-0" placeholder="Search...">*@
+                    <input type="password" asp-for="Input.Password" class="form-control rounded-pill border-right-0 border-left-0 border-bottom-0 border-top-0" placeholder="Password" required="required" />
+                    <span class="invalid-feedback" asp-validation-for="Input.Password">Sorry, you missed this one.</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                @*<button id="js-login-btn" style="opacity:initial;border-color:white;border-width:3px;color:white; background-color:#0aafce;" type="submit" class="btn btn-block rounded-pill">@await Component.InvokeAsync("MiscResource", new { ResourceName = "JobItemStatusReviewComplete"})</button>*@
+                <button id="js-login-btn" style="opacity:initial;border-color:white;border-width:3px;color:white; background-color:#0aafce;" type="submit" class="btn btn-block rounded-pill">Sign in</button>
+            </div>
+            <div class="text-center">
+                <a asp-page="ForgotPassword" style="opacity:initial;color:black;font-size:small;background-color:#89feff;" class="btn-sm rounded-pill">Forgot Password?</a>
+                @*<button asp-page="ForgotPassword"  style="opacity:initial;" class="btn-warning btn-xs rounded-pill">Forgot Password?</button>*@
+            </div>
+            <br />
+            <div class="text-sm-center text-white" style="font-size:small;font-weight:bold;">
+                A TMS by translate plus
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="/js/formplugins/select2/select2.bundle.js"></script>
+    <script>
+        $('select').select2({
+            minimumResultsForSearch: -1
+        });
+        $("#js-login-btn").click(function (event) {
+            // Fetch form to apply custom Bootstrap validation
+            var form = $("#js-login");
+
+            if (form[0].checkValidity() === false) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            form.addClass('was-validated');
+            // Perform ajax submit here...
+        });
+
+        function updateCurrentUILanguage(LangSelect) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    window.location.reload();
+                }
+            }
+            xhr.open("POST", "Home/UpdateUILanguage", true);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.send(JSON.stringify(LangSelect.value));
+        }
+
+
+    </script>
+}

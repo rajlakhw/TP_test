@@ -1,0 +1,141 @@
+﻿@*@using ViewModels.HR
+    @model HolidayRequestModel*@
+
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+<div class="modal fade" id="holiday-request-modal" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <table>
+                    <tr>
+                        <td valign="middle">
+                            <img src="~/img/holidayIcon.png">
+                        </td>
+                        <td valign="middle">
+                            <h2 class="modal-title">
+                                Book a holiday
+                            </h2>
+                            <i>Vacation mood: ON</i>
+                        </td>
+                    </tr>
+                </table>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>
+            </div>
+            <form class="needs-validation" id="holiday-request-form" novalidate>
+                <div class="modal-body bg-faded">
+                    You currently have <strong><label class="text-success" id="remaining-holiday"></label></strong> day(s) remaining from <strong><label id="total-holiday" class="text-success"></label></strong> holidays for the year <strong><label class="text-success" id="holiday-year"></label></strong>.
+                    <br /><br />
+                    <i>Please be aware that all dates are inclusive</i>
+                    <table class="table table-borderless">
+                        <tr>
+                            <td width="250px">
+                                <div id="first-day-div">
+                                    <strong><label class="text-success md-header">First day:</label></strong>
+                                    <div class="input-group">
+                                        <input type="text" required class="form-control" id="datepicker-start-date" onchange="startDateUpdated()">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text fs-xl">
+                                                <i class="@(Settings.Theme.IconPrefix) fa-calendar-exclamation"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div id="first-day-radio-div">
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" class="custom-control-input" id="start-date-full-day" name="startDateRadioButton" checked="" onchange="startRadioButtonChanged()">
+                                        <label class="custom-control-label" for="start-date-full-day">Full day</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" class="custom-control-input" id="start-date-morning" name="startDateRadioButton" onchange="startRadioButtonChanged()">
+                                        <label class="custom-control-label" for="start-date-morning">Morning</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" class="custom-control-input" id="start-date-afternoon" name="startDateRadioButton" onchange="startRadioButtonChanged()">
+                                        <label class="custom-control-label" for="start-date-afternoon">Afternoon</label>
+                                    </div>
+                                </div>
+                            </td>
+                            <td width="250px">
+                                <div id="last-day-div">
+                                    <strong><label class="text-success md-header">Last day:</label></strong>
+                                    <div class="input-group">
+                                        <input type="text" required class="form-control " id="datepicker-end-date" onchange="endDateUpdated()">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text fs-xl">
+                                                <i class="@(Settings.Theme.IconPrefix) fa-calendar-exclamation"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div id="last-day-radio-div">
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" class="custom-control-input" id="end-date-full-day" name="endDateRadioButton" checked="" onchange="endRadioButtonChanged()">
+                                        <label class="custom-control-label" for="end-date-full-day">Full day</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio" class="custom-control-input" id="end-date-morning" name="endDateRadioButton" onchange="endRadioButtonChanged()">
+                                        <label class="custom-control-label" for="end-date-morning">Morning</label>
+                                    </div>
+                                    @*<div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" class="custom-control-input" id="end-date-afternoon" name="endDateRadioButton" onchange="endRadioButtonChanged()">
+                                <label class="custom-control-label" for="end-date-afternoon">Afternoon</label>
+                            </div>*@
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    So the first day back at work will be on: <strong><label id="first-day-back" class="text-success"></label></strong>
+                    <br /><br />
+                    Total number of day(s) for this holiday is <strong><label id="holiday-total-days" class="text-success"></label></strong>
+                    <br />
+                    <i>(This calculation has automatically taken into account any weekends and public holidays)</i>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-success" onclick="submitHoliday(event)">Submit</a>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+</div>
+
+
+
+@section ScriptsBlock {
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script>
+            var controls = {
+			            leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+			            rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+		            }
+
+        $(document).ready(function () {
+            //document.getElementById('bank-holiday-add-update-control').hidden = "hidden";
+            $('#datepicker-start-date').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $('#datepicker-end-date').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+		});
+    </script>
+}

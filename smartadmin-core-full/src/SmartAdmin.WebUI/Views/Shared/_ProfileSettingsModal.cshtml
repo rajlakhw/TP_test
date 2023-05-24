@@ -1,0 +1,36 @@
+﻿<div class="modal fade" id="default-example-modal-lg-center" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Profile settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <h6>Privacy settings</h6>
+                    </div>
+                    <div class="row">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="anniversariresSwitch">
+                            <label class="custom-control-label" for="anniversariresSwitch">Include my birthday/anniversaries on the homepage</label>
+                        </div>
+                    </div>
+                    &nbsp;
+                    <div class="row">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="likesSwitch">
+                            <label class="custom-control-label" for="likesSwitch">Anniversary likes/comments visible to all staff</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="saveProfileSettings()" data-dismiss="modal" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>

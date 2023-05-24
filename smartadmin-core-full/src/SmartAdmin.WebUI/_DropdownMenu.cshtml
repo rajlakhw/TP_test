@@ -1,0 +1,81 @@
+<!--<div class="dropdown-header bg-trans-gradient d-flex flex-row py-4 rounded-top">
+    <div class="d-flex flex-row align-items-center mt-1 mb-1 color-white">
+        { var control = new SmartAdmin.WebUI.Controllers.ProfileController(); var Employee = await control.GetEmployeeFromSessionOrUsername(Context.User.Identity.Name); }
+        if (Employee.ImageBase64 == null)
+        {
+            <span class="mr-2">
+                <img src="~/img/demo/avatars/(Settings.Theme.Avatar)" class="rounded-circle profile-image" alt="(Settings.Theme.User)">
+            </span>
+        }
+        else
+        {
+            <span class="mr-2">
+                <img src="Employee.ImageBase64" class="rounded-circle profile-image" alt="(Settings.Theme.User)">
+            </span>
+        }
+        <div class="info-card-text">
+            <div class="fs-lg text-truncate text-truncate-lg">Employee.FirstName  Employee.Surname</div>
+            <span class="text-truncate text-truncate-md opacity-80">(Employee.EmailAddress)</span>
+        </div>
+    </div>
+</div>-->
+@*<div class="dropdown-divider m-0"></div>
+    <a href="#" class="dropdown-item" data-action="app-reset">
+        <span data-i18n="drpdwn.reset_layout">Reset Layout</span>
+    </a>
+    <a href="#" class="dropdown-item" data-toggle="modal" data-target=".js-modal-settings">
+        <span data-i18n="drpdwn.settings">Settings</span>
+    </a>
+    <div class="dropdown-divider m-0"></div>
+    <a href="#" class="dropdown-item" data-action="app-fullscreen">
+        <span data-i18n="drpdwn.fullscreen">Fullscreen</span>
+        <i class="float-right text-muted fw-n">F11</i>
+    </a>*@
+
+
+<!--<a class="dropdown-item" href='string.Format("http://myplus/Employee.aspx?EmployeeID={0}", Employee.Id.ToString())'--> @*asp-controller="ProfileController" asp-action="GetProfileID" asp-route-id="864"*@<!-->
+    <span data-i18n="drpdwn.Profile">My Profile</span>
+</a>
+
+<a class="dropdown-item" href='string.Format("http://myplus/EmployeesInTeam.aspx?TeamID={0}", Employee.TeamId.ToString())'--> @*asp-controller="ProfileController" asp-action="GetProfileID" asp-route-id="864"*@<!-->
+    <span data-i18n="drpdwn.Team">My Team</span>
+</a>
+
+<div class="dropdown-divider m-0"></div>
+
+<a class="dropdown-item" href="http://myplus/WorkInProgress.aspx"--> @*asp-controller="ProfileController" asp-action="GetProfileID" asp-route-id="864"*@<!-->
+    <span data-i18n="drpdwn.Jobs">Jobs</span>
+</a>
+
+<div class="dropdown-divider m-0"></div>
+
+<a class="dropdown-item" href='string.Format("http://myplus/HolidayRequestPage.aspx?EmployeeID={0}&Mode=Add", Employee.Id.ToString())'--> @*asp-controller="ProfileController" asp-action="GetProfileID" asp-route-id="864"*@<!-->
+    <span data-i18n="drpdwn.holiday">Book Holiday</span>
+</a>
+
+<div class="dropdown-divider m-0"></div>
+
+<a class="dropdown-item" href="http://myplusbeta/timesheet/mytimesheet"--> @*asp-controller="ProfileController" asp-action="GetProfileID" asp-route-id="864"*@<!-->
+    <span data-i18n="drpdwn.timesheet">Timesheets</span>
+</a>-->
+
+
+
+@*<div class="dropdown-multilevel dropdown-multilevel-left">
+        <div class="dropdown-item">
+            Language
+        </div>
+        <div class="dropdown-menu">
+            <a href="#?lang=fr" class="dropdown-item" data-action="lang" data-lang="fr">Français</a>
+            <a href="#?lang=en" class="dropdown-item active" data-action="lang" data-lang="en">English (US)</a>
+            <a href="#?lang=es" class="dropdown-item" data-action="lang" data-lang="es">Español</a>
+            <a href="#?lang=ru" class="dropdown-item" data-action="lang" data-lang="ru">Русский язык</a>
+            <a href="#?lang=jp" class="dropdown-item" data-action="lang" data-lang="jp">日本語</a>
+            <a href="#?lang=ch" class="dropdown-item" data-action="lang" data-lang="ch">中文</a>
+        </div>
+    </div>
+    <div class="dropdown-divider m-0"></div>
+    <a class="dropdown-item fw-500 pt-3 pb-3" asp-area="Identity" asp-page="/account/logout">
+        <span data-i18n="drpdwn.page-logout">Logout</span>
+        <span class="float-right fw-n">&commat;@(Settings.Theme.Twitter)</span>
+    </a>*@

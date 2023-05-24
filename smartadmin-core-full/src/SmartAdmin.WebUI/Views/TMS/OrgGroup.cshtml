@@ -1,0 +1,798 @@
+﻿@{
+    ViewData["Title"] = "Group";
+    ViewData["PageName"] = "Group";
+    ViewData["Category1"] = "TMS";
+    ViewData["Heading"] = "";
+
+    @using Data;
+    @using ViewModels.OrgGroup;
+    @model OrgGroupViewModel;
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/reactions/reactions.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/jqvmap/jqvmap.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+}
+<div class="row">
+    <div class="col-lg-6">
+        <div id="panel-1" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Key information
+                </h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%;">
+                                <form id="KeyInfo">
+                                    <div class="d-flex flex-row px-3 pt-3 pb-2">
+                                        <table width="100%">
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Group name:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <input onchange="UpdatingValue()" asp-for="@(Model.GroupName)" type="text" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Group ID number:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label id="IDinput" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.GroupID</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Description:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <textarea asp-for="@Model.Description" onchange="UpdatingValue()" style="width:100%; height: 100px;"></textarea>
+
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Brand:</label>&nbsp;
+                                                </td>
+                                                <td>
+
+                                                    <select id="itemBrands" onchange="UpdatingValue()" class="form-control" style="width:auto" asp-for="BrandID" asp-items="Model.BrandNames.Select(x => new SelectListItem(x.BrandName,x.Id.ToString()))">
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Client specifically requested their job files stay within:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <select asp-for="JobFilesCountryID" onchange="UpdatingValue()" class="select2 form-control w-100">
+                                                        <option value="0">No preference</option>
+                                                        <option value="1">UK</option>
+                                                        <option value="2">EAA</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    &nbsp;
+                                                </td>
+                                                <td>
+                                                    <div class="custom-control custom-switch col-sm-9">
+                                                        <input type="checkbox" onchange="UpdatingValue()" asp-for="@Model.EncryptedSuppliers" class="custom-control-input" id="EncryptedSuppliers">
+                                                        <label class="custom-control-label" for="EncryptedSuppliers">Encrypted suppliers</label>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td align="right" colspan="2">
+                                                    <button id="keyInfoSave" class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save"><i class="far fa-cloud-upload fa-3x"></i></button>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div id="panel-2" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Sales
+                </h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%;">
+                                <form id="Sales">
+                                    <div class="d-flex flex-row px-3 pt-3 pb-2">
+                                        <table width="100%">
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Date of first paid job:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.FirstJobDate</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Spend last financial year:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.SpendLastFinancialYear</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Spend this financial year:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.SpendThisFinancialYear</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Spend last 12 months:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.SpendLast12Months</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Spend last 3 months:</label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.SpendLast3Months</label>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <label class="form-label form-control-md" for="simpleinput">Invoiced margin % over the last 3 months: </label>&nbsp;
+                                                </td>
+                                                <td>
+                                                    <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.InvoicedMarginOverLast3Months</label>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div id="panel-3" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Other
+                </h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%">
+                                <div class="d-flex flex-row px-3 pt-3 pb-2">
+                                    <table width="100%">
+                                        <tr>
+                                            <td>
+                                                <label class="form-label form-control-md" for="simpleinput">Group added on:</label>
+                                            </td>
+                                            <td>
+                                                <input type="text" readonly="readonly" id="SetUpDateinput" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value=@Model.groupCreatedOn>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td> <label class="form-label form-control-md" for="simpleinput">Created by:</label></td>
+                                            <td>
+
+                                                <div class="form-group row">
+                                                    <div class="form-label col-sm-9">@await Component.InvokeAsync("EmployeeDetails", new { employeeId = Model.groupCreatedBy })</div>
+                                                </div>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <label class="form-label form-control-md" for="simpleinput">Details last modified on:</label>&nbsp;
+                                            </td>
+                                            <td>
+                                                <input type="text" readonly="readonly" id="LastModifiedDateinput" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@Model.groupModified">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <label class="form-label form-control-md" for="simpleinput">Last modified by:</label>
+                                            </td>
+                                            <td>
+
+                                                <div class="form-group row">
+                                                    @if (Model.groupModifiedBy == null)
+                                                    {
+                                                        <div class="form-label col-sm-9">
+                                                            <label class="form-label form-control-md col-sm-9">N/A</label>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="form-label col-sm-9">
+                                                            @await Component.InvokeAsync("EmployeeDetails", new { employeeId = Model.groupModifiedBy })
+                                                        </div>
+                                                    }
+                                                </div>
+
+
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div id="panel-4" class="panel panel-locked" data-panel-lock="false" data-panel-close="false" data-panel-fullscreen="false" data-panel-collapsed="false" data-panel-color="false" data-panel-locked="false" data-panel-refresh="false" data-panel-reset="false">
+            <div class="panel-hdr">
+                <h2>
+                    Action centre
+                </h2>
+            </div>
+            <div class="panel-hdr">
+                <div class="panel-toolbar pr-3 align-self-end">
+                    <ul id="demo_panel-tabs" class="nav nav-tabs border-bottom-0 nav-tabs-clean" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#tab_default-1" role="tab"><i class="fal fa-ballot-check fa-1x"></i>&nbsp;Reports</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#tab_default-2" role="tab"><i class="fal fa-cogs fa-1x"></i>&nbsp;Group management</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#tab_default-3" role="tab"><i class="fal fa-money-bill-wave fa-1x"></i>&nbsp;Price lists</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="tab-content p-3">
+                <div class="tab-pane fade show active" id="tab_default-1" role="tabpanel">
+                    <div class="row">
+                        <div class="col justify-content-center align-items-center mb-g">
+                            <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+
+                                <a id="create-ncc-btn" href='@string.Format("http://myplus/ClientStatusReportGeneric.aspx?GroupID={0}", @Model.GroupID)' data-toggle="modal" data-target="#createStudioTaskPopup" class="btn ">
+                                    <div class="rounded-top w-100 bg-primary-50">
+                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                            <span class="icon-stack fa-6x">
+                                                <i class="base-2 icon-stack-3x color-success-600" style="color: #af37ff !important"></i>
+                                                <i class="base-3 icon-stack-2x color-success-700" style="color: #b951ff !important"></i>
+                                                <i class="ni ni-list icon-stack-1x text-white"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                        <span class="d-block text-truncate text-muted">Client status report</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col justify-content-center align-items-center mb-g">
+                            <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+
+                                <a href='@string.Format("http://myplus/PunctualityReport.aspx?GroupID={0}", @Model.GroupID)' class="btn color-primary-500 ">
+                                    <div class="rounded-top w-100 bg-primary-50">
+                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                            <span class="icon-stack fa-6x">
+                                                <i class="base-2 icon-stack-3x color-primary-500" style="color: #af37ff !important"></i>
+                                                <i class="base-3 icon-stack-2x color-primary-500" style="color: #b951ff !important"></i>
+                                                <i class="ni ni-clock color-primary-500 icon-stack-1x text-white"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                        <span class="d-block text-truncate text-muted">Punctuality report</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="tab_default-2" role="tabpanel">
+                    <div class="row">
+
+              
+                        <div class="col justify-content-center  align-items-center mb-g">
+                            <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+
+                                <a href='@string.Format("http://myplus/SalesHotListEntryAddOrRemove.aspx?Mode=Add&AppliesToDataObjectTypeID=3&AppliesToDataObjectID={0}&OwnerEmployeeID=9", @Model.GroupID)' class="btn ">
+                                    <div class="rounded-top w-100 bg-primary-50">
+                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                            <span class="icon-stack fa-6x">
+                                                <i class="base-2 icon-stack-3x color-primary-600" style="color: #3787ff !important"></i>
+                                                <i class="base-3 icon-stack-2x color-primary-700" style="color: #0468ff !important"></i>
+                                                <i class="ni ni-plus icon-stack-1x text-white"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                        <span class="d-block text-truncate text-muted">Add to sales hot list</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                      
+
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="tab_default-3" role="tabpanel">
+                    <div class="row">
+                        <div class="col justify-content-center  align-items-center mb-g">
+                            <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                <a href='@string.Format("http://myplus/PriceListAutomationManagement.aspx?OrgGroupID={0}", Model.GroupID)' class="btn ">
+                                    <div class="rounded-top w-100 bg-primary-50">
+                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                            <span class="icon-stack fa-6x">
+                                                <i class="base-2 icon-stack-3x color-primary-600" style="color: #35d28e !important"></i>
+                                                <i class="base-3 icon-stack-2x color-primary-700" style="color: #2bc381 !important"></i>
+                                                <i class="ni ni-settings icon-stack-1x text-white"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                        <span class="d-block text-truncate text-muted">Price lists for automation</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div id="panel-5" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Job orders
+                </h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%">
+                                <form method="post">
+                                    <div class="px-3 pt-3 pb-2" width="100%">
+                                        <div style="white-space: nowrap;" width="100%">
+                                            @if (Model.JobResutls != null)
+                                            {
+                                                <table id="JobOrdersTable" class="table table-bordered table-hover table-striped w-100">
+                                                    <thead class="bg-warning-200" style="background-color: #e84133; color:white">
+                                                        <tr>
+                                                            <th>
+                                                                ID
+                                                            </th>
+                                                            <th>
+                                                                Name
+                                                            </th>
+                                                            <th>
+                                                                Status
+                                                            </th>
+                                                            <th>
+                                                                Deadline
+                                                            </th>
+                                                            <th>
+                                                                Source language
+                                                            </th>
+                                                            <th>
+                                                                Target language
+                                                            </th>
+                                                            <th>
+                                                                Currency
+                                                            </th>
+                                                            <th>
+                                                                Value
+                                                            </th>
+                                                            <th>
+                                                                Margin
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+                                                        @foreach (var row in Model.JobResutls)
+                                                        {
+                                                            <tr>
+                                                                <td><a style="color:#0026ff" href='@string.Format("https://myplusbeta.publicisgroupe.net/tmsjoborder/joborder?joborderid={0}",@row.JobId)'>@row.JobId</a></td>
+                                                                <td>@row.JobName</td>
+                                                                <td>@row.JobStatus</td>
+                                                                <td>@row.Deadline</td>
+                                                                <td>@row.SourceLanguage</td>
+                                                                <td>@row.TargetLanguage</td>
+                                                                <td>@row.JobCurrencyName</td>
+                                                                <td>@row.JobValue</td>
+                                                                <td>@row.JobMargin</td>
+
+
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            }
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div id="panel-6" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Enquiries
+                </h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%">
+                                <form method="post">
+                                    <div class="px-3 pt-3 pb-2" width="100%">
+                                        <div style="white-space: nowrap;" width="100%">
+                                            @if (Model.EnqResults != null)
+                                            {
+                                                <table id="EnqTable" class="table table-bordered table-hover table-striped w-100" width="100%">
+                                                    <thead class="bg-warning-200" style="background-color: #e84133; color:white">
+                                                        <tr>
+                                                            <th>
+                                                                ID
+                                                            </th>
+                                                            <th>
+                                                                Name
+                                                            </th>
+                                                            <th>
+                                                                Status
+                                                            </th>
+                                                            <th>
+                                                                Source language
+                                                            </th>
+                                                            <th>
+                                                                Target language(s)
+                                                            </th>
+                                                            <th>
+                                                                Decision reason
+                                                            </th>
+                                                            <th>
+                                                                Currency
+                                                            </th>
+                                                            <th>
+                                                                Value
+                                                            </th>
+                                                            <th>
+                                                                Deadline
+                                                            </th>
+                                                            <th>
+                                                                Created
+                                                            </th>
+                                                            <th>
+                                                                Created by
+                                                            </th>
+                                                            <th>
+                                                                Last modified
+                                                            </th>
+                                                            <th>
+                                                                Last modified by
+                                                            </th>
+                                                            <th>
+                                                                Sales contact
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+                                                        @foreach (var row in Model.EnqResults)
+                                                        {
+                                                            <tr>
+                                                                <td><a style="color:#0026ff" href='@string.Format("https://myplusbeta.publicisgroupe.net/enquiry?ID={0}",@row.Id)'>@row.Id</a></td>
+                                                                <td>@row.EnqName</td>
+                                                                <td>@row.EnqStatus</td>
+                                                                <td>@row.SourceLanguage</td>
+                                                                <td>@row.TargetLanguage</td>
+                                                                <td>@row.EnqReason</td>
+                                                                <td>@row.EnqCurrencyName</td>
+                                                                <td>@row.EnqValue</td>
+                                                                <td>@row.Deadline</td>
+                                                                <td>@row.SubmittedDateTime</td>
+                                                                <td><a style="color:#0026ff" href='@string.Format("http://myplus/Employee.aspx?EmployeeID={0}",@row.SubmittedByID)'>@row.SubmittedBy</a></td>
+                                                                <td>@row.EnqModified</td>
+                                                                @if (row.EnqModifiedByID == 0)
+                                                                {
+                                                                    <td>(none)</td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td><a style="color:#0026ff" href='@string.Format("http://myplus/Employee.aspx?EmployeeID={0}",@row.EnqModifiedByID)'>@row.EnqModifiedBy</a></td>
+                                                                }
+
+                                                                <td>@row.EnqSales</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            }
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div id="panel-7" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Organisations belonging to this group
+                </h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%">
+                                <form method="post">
+                                    <div class="px-3 pt-3 pb-2" width="100%">
+                                        <div style="white-space: nowrap;" width="100%">
+                                            @if (Model.OrgResutls != null)
+                                            {
+                                                <table id="OrgTable" class="table table-bordered table-hover table-striped w-100" width="100%">
+                                                    <thead class="bg-warning-200" style="background-color: #e84133; color:white">
+                                                        <tr>
+                                                            <th>
+                                                                ID
+                                                            </th>
+                                                            <th>
+                                                                Organisation name
+                                                            </th>
+                                                            <th>
+                                                                Address
+                                                            </th>
+                                                            <th>
+                                                                Country
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+                                                        @foreach (var row in Model.OrgResutls)
+                                                        {
+                                                            <tr>
+                                                                <td>@row.OrgID</td>
+                                                                <td><a style="color:#0026ff" href='@string.Format("http://myplus/Org.aspx?OrgID={0}",@row.OrgID)'>@row.OrgName</a></td>
+                                                                <td>@row.Address</td>
+                                                                <td>@row.Country</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            }
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div id="panel-8" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Price Lists
+                </h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%">
+                                <form method="post">
+                                    <div class="px-3 pt-3 pb-2" width="100%">
+                                        <div style="white-space: nowrap;" width="100%">
+                                            @if (Model.PriceListsResutls != null)
+                                            {
+                                                <table id="PriceListsTable" class="table table-bordered table-hover table-striped w-100" width="100%">
+                                                    <thead class="bg-warning-200" style="background-color: #e84133; color:white">
+                                                        <tr>
+                                                            <th>
+                                                                ID
+                                                            </th>
+                                                            <th>
+                                                                Name
+                                                            </th>
+                                                            <th>
+                                                                Currency
+                                                            </th>
+                                                            <th>
+                                                                In force since
+                                                            </th>
+                                                            <th>
+                                                                Applies to
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+                                                        @foreach (var row in Model.PriceListsResutls)
+                                                        {
+                                                            <tr>
+                                                                <td><a style="color:#0026ff" href='@string.Format("http://myplus/ClientPriceList.aspx?PriceListID={0}",@row.PriceListID)'>@row.PriceListID</a></td>
+                                                                <td><a style="color:#0026ff" href='@string.Format("http://myplus/ClientPriceList.aspx?PriceListID={0}",@row.PriceListID)'>@row.PriceListName</a></td>
+                                                                <td>@row.Currency</td>
+                                                                <td>@row.InForceSince</td>
+                                                                <td>any contacts at any organisation within the group</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            }
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section ScriptsBlock {
+    <script type="text/javascript">
+        /* Activate smart panels */
+        $('#js-page-content').smartPanel();
+    </script>
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="~/js/miscellaneous/fullcalendar/fullcalendar.bundle.js"></script>
+    <script src="~/js/statistics/sparkline/sparkline.bundle.js"></script>
+    <script src="~/js/statistics/easypiechart/easypiechart.bundle.js"></script>
+    <script src="~/js/statistics/flot/flot.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/miscellaneous/jqvmap/jqvmap.bundle.js"></script>
+    <script>
+
+        
+        $('.btn-outline-default').on('click', function (e) {
+            e.preventDefault();
+       
+
+            let data = {
+                @nameof(Model.EmployeCurrentlyLoggedInID) : @Model.EmployeCurrentlyLoggedInID,
+                 "@nameof(Model.GroupID)": @Model.GroupID.ToString(),
+                   "@nameof(Model.GroupName)": $('input[name="@(nameof(Model.GroupName))"]').val(),
+                    "@nameof(Model.Description)": $('textarea[name="@(nameof(Model.Description))"]').val(),
+                      "@nameof(Model.BrandID)": $('select[name="@(nameof(Model.BrandID))"]').find(':selected').val(),
+                        "@nameof(Model.EncryptedSuppliers)": $('input[name="@(nameof(Model.EncryptedSuppliers))"]').prop('checked'),
+                          "@nameof(Model.JobFilesCountryID)": $('select[name="@(nameof(Model.JobFilesCountryID))"]').find(':selected').val()
+
+        }
+
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/GroupUpdate",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    //confirm update was successfull
+
+                    $('.btn-outline-default').css('color', 'green');
+
+                    $('.error-span').remove();
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+        });
+        function UpdatingValue() {
+
+            $('#keyInfoSave').css('color', 'red');
+
+        }
+
+
+            $(document).ready(function () {
+
+
+                $('#JobOrdersTable').dataTable(
+                    {
+
+                        searching: false,
+                        responsive: true,
+                        "bLengthChange": false,
+                        "bAutoWidth": false,
+                        buttons: [],
+                        "pageLength": 10
+                    });
+
+                $('#OrgTable').dataTable(
+                    {
+
+                        searching: false,
+                        responsive: true,
+                        "bLengthChange": false,
+                        "bAutoWidth": false,
+                        buttons: [],
+                        "pageLength": 10
+                    });
+
+                $('#PriceListsTable').dataTable(
+                    {
+
+                        searching: false,
+                        responsive: true,
+                        "bLengthChange": false,
+                        "bAutoWidth": false,
+                        buttons: [],
+                        "pageLength": 10
+                    });
+
+
+                $('#EnqTable').dataTable(
+                    {
+
+                        searching: false,
+                        responsive: true,
+                        "bLengthChange": false,
+                        "bAutoWidth": false,
+                        buttons: [],
+                        "pageLength": 10
+                    });
+            });
+
+
+
+    </script>
+}

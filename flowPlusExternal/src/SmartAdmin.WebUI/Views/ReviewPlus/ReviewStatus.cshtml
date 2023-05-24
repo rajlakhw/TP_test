@@ -1,0 +1,1046 @@
+﻿@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+    <link type="text/css" rel="stylesheet" href="css/demo_table_jui.css" />
+}
+
+@{ ViewData["Title"] = "Review status";
+    //ViewData["PageName"] = "datatables_basic";
+    ViewData["Category1"] = "review plus";
+    //ViewData["Heading"] = "";
+    //ViewData["PageDescription"] = "Create headache free searching, sorting and pagination tables without any complex configuration";
+}
+@{
+    @using ViewModels.flowPlusExternal.ReviewPlus;
+    @model ReviewStatusModel;
+    @using Global_Settings;
+}
+
+<style>
+    .list {
+        display: inline;
+        list-style-type: none;
+    }
+
+    .select2-container {
+        z-index: 5000;
+    }
+
+    body.modal-open {
+        overflow: visible;
+    }
+
+    .was-validated .custom-select:invalid + .select2 .select2-selection {
+        border-color: #fd3995;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23fd3995' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23fd3995' stroke='none'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:invalid:focus + .select2 .select2-selection:invalid:focus {
+        border-color: #fd3995;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+    }
+
+
+    .was-validated .custom-select:valid + .select2 .select2-selection {
+        border-color: #1dc9b7 !important;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%231dc9b7' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:valid:focus + .select2 .select2-selection:valid:focus {
+        border-color: #1dc9b7;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+    }
+
+    /*   .was-validated .select2:valid:focus {
+            border-color: #1dc9b7;
+            -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        }*/
+
+    /*  *:focus {
+        outline: 0px;
+    }*/
+</style>
+@section ScriptsBlock {
+    <script src="~/js/statistics/peity/peity.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+
+
+    <script>
+        var loadAssigned = true;
+        $(document).ready(function () {
+            initializePendingReviewsTable();
+            initializeInProgressReviewsTable();
+            //loadPendingAndInReviewDocuments();
+
+        //    $.when(loadPendingAndInReviewDocuments()).done(function() {
+        //        $('#dt-pending-reviews').DataTable({
+        //            "data": dataSet.pendingReviewDocuments,
+        //            destroy : true,
+        //            processing: true,
+        //            serverSide: true,
+        //            lengthMenu: [10, 20, 50, 100, 200],
+        //            responsive: true,
+        //            columns: [
+        //                {
+        //                    "data": "requestedBy",
+        //                    orderable : false
+        //                },
+        //                {
+        //                    "data": "reviewer",
+        //                    render: function (data, type, row, meta) {
+        //                        if (type === "display") {
+        //                            //let url = `/JobManagement/OrderDetails/${data}`
+        //                            return getReviewerColDOMData(row);
+        //                        }
+        //                        return getReviewerColDOMData(data);
+        //                    }
+        //                },
+        //                {
+        //                    "data": "jobItemId"
+        //                },
+        //                { "data": "jobName" },
+        //                { "data" : "sourceLanguage" },
+        //                { "data" : "targetLanguage" },
+        //                {
+        //                    "data" : "priority",
+        //                    render : function (data, type, row, meta) {
+        //                        debugger;
+        //                        if (type === "display" || type === "type") {
+        //                            if(data == 1){
+        //                                return "High";
+        //                            }
+        //                            if(data == 2){
+        //                                return "Medium";
+        //                            }
+        //                            if(data == 3){
+        //                                return "Low";
+        //                            }
+        //                            return "";
+        //                        }
+        //                    }
+        //                },
+        //                {
+        //                    "data": "dueDate",
+        //                    render: function (data, type, row, meta) {
+        //                        return getDateString(data);
+        //                    }
+        //                },
+        //                {
+        //                    "data" : "supplierWordCountTotal",
+        //                    orderable : false
+        //                },
+        //                {
+        //                    "data" : "reviewProgress",
+        //                    orderable : false,
+        //                    render: function (data, type, row, meta) {
+        //                        return getReviewProgressDOM(row);
+        //                    }
+        //                },
+        //                {
+        //                    /* To take action against specific joborder Id */
+        //                    "data": "jobItemId",
+        //                    orderable : false,
+        //                    mRender: function (data, type, row, meta) {
+        //                        let url = `/JobManagement/OrderDetails/${data}`;
+        //                        return getActionDOMData(row, true);
+        //                    }
+        //                }
+        //            ],
+        //            dom:
+					   // "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+					   // "<'row'<'col-sm-12'tr>>" +
+					   // "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+				    //buttons: [
+        //                {
+        //                    extend: 'pageLength',
+        //                    className: 'btn-outline-default'
+        //                }
+        //            ]
+        //        });
+        //    });
+
+            var controls = {
+                leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+                rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+            };
+
+            $(document).ready(function () {
+            //document.getElementById('bank-holiday-add-update-control').hidden = "hidden";
+            $('#datepicker-4-3').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $('#datepicker-4-3-edit').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $(function () {
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "(Select office)"
+                });
+                $(".js-hide-search").select2({
+                    minimumResultsForSearch: 1 / 0
+                });
+                $(".js-max-length").select2({
+                    maximumSelectionLength: 2,
+                    placeholder: "Select maximum 2 items"
+                });
+                //$(".select2-placeholder").select2({
+                //    placeholder: "Select a state",
+                //    allowClear: true
+                //});
+                $(".js-select2-icons").select2({
+                    minimumResultsForSearch: 1 / 0,
+                    templateResult: icon,
+                    templateSelection: icon,
+                    escapeMarkup: function (elm) {
+                        return elm
+                    }
+                });
+                function icon(elm) {
+                    elm.element;
+                    return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+                }
+                $(".js-data-example-ajax").select2({
+                    ajax: {
+                        url: "https://api.github.com/search/repositories",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page
+                            };
+                        },
+                        processResults: function (data, params) {
+                            // parse the results into the format expected by Select2
+                            // since we are using custom formatting functions we do not need to
+                            // alter the remote JSON data, except to indicate that infinite
+                            // scrolling can be used
+                            params.page = params.page || 1;
+                            return {
+                                results: data.items,
+                                pagination: {
+                                    more: (params.page * 30) < data.total_count
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Search for a repository',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 1,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+                        "<div class='select2-result-repository__avatar mr-2'><img src='" + repo.owner.avatar_url + "' class='width-2 height-2 mt-1 rounded' /></div>" +
+                        "<div class='select2-result-repository__meta'>" +
+                        "<div class='select2-result-repository__title fs-lg fw-500'>" + repo.full_name + "</div>";
+                    if (repo.description) {
+                        markup += "<div class='select2-result-repository__description fs-xs opacity-80 mb-1'>" + repo.description + "</div>";
+                    }
+                    markup += "<div class='select2-result-repository__statistics d-flex fs-sm'>" +
+                        "<div class='select2-result-repository__forks mr-2'><i class='@(Settings.Theme.IconPrefix) fa-lightbulb'></i> " + repo.forks_count + " Forks</div>" +
+                        "<div class='select2-result-repository__stargazers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+                        "<div class='select2-result-repository__watchers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+                        "</div>" +
+                        "</div></div>";
+                    return markup;
+                }
+                function formatRepoSelection(repo) {
+                    return repo.full_name || repo.text;
+                }
+            });
+
+            $(function() {
+
+                $('#datepicker-4-3').datepicker({
+                    orientation: "bottom left",
+                    todayHighlight: true,
+                    templates: controls,
+                    format: 'dd/mm/yyyy'
+                });
+
+                $('#datepicker-4-3-edit').datepicker({
+                    orientation: "bottom left",
+                    todayHighlight: true,
+                    templates: controls,
+                    format: 'dd/mm/yyyy'
+                });
+
+            });
+
+
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+
+		});
+        });
+
+       function validateDate(dateControl) {
+            var dateSelected = Date.parse(dateControl.value);
+            var exportButton = document.getElementById('export-button');
+            //
+            if (dateControl.value == '') {
+                dateControl.setAttribute("class", "form-control is-invalid");
+                return false;
+            }
+            else {
+
+                //refreshGroupList();
+                //refreshOrgList();
+
+                dateControl.setAttribute("class", "form-control is-valid");
+                return true;
+            }
+
+        }
+
+
+        function getDateString(date) {
+            var dateObj = new Date(date);
+            var dayofweek = dateObj.toLocaleString('default', { weekday: 'short' });
+            var month = dateObj.toLocaleString('default', { month: 'long' });
+            var day = dateObj.getDate();
+            var year = dateObj.getFullYear();
+            var hour = dateObj.getHours();
+            var minute = dateObj.getMinutes();
+            if (hour < 10) { hour = '0' + hour; }
+            if (minute < 10) { minute = '0' + minute; }
+
+            var dateString = dayofweek + " " + day + " " + month + " " + year + " " + hour + ":" + minute;
+            var today = new Date();
+
+            if (dateObj < today) {
+                dateString = `<span style="color: red;">` + dateString + `</span>`;
+            }
+            else {
+                dateString;
+            }
+            return dateString;
+        }
+
+
+        function applyDateRange(event){
+            var dataObjectId = @ViewBag.DataObjectID;
+            var dataTypeId = @ViewBag.DataObjectTypeId;
+            startDate = document.getElementById("start-date").value;
+            endDate = document.getElementById("end-date").value;
+            initializeJobOrdersDataTable();
+            event.preventDefault();
+            $("#daterange-modal").modal("hide");
+
+        }
+
+        function startTranslation(jobItemId) {
+            console.log(jobItemId);
+            window.location = `/ReviewPlus/ReviewPlusEdit/${jobItemId}`;
+        }
+
+        function approveTranslation(jobItemId) {
+            console.log(jobItemId);
+            window.location = `/ReviewPlus/ReviewPlusSignOff/${jobItemId}`;
+        }
+
+        function getActionDOMData(row, pending) {
+            if(pending){
+                return `<div class="row">
+                <div class="col">
+                <a href="javascript:startTranslation(${row.jobItemId})" title="Start the translation of this document"><i class="ni ni-arrow-right fa-2x"></i></a>
+                <a href="javascript:approveTranslation(${row.jobItemId})" title="Approve translation of this document"><i class="ni ni-check fa-2x"></i></a>
+                </div>
+            </div>`
+            }
+            else{
+                return `<div class="row">
+                <div class="col">
+                <a href="javascript:startTranslation(${row.jobItemId})" title="Continue translation of this document"><i class="ni ni-arrow-right fa-2x"></i></a>
+                <a href="javascript:approveTranslation(${row.jobItemId})" title="Approve translation of this document"><i class="ni ni-check fa-2x"></i></a>
+                </div>
+            </div>`
+            }
+            return dom1;
+        }
+
+        function getReviewerColDOMData(row) {
+            var dom = `<div class="row">
+                <div class="col">
+                ${row.reviewer} <a href="javascript:reassignReviewer(${row.jobItemId},'${row.requestedBy}','${row.reviewer}')" title="Reassign this request to another editor"><i class="ni ni-note"></i></a>
+                </div>
+            </div>`;
+
+            return dom;
+        }
+        function reassignReviewer(jobItemId,requestedBy,reviewer) {
+            document.getElementById('jobitem-label').innerText = jobItemId;
+            document.getElementById('requester-label').innerText = requestedBy;
+            document.getElementById('old-reviewer').value = reviewer;
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var allReviewers = $.parseJSON(response);
+                    var defaultOption = document.createElement("option");
+                    defaultOption.innerText = "(Please select)";
+                    var reveiwerSelect = document.getElementById('reviewer-select');
+                    reveiwerSelect.innerHTML = "";
+                    reveiwerSelect.appendChild(defaultOption);
+                    for (var i = 0; i < allReviewers.length; i++) {
+                        var reviewerOption = document.createElement("option");
+                        reviewerOption.setAttribute("value", allReviewers[i].id);
+                        reviewerOption.innerText = allReviewers[i].name;
+                        reveiwerSelect.appendChild(reviewerOption);
+                    }
+                }
+            }
+            xhr.open("POST", "ReviewPlus/GetAllReviewerForTargetLang", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(jobItemId);
+
+            $('#changeReviewerModal').modal('show');
+        }
+
+        function getReviewProgressDOM(row){
+            var dom = `${row.reviewProgress}% <div id="progress-bar" class="progress"><div class="progress-bar bg-warning" role="progressbar" style="width:${row.reviewProgress}%;" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div></div>`
+            return dom;
+        }
+
+        function initializePendingReviewsTable() {
+            var dataObjectId = @ViewBag.DataObjectID;
+            var dataTypeId = @ViewBag.DataObjectTypeId;
+			$('#dt-pending-reviews').dataTable(
+                {
+                order: [[2, 'desc']],
+                    destroy: true,
+
+                processing: true,
+                serverSide: true,
+                ajax: {
+                        contentType: "application/json; charset=utf-8",
+                        url: "/ReviewPlus/GetPendingDocumentsToBeReviewed",
+                        type: 'POST',
+                    data: function (d) {
+                            params = d;
+                            return JSON.stringify({ parameters: d, dataObjectId, dataTypeId, loadAssigned });
+                        }
+                },
+                lengthMenu: [10, 20, 50, 100, 200],
+                    responsive: true,
+                //orderable: false,
+                    //"ordering" : false,
+                columns: [
+                        {
+                            "data": "requestedBy",
+                            orderable: false,
+                            searchable: true
+
+                        },
+                        {
+                            "data": "reviewer",
+                            render: function (data, type, row, meta) {
+
+                                if ("@ViewBag.isAllowedToChangeReviewer" == "True") {
+                                    if (type === "display") {
+                                        //let url = `/JobManagement/OrderDetails/${data}`
+                                        return getReviewerColDOMData(row);
+                                    }
+                                    return getReviewerColDOMData(data);
+                                }
+                                else {
+                                    return data;
+                                }
+
+
+                            }
+                        },
+                        {
+                            "data": "jobItemId"
+                        },
+                        { "data": "jobName" },
+                        { "data" : "sourceLanguage" },
+                        { "data" : "targetLanguage" },
+                        {
+                            "data" : "priority",
+                            render: function (data, type, row, meta) {
+
+                                if (type === "display") {
+                                    if (data == 1) {
+                                        return `<span style="color: red;"><b>High</b></span>`;
+                                    }
+                                    if (data == 2) {
+                                        return `<span style="color: limegreen;"><b>Medium</b></span>`;
+                                    }
+                                    if (data == 3) {
+                                        return `<b>Low</b>`;
+                                    }
+
+                                }
+                                return "<span></span>";
+                            }
+                        },
+                        {
+                            "data": "dueDate",
+                            render: function (data, type, row, meta) {
+                                return getDateString(data);
+                            }
+                        },
+                        {
+                            "data" : "supplierWordCountTotal",
+                            orderable : false
+                        },
+                        //{
+                        //    "data" : "reviewProgress",
+                        //    orderable : false,
+                        //    render: function (data, type, row, meta) {
+                        //        //return getReviewProgressDOM(row);
+                        //        return data + '<div id="progress-bar" class="progress"><div class="progress-bar bg-warning" role="progressbar" style="width: ' + data + ';" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div></div>'
+                        //    }
+                        //},
+                        {
+                            /* To take action against specific joborder Id */
+                            "data": "jobItemId",
+                            orderable : false,
+                            mRender: function (data, type, row, meta) {
+                                let url = `/JobManagement/OrderDetails/${data}`;
+                                return getActionDOMData(row, true);
+                            }
+                        }
+                    ],
+				dom:
+					"<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+					"<'row'<'col-sm-12'tr>>" +
+					"<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+				buttons: [
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-outline-default'
+                    }
+					//{
+					//	extend: 'colvis',
+					//	text: 'Column Visibility',
+					//	titleAttr: 'Col visibility',
+					//	className: 'btn-outline-default'
+					//},
+					//{
+					//	extend: 'csvHtml5',
+					//	text: 'CSV',
+					//	titleAttr: 'Generate CSV',
+					//	className: 'btn-outline-default'
+					//},
+					//{
+					//	extend: 'copyHtml5',
+					//	text: 'Copy',
+					//	titleAttr: 'Copy to clipboard',
+					//	className: 'btn-outline-default'
+					//},
+					//{
+					//	extend: 'print',
+					//	text: '<i class="@(Settings.Theme.IconPrefix) fa-print"></i>',
+					//	titleAttr: 'Print Table',
+					//	className: 'btn-outline-default'
+					//}
+                    ]
+			});
+        }
+
+        function initializeInProgressReviewsTable(){
+            var dataObjectId = @ViewBag.DataObjectID;
+            var dataTypeId = @ViewBag.DataObjectTypeId;
+			var inProgressTable = $('#dt-inprogress-reviews').dataTable(
+                {
+                order: [[2, 'desc']],
+                destroy : true,
+                processing: true,
+                    serverSide: true,
+                    //orderable: false,
+                    //"ordering": false,
+                ajax: {
+                        contentType: "application/json; charset=utf-8",
+                        url: "/ReviewPlus/GetDocumentsUnderReview",
+                        type: 'POST',
+                        data: function (d) {
+                            params = d;
+                            return JSON.stringify({ parameters: d, dataObjectId, dataTypeId, loadAssigned });
+                        }
+                },
+                lengthMenu: [10, 20, 50, 100, 200],
+				responsive: true,
+                columns: [
+                        {
+                            "data": "requestedBy",
+                            orderable : false
+                        },
+                        {
+                            "data": "reviewer",
+                            render: function (data, type, row, meta) {
+                                if ("@ViewBag.isAllowedToChangeReviewer" == "True") {
+
+                                    if (type === "display") {
+                                        //let url = `/JobManagement/OrderDetails/${data}`
+                                        return getReviewerColDOMData(row);
+                                    }
+                                    return getReviewerColDOMData(data);
+                                }
+                                else {
+                                    return data;
+                                }
+                            }
+                        },
+                        {
+                            "data": "jobItemId"
+                        },
+                        { "data": "jobName" },
+                        { "data" : "sourceLanguage" },
+                        { "data" : "targetLanguage" },
+                        {
+                            "data" : "priority",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == 1) {
+                                        return `<span style="color: red;"><b>High</b></span>`;
+                                    }
+                                    if (data == 2) {
+                                        return `<span style="color: limegreen;"><b>Medium</b></span>`;
+                                    }
+                                    if (data == 3) {
+                                        return `<span style="color: gray;"><b>Low</b></span>`;
+                                    }
+
+                                }
+                                return "<span></span>";
+                            }
+                        },
+                        {
+                            "data": "dueDate",
+                            render: function (data, type, row, meta) {
+                                return getDateString(data);
+                            }
+                        },
+                        {
+                            "data" : "supplierWordCountTotal",
+                            orderable : false
+                        },
+                        {
+                            "data" : "reviewProgress",
+                            orderable : false,
+                            render: function (data, type, row, meta) {
+                                return getReviewProgressDOM(row);
+                                //return data + '<div id="progress-bar" class="progress"><div class="progress-bar bg-warning" role="progressbar" style="width: ' + data + ';" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div></div>'
+                            }
+                        },
+                        {
+                            /* To take action against specific joborder Id */
+                            "data": "jobItemId",
+                            orderable : false,
+                            mRender: function (data, type, row, meta) {
+                                let url = `/ReviewPlus/ReviewSignOff/${row.jobItemId}`;
+                                return getActionDOMData(row, false);
+                            }
+                        }
+                    ],
+				//dom:
+				//	"<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+				//	"<'row'<'col-sm-12'tr>>" +
+				//	"<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+				buttons: [
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-outline-default'
+                    }
+					//{
+					//	extend: 'colvis',
+					//	text: 'Column Visibility',
+					//	titleAttr: 'Col visibility',
+					//	className: 'btn-outline-default'
+					//},
+					//{
+					//	extend: 'csvHtml5',
+					//	text: 'CSV',
+					//	titleAttr: 'Generate CSV',
+					//	className: 'btn-outline-default'
+					//},
+					//{
+					//	extend: 'copyHtml5',
+					//	text: 'Copy',
+					//	titleAttr: 'Copy to clipboard',
+					//	className: 'btn-outline-default'
+					//},
+					//{
+					//	extend: 'print',
+					//	text: '<i class="@(Settings.Theme.IconPrefix) fa-print"></i>',
+					//	titleAttr: 'Print Table',
+					//	className: 'btn-outline-default'
+					//}
+                    ]
+                });
+
+            //inProgressTable.on('preDraw', function () { inProgressTable.clear(); });
+        }
+
+        function loadPendingAndInReviewDocuments() {
+            var dataObjectId = @ViewBag.DataObjectID;
+            var dataTypeId = @ViewBag.DataObjectTypeId;
+            var stringToSend = dataObjectId + '$' + dataTypeId;
+            return $.ajax({
+                url : `reviewplus/GetPendingOrInProgressReviewDocuments`,
+                type : 'POST',
+                data: stringToSend,
+                contentType : 'application/json; charset=utf-8',
+                success : function (data) {
+                    dataSet = data;
+                    //console.log(data);
+                    //console.log("Api is hit with parameters");
+                },
+            });
+        }
+
+        function loadAssignedReviewItems() {
+            loadAssigned = true;
+
+            $('#dt-pending-reviews').DataTable().clear();
+            initializePendingReviewsTable();
+
+            $('#dt-inprogress-reviews').DataTable().clear();
+            initializeInProgressReviewsTable();
+            $('#show-assigned-jobs-button').removeClass("btn-secondary").addClass("btn-primary");
+            $('#show-permitted-jobs-button').removeClass("btn-primary").addClass("btn-secondary");
+
+        }
+
+        function loadAllPermittedReviewItems() {
+            loadAssigned = false;
+
+            $('#dt-pending-reviews').DataTable().clear();
+            initializePendingReviewsTable();
+
+            $('#dt-inprogress-reviews').DataTable().clear();
+            initializeInProgressReviewsTable();
+            $('#show-assigned-jobs-button').removeClass("btn-primary").addClass("btn-secondary");
+            $('#show-permitted-jobs-button').removeClass("btn-secondary").addClass("btn-primary");
+
+        }
+
+        function changeReviewer() {
+
+            if ($('#reviewer-select').val() == '(Please select)') {
+                document.getElementById('reviewer-validity-label').hidden = false;
+            }
+            else {
+                var jobItemId = document.getElementById('jobitem-label').innerText;
+                var reviewerId = $('#reviewer-select').val();
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+
+                    if (this.readyState == 4 && this.status == 200) {
+                        var response = xhr.responseText;
+
+                        if (response == "inProgress") {
+                            initializeInProgressReviewsTable();
+
+                        }
+                        else if (response == "pending") {
+                            initializePendingReviewsTable();
+                        }
+
+                        document.getElementById('jobitem-label-1').innerText = jobItemId;
+                        document.getElementById('requester-label-1').innerText = document.getElementById('requester-label').innerText;
+                        document.getElementById('old-reviewer-label').innerText = document.getElementById('old-reviewer').value;
+                        document.getElementById('new-reviewer-label').innerText = $('#reviewer-select option:selected').text();
+
+                        $('#changeReviewerModal').modal('hide');
+                        $('#reviewerChangedConfirmationModal').modal('show');
+                    }
+                }
+                xhr.open("POST", "ReviewPlus/ChangeReviewer", true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(jobItemId + "$" + reviewerId);
+            }
+        }
+
+    </script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script>
+		// Class definition
+		var controls = {
+			leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+			rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+		}
+		var runDatePicker = function () {
+			// minimum setup
+			$('#datepicker-1').datepicker({
+				todayHighlight: true,
+				orientation: "bottom left",
+				templates: controls
+			});
+			// input group layout
+			$('#datepicker-2').datepicker({
+				todayHighlight: true,
+				orientation: "bottom left",
+				templates: controls
+			});
+			// input group layout for modal demo
+			$('#datepicker-modal-2').datepicker({
+				todayHighlight: true,
+				orientation: "bottom left",
+				templates: controls
+			});
+			// enable clear button
+			$('#datepicker-3').datepicker({
+				todayBtn: "linked",
+				clearBtn: true,
+				todayHighlight: true,
+				templates: controls
+			});
+			// enable clear button for modal demo
+			$('#datepicker-modal-3').datepicker({
+				todayBtn: "linked",
+				clearBtn: true,
+				todayHighlight: true,
+				templates: controls
+			});
+			// orientation
+			$('#datepicker-4-1').datepicker({
+				orientation: "top left",
+				todayHighlight: true,
+				templates: controls
+			});
+			$('#datepicker-4-2').datepicker({
+				orientation: "top right",
+				todayHighlight: true,
+				templates: controls
+			});
+			$('#datepicker-4-3').datepicker({
+				orientation: "bottom left",
+				todayHighlight: true,
+				templates: controls
+			});
+			$('#datepicker-4-4').datepicker({
+				orientation: "bottom right",
+				todayHighlight: true,
+				templates: controls
+			});
+			// range picker
+			$('#datepicker-5').datepicker({
+				todayHighlight: true,
+				templates: controls,
+                format: 'dd/mm/yyyy'
+			});
+			 // inline picker
+			$('#datepicker-6').datepicker({
+				todayHighlight: true,
+				templates: controls
+			});
+		}
+		$(document).ready(function () {
+			runDatePicker();
+		});
+    </script>
+}
+
+<h3><img src="~/img/review-plus-logo.jpg" style="width:35px;height:32px;"> review plus: Status Overview</h3>
+<br />
+
+
+<div class="demo" hidden="@(!ViewBag.toShowToggleButtons)">
+    <br>
+    <button type="button" id="show-assigned-jobs-button" class="btn btn-primary" style="color:white;" onclick="javascript:loadAssignedReviewItems()">Show only review requests assigned to me</button>
+    <button type="button" id="show-permitted-jobs-button" class="btn btn-secondary" style="color:white;" onclick="javascript:loadAllPermittedReviewItems()">Show all requests which I am permitted to view</button>
+</div>
+<!--<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active p-3" onclick="javascript:loadAssignedReviewItems()" data-toggle="tab" href="#" role="tab">-->
+@*<i class="fal fa-table text-success"></i>*@
+<!--<span class="hidden-sm-down ml-1">Show only review requests assigned to me</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link p-3" onclick="javascript:loadAllPermittedReviewItems()" data-toggle="tab" href="#" role="tab">-->
+@*<i class="fal fa-cog text-info"></i>*@
+<!--<span class="hidden-sm-down ml-1">Show all requests which I am permitted to view</span>
+        </a>
+    </li>
+</ul>-->
+<div class="row">
+    <div class="col-lg-12">
+        <div id="panel-4" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="frame-wrap">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div id="panel-4" class="panel">
+                                    <div class="panel-hdr">
+                                        <i class="fal fa-tools fa-2x color-black"></i> &nbsp; &nbsp;
+                                        <h2>
+                                            Pending: documents to be reviewed
+                                        </h2>
+                                        <div class="panel-toolbar">
+                                            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                                            <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                                        </div>
+                                    </div>
+                                    <div class="panel-container show">
+                                        <div class="panel-content">
+                                            <div class="panel-tag">
+                                                <span><i class="fal fa-info-circle fa-1x" style="color: #000000"></i></span> Any completion deadlines shown in <span style="color:red;">red</span> are overdue. If your access level permits it, you can re-route a request to a different reviewer by clicking on the relevant <span><i class="fal fa-edit fa-1x" style="color:#000000"></i> icon.</span>
+                                            </div>
+                                            <table id="dt-pending-reviews" class="table table-bordered table-hover table-striped w-100">
+                                                <thead class="bg-warning-200">
+                                                    <tr>
+                                                        <th>Requested by</th>
+                                                        <th>Reviewer</th>
+                                                        <th>Job item number</th>
+                                                        <th>Project name/Your reference</th>
+                                                        <th>Source language</th>
+                                                        <th>Target language</th>
+                                                        <th>Priority</th>
+                                                        <th>Due by (@ViewBag.extranetUserTimeZone)</th>
+                                                        <th>Word count</th>
+                                                        @*<th>Review progress</th>*@
+                                                        <th>Action</th>
+                                                    </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="changeReviewerModal" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content border-0 shadow-3">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <strong><label id="modal_header1">Re-route a review request</label> </strong>
+                                        </h5>
+                                        <button type="submit" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body bg-faded">
+                                        Job item ID <label id="jobitem-label" class="form-label text-success"></label> requested by <label id="requester-label" class="form-label text-success"></label>
+                                        <input type="hidden" id="old-reviewer" />
+                                        <br /><br />
+                                        Using the drop-down list, please select the reviewer you wish to re-route this request to and click <label class="form-label text-success">Confirm</label>.
+                                        <br /><br />
+                                        <div class="col-md-8">
+                                            <select class="select2 form-control" id="reviewer-select">
+                                            </select>
+                                            <label id="reviewer-validity-label" hidden style="color:red">You must select a reviewer</label>
+                                        </div>
+                                        <br /><br />
+                                        <div class="panel-tag">
+                                            <span class="help-block">Only reviewers authorised to work in the same target language will appear in the drop-down list. To add reviewers for this language, use the manage reviewers page.</span>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a class="btn btn-success" style="color:white;" onclick="changeReviewer();">Confirm</a>
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="reviewerChangedConfirmationModal" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content border-0 shadow-3">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <strong><label id="modal_header1">Success</label> </strong>
+                                        </h5>
+                                        <button type="submit" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body bg-faded">
+                                        Job item ID <label id="jobitem-label-1" class="form-label text-success"></label> requested by <label id="requester-label-1" class="form-label text-success"></label> has been assigned from <label id="old-reviewer-label" class="form-label text-success"></label> to <label id="new-reviewer-label" class="form-label text-success"></label>.
+                                    </div>
+                                    @*<div class="modal-footer">
+                                            <a class="btn btn-success" style="color:white;" onclick="changeReviewer();">Confirm</a>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>*@
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div id="panel-4" class="panel">
+                                    <div class="panel-hdr">
+                                        <i class="fal fa-tools fa-2x color-black"></i> &nbsp; &nbsp;
+                                        <h2>
+                                            In progress: documents currently being reviewed
+                                        </h2>
+                                        <div class="panel-toolbar">
+                                            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                                            <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                                        </div>
+                                    </div>
+                                    <div class="panel-container show">
+                                        <div class="panel-content">
+                                            <div class="panel-tag">
+                                                <span><i class="fal fa-info-circle fa-1x" style="color: #000000"></i></span> Any completion deadlines shown in <span style="color:red;">red</span> are overdue. If your access level permits it, you can re-route a request to a different reviewer by clicking on the relevant <span><i class="fal fa-edit fa-1x" style="color:#000000"></i> icon.</span>
+                                            </div>
+                                            <table id="dt-inprogress-reviews" class="table table-bordered table-hover table-striped w-100">
+                                                <thead class="bg-warning-200">
+                                                    <tr>
+                                                        <th>Requested by</th>
+                                                        <th>Reviewer</th>
+                                                        <th>Job item number</th>
+                                                        <th>Project name/ Your reference</th>
+                                                        <th>Source language</th>
+                                                        <th>Target language</th>
+                                                        <th>Priority</th>
+                                                        <th>Due by (@ViewBag.extranetUserTimeZone)</th>
+                                                        <th>Word count</th>
+                                                        <th>Progress</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,3055 @@
+﻿@{
+    @using SmartAdmin.WebUI.Models.Timesheet;
+    @model TimesheetOverviewModel;
+
+
+    @using Services;
+
+}
+
+
+
+<div>
+    <h2>My team's timesheet</h2>
+</div>
+<div id="panel-1" class="panel">
+    <div class="panel-hdr">
+        <h2>
+            Select an employee to approve their timesheet
+        </h2>
+        <div class="panel-toolbar">
+            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+            <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+        </div>
+    </div>
+    <div class="panel-container show">
+        <div class="panel-content">
+            <div class="form-group">
+                <select class="select2 form-control w-100" id="single-default" onchange="selectEmployeeForApproval(this);">
+                    <option value="0">(Please select)</option>
+                    @for (var e = 0; e < Model.AllEmployeesForApproval.Count(); e++)
+                    {
+                        <option value="@Model.AllEmployeesForApproval.ElementAt(e).Id"
+                                selected="@(Model.AllEmployeesForApproval.ElementAt(e).Id == ViewBag.CurrentEmployeeId)">
+                            @Model.AllEmployeesForApproval.ElementAt(e).FirstName @Model.AllEmployeesForApproval.ElementAt(e).Surname
+                        </option>
+                    }
+                </select>
+                <input type="hidden" value="@Model.StartDate.ToString("dd-MM-yyyy")" id="dateStringHiddenField" />
+                @*<table width="100%">
+                        <tr>
+                            <td>
+
+                            </td>
+                            <td>
+                                &nbsp;
+                            </td>
+                            <td>
+                                <a class="btn btn-success" asp-action="MyTeamsTimesheet" asp-route-weekToShow="@Model.StartDate.ToString("dd-MM-yyyy")">Create</a>
+                            </td>
+                        </tr>
+                    </table>*@
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<div id="panel-timesheet" class="panel" hidden="@(ViewBag.CurrentEmployeeId == 0)">
+    <div class="panel-hdr">
+
+        <h2>Timesheet for @ViewBag.CurrentEmployee</h2>
+
+        <div class="panel-toolbar">
+            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+            <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+        </div>
+    </div>
+
+
+
+    <div class="panel-container show">
+        @*<div id="calendar"></div>*@
+        <table width="100%" class="table table-borderless">
+            <tr>
+                <td style="padding:0px;border-spacing:0px;" align="left">
+                    <table class="table table-borderless" style="width:600px;">
+                        <tr>
+                            <td style="border-spacing:0px;padding:0px;" align="left" width="150">
+                                <input class="form-control" type="date" name="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" value="@ViewBag.DateSelected.ToString("yyyy-MM-dd")" style="width:150px;" onchange="gotoWeek(this);" />
+                            </td>
+                            <td style="border-spacing:0px;padding:0px;align-content:flex-start;" align="left">
+                                <a class="btn btn-outline-default" asp-controller="Timesheet" asp-action="MyTeamsTimesheetTandP" asp-route-employeeId="@ViewBag.CurrentEmployeeId" asp-route-weekToShow="@Model.StartDate.AddDays(-7).ToString("dd-MM-yyyy")"><i class="ni ni-chevron-left"></i></a>
+                                <a class="btn btn-outline-default" onclick="@((ViewBag.IsCurrentWeek == true) ? "event.preventDefault();" : "")" asp-controller="Timesheet" asp-action="MyTeamsTimesheetTandP" asp-route-employeeId="@ViewBag.CurrentEmployeeId" asp-route-weekToShow="@Model.StartDate.AddDays(7).ToString("dd-MM-yyyy")"><i class="ni ni-chevron-right"></i></a>&nbsp;&nbsp;
+                                <a class="btn btn-outline-default" asp-controller="Timesheet" asp-action="MyTeamsTimesheetTandP" asp-route-employeeId="@ViewBag.CurrentEmployeeId" asp-route-weekToShow="@DateTime.Now.ToString("dd-MM-yyyy")">This week</a>
+                                @*<a id="btn-thisWeek"><span class="fa-2x d-inline l-h-n" ><i class="ni ni-big-plus btn-success"></i></span></a>*@
+                                @*<a class="btn btn-success" id="btn-nxtWeek"><span class="d-inline l-h-n"><i class="ni ni-big-plus"></i></span></a>*@
+                            </td>
+                            <td style="border-spacing:0px;padding:0px;" align="left">
+                                @if (Model.ApprovalDetails != null && Model.ApprovalDetails.SubmissionDateTime != null && Model.ApprovalDetails.ApprovedDateTime == null)
+                                {
+                                    <button type="button" class="btn btn-success"
+                                            data-toggle="modal" data-target="#approve-timesheet-modal">
+                                        Approve
+                                    </button>
+                                }
+                            </td>
+                            <td style="border-spacing:0px;padding:0px;" align="left">
+                                @if (Model.ApprovalDetails != null && Model.ApprovalDetails.SubmissionDateTime != null && Model.ApprovalDetails.ApprovedDateTime == null)
+                                {
+                                    <button type="button" class="btn btn-success"
+                                            data-toggle="modal" data-target="#unlock-timesheet-modal">
+                                        Unlock for editing
+                                    </button>
+                                }
+
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="modal fade" id="approve-timesheet-modal" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">
+                                        Approve timesheet for @ViewBag.CurrentEmployee
+                                    </h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to approve timesheet for @ViewBag.CurrentEmployee for week starting @ViewBag.DateStartingLongString?
+                                </div>
+                                <div class="modal-footer">
+                                    <a class="btn btn-success" onclick="approveThisWeek(this);"
+                                       asp-action="MyTeamsTimesheetTandP" asp-route-employeeId="@ViewBag.CurrentEmployeeId" asp-route-weekToShow="@Model.StartDate.ToString("dd-MM-yyyy")">Yes, approve timesheet</a>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="unlock-timesheet-modal" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">
+                                        Unlock timesheet for @ViewBag.CurrentEmployee
+                                    </h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to unlock timesheet for @ViewBag.CurrentEmployee for week starting @ViewBag.DateStartingLongString?
+                                </div>
+                                <div class="modal-footer">
+                                    <a class="btn btn-success" onclick="unlockForEditing(this);"
+                                       asp-action="MyTeamsTimesheetTandP" asp-route-employeeId="@ViewBag.CurrentEmployeeId" asp-route-weekToShow="@Model.StartDate.ToString("dd-MM-yyyy")">Yes, unlock timesheet</a>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </td>
+                <td align="left" width="400" style="padding:0px;border-spacing:0px;">
+                    @if (Model.ApprovalDetails != null && Model.ApprovalDetails.ApprovedDateTime != null)
+                    {
+                        <div class="alert bg-transparent text-secondary fade show" role="alert" style="border-spacing:0px;padding-right:20px;padding-bottom:0px;padding-top:0px;">
+                            <div class="d-flex align-items-center">
+                                <div class="alert-icon" style="padding:0px;border-spacing:0px;">
+                                    <span class="icon-stack icon-stack-md">
+                                        <i class="base-7 icon-stack-2x color-success-600"></i>
+                                        <i class="@(Settings.Theme.IconPrefix) fa-check icon-stack-1x text-white"></i>
+                                    </span>
+                                </div>
+                                <div class="flex-1" style="padding:0px;border-spacing:0px;">
+                                    <span class="color-success-600">Timesheet approved by @ViewBag.ApprovedByEmployee</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.ApprovalDetails != null && Model.ApprovalDetails.UnlockDateTime != null)
+                    {
+                        <div class="alert bg-transparent text-secondary fade show" role="alert" style="border-spacing:0px;padding-right:20px;padding-bottom:0px;padding-top:0px;">
+                            <div class="d-flex align-items-center">
+                                <div class="alert-icon" style="padding:0px;border-spacing:0px;">
+                                    <span class="icon-stack icon-stack-md">
+                                        @*<i class="base-7 icon-stack-2x color-success-600"></i>*@
+                                        <i class="@(Settings.Theme.IconPrefix) fa-info-circle small"></i>
+                                    </span>
+                                </div>
+                                <div class="flex-1" style="padding:0px;border-spacing:0px;">
+                                    <span class="color-primary-200">Timesheet unlocked by @ViewBag.UnlockedByEmployee</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </td>
+            </tr>
+        </table>
+
+
+
+        <div class="frame-wrap">
+            <div class="modal fade" id="createClientTaskPopup" role="dialog">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content border-0 shadow-3">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="timeLogEditHeader">
+                                <strong><label id="modal_header1">Add a new client task</label> </strong>
+                            </h5>
+                            <button type="submit" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                            </button>
+                        </div>
+                        <div class="modal-body bg-faded">
+                            <table class="table table-borderless" style="width:450px;" id="breakdownTable1">
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="client-input">Org</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        @*<input type="text" class="form-control" id="client-input" style="width:380px;">*@
+                                        <div class="input-group bg-white shadow-inset-2">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text bg-transparent border-right-0">
+                                                    <i class="@(Settings.Theme.IconPrefix) fa-search"></i>
+                                                </span>
+                                            </div>
+                                            <input type="text" id="client-input" name="searchTerm" autocomplete="off"
+                                                   aria-label="type 2 or more letters" class="form-control border-left-0 bg-transparent pl-0"
+                                                   placeholder="Search..." onkeyup="getAutoCompleteOrgSuggestions(event);">
+                                            @*<input type="text" id="client-input" name="searchTerm"
+                                                aria-label="type 2 or more letters" class="form-control border-left-0 bg-transparent pl-0"
+                                                placeholder="Search...">*@
+
+                                        </div>
+
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="client-input">End client</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <select class="select2 form-control" onchange="updateEndClientData(this)"
+                                                id="createEndClientDropdown">
+                                            <option value="-1">(Please select)</option>
+                                            @for (var j = 0; j < Model.EndClientList.Count(); j++)
+                                            {
+                                                <option value="@Model.EndClientList.ElementAt(j).Id">@Model.EndClientList.ElementAt(j).Name</option>
+                                            }
+                                        </select>
+                                        @*<div><label id="endClientValidationLabel" hidden="hidden">Please select an end client</label></div>*@
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="client-input">Brand</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <select class="select2 form-control" disabled="disabled" id="createBrandDropdown">
+                                            <option value="-1">(Please select)</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="client-input">Category</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <select class="select2 form-control" disabled="disabled" id="createCategoryDropdown">
+                                            <option value="-1">(Please select)</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="client-input">Campaign</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <select class="select2 form-control" disabled="disabled" id="createCampaignDropdown">
+                                            <option value="-1">(Please select)</option>
+                                        </select>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="timesheet-log-date">Date</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <input class="form-control" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" name="date" id="timesheet-log-date" value="@ViewBag.DateSelected.ToString("yyyy-MM-dd")" style="width:380px;">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: top; border: hidden;">
+                                        <label class="text-success">Activities</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <table id="innerCategoryTable1" style="width: 100%; border-spacing: 0px; padding: 0px;">
+                                            @for (var rw = 0; rw < 1; rw++)
+                                            {
+                                                <tr>
+                                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; width: 320px;border: hidden;">
+                                                        <select class="select2 form-control w-100">
+                                                            <option value="-1">(Please select)</option>
+                                                            <optgroup label="Chargeable tasks">
+                                                                @for (var j = 0; j < Model.AllChargeableTasksForEmployee.Count(); j++)
+                                                                {
+                                                                    <option value="@Model.AllChargeableTasksForEmployee.ElementAt(j).Id">@Model.AllChargeableTasksForEmployee.ElementAt(j).CategoryName</option>
+                                                                }
+                                                            </optgroup>
+                                                            <optgroup label="Non Chargeable tasks">
+                                                                @for (var j = 0; j < Model.AllNonChargeableTasksForEmployee.Count(); j++)
+                                                                {
+                                                                    <option value="@Model.AllNonChargeableTasksForEmployee.ElementAt(j).Id">@Model.AllNonChargeableTasksForEmployee.ElementAt(j).CategoryName</option>
+                                                                }
+                                                            </optgroup>
+                                                        </select>
+                                                    </td>
+                                                    <td style="border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;">
+                                                        <select style="width:70px;" class="select2 form-control">
+                                                            <option value="-1">hh</option>
+                                                            @for (var h = 0; h < 24; h++)
+                                                            {
+                                                                <option value="@h">@h.ToString()</option>
+                                                            }
+                                                        </select>
+                                                    </td>
+                                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border: hidden;">
+                                                        :
+                                                    </td>
+                                                    <td style="border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;">
+                                                        <select style="width:75px;" class="select2 form-control">
+                                                            <option value="-1">mm</option>
+                                                            @for (var m = 0; m < 59; m += 15)
+                                                            {
+                                                                <option value="@m">@m.ToString()</option>
+                                                            }
+                                                        </select>
+
+                                                    </td>
+                                                    <td style="border-spacing: 0px; padding: 7px; vertical-align: middle; border: hidden;">
+                                                        <a href="#" onclick="deleteRowFromCreateModal(this);event.preventDefault();"><i class="fa-1x fal fa-trash-alt fa-x"></i></a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border:hidden;">
+                                        &nbsp;
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border:hidden;">
+                                        <a class="text-success" onclick="addNewRow('innerCategoryTable1');event.preventDefault();" href="#">+ Add more activities</a>
+                                    </td>
+                                </tr>
+
+
+                                <tr class="table-hover">
+                                    <td style="border: hidden;">
+                                        &nbsp;
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border:hidden;" align="right">
+                                        <br />
+                                        <a class="btn btn-success" onclick="createClientTask(this);"
+                                           asp-action="MyTeamsTimesheetTandP" asp-route-weekToShow="@Model.StartDate.ToString("dd-MM-yyyy")">Create</a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="createNonClientTaskPopup" role="dialog">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content border-0 shadow-3">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="timeLogEditHeader">
+                                <strong><label id="modal_header1">Add a non-client charge</label> </strong>
+                            </h5>
+                            <button type="submit" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                            </button>
+                        </div>
+                        <div class="modal-body bg-faded">
+                            <table class="table table-borderless" style="width:450px;" id="breakdownTable2">
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="timesheet-log-date1">Date</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <input class="form-control" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" name="date" id="timesheet-log-date1" value="@ViewBag.DateSelected.ToString("yyyy-MM-dd")" style="width:380px;">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: top; border: hidden;">
+                                        <label class="text-success">Activities</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <table id="innerCategoryTable2" style="width: 100%; border-spacing: 0px; padding: 0px;">
+
+                                            <tr>
+                                                <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; width: 320px;border: hidden;">
+                                                    <select class="select2 form-control w-100">
+                                                        <option value="-1">(Please select)</option>
+                                                        @for (var j = 0; j < Model.AllNonClientActivitiesForEmployee.Count(); j++)
+                                                        {
+                                                            <option value="@Model.AllNonClientActivitiesForEmployee.ElementAt(j).Id">@Model.AllNonClientActivitiesForEmployee.ElementAt(j).CategoryName</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td style="border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;">
+                                                    <select style="width:70px;" class="select2 form-control">
+                                                        <option value="-1">hh</option>
+                                                        @for (var h = 0; h < 24; h++)
+                                                        {
+                                                            <option value="@h">@h.ToString()</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border: hidden;">
+                                                    :
+                                                </td>
+                                                <td style="border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;">
+                                                    <select style="width:75px;" class="select2 form-control">
+                                                        <option value="-1">mm</option>
+                                                        @for (var m = 0; m < 59; m += 15)
+                                                        {
+                                                            <option value="@m">@m.ToString()</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td style="border-spacing: 0px; padding: 7px; vertical-align: middle; border: hidden;">
+                                                    <a onclick="deleteNonClientRow(this);event.preventDefault();" href="#"><i class="fa-1x fal fa-trash-alt fa-x"></i></a>
+                                                </td>
+                                            </tr>
+
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border:hidden;">
+                                        &nbsp;
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border:hidden;">
+                                        <a class="text-success" onclick="addNewNonClientRow('innerCategoryTable2');event.preventDefault();" href="#">+ Add more activities</a>
+                                    </td>
+                                </tr>
+
+
+                                <tr class="table-hover">
+                                    <td style="border: hidden;">
+                                        &nbsp;
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border:hidden;" align="right">
+                                        <br />
+                                        <a class="btn btn-success" onclick="AddNonClientTask(this);" asp-action="MyTeamsTimesheetTandP" asp-route-weekToShow="@Model.StartDate.ToString("dd-MM-yyyy")">Create</a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="editPopup" role="dialog" data-backdrop="static" data-keyboard="false">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content border-0 shadow-3">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="timeLogEditHeader">
+                                <strong><label id="modal_header"></label> </strong>
+                            </h5>
+                            @*<a  asp-controller="Timesheet" asp-action="Update"
+                                onclick="checkTotalHoursInDay(this);" class="close" aria-label="Close">*@
+                            <a onclick="checkTotalHoursInDay(this);" data-dismiss="modal" class="close" aria-label="Close">
+                                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                            </a>
+                        </div>
+                        <div class="modal-body bg-faded" style="@(ViewBag.ApprovedByEmployee != null || ViewBag.TimesheetSubmitted != null ? "pointer-events:none;" : "")">
+                            <table class="table table-borderless" style="width:450px;" id="breakdownTable">
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="cc-input">Org</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <input type="text" class="form-control" id="client-name-input" style="width:380px;" disabled="disabled">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="client-input">End client</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <input type="text" class="form-control" id="end-client-input" style="width:380px;" disabled="disabled">
+                                        <input type="hidden" id="end-client-hidden" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="client-input">Brand</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <input type="text" class="form-control" id="brand-input" style="width:380px;" disabled="disabled">
+                                        <input type="hidden" id="brand-hidden" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="client-input">Category</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <input type="text" class="form-control" id="category-input" style="width:380px;" disabled="disabled">
+                                        <input type="hidden" id="category-hidden" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: middle; border: hidden;">
+                                        <label class="text-success" for="client-input">Campaign</label>
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                        <input type="text" class="form-control" id="campaign-input" style="width:380px;" disabled="disabled">
+                                        <input type="hidden" id="campaign-hidden" />
+                                    </td>
+                                </tr>
+                                @*<tr>
+                                        <td style="vertical-align: middle; border: hidden;">
+                                            <label class="text-success" for="client-input">End client</label>
+                                        </td>
+                                        <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                            <select class="select2 form-control" onchange="updateEndClientData1(this)" disabled="disabled" id="editEndClientDropdown">
+                                                @for (var j = 0; j < Model.EndClientList.Count(); j++)
+                                                {
+                                                    <option value="@Model.EndClientList.ElementAt(j).Id">@Model.EndClientList.ElementAt(j).Name</option>
+                                                }
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="vertical-align: middle; border: hidden;">
+                                            <label class="text-success" for="client-input">Brand</label>
+                                        </td>
+                                        <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                            <select class="select2 form-control" disabled="disabled" id="editBrandDropdown" onchange="logChange();">
+                                                <option value="-1">(Please select)</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="vertical-align: middle; border: hidden;">
+                                            <label class="text-success" for="client-input">Category</label>
+                                        </td>
+                                        <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                            <select class="select2 form-control" disabled="disabled" id="editCategoryDropdown" onchange="logChange();">
+                                                <option value="-1">(Please select)</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="vertical-align: middle; border: hidden;">
+                                            <label class="text-success" for="client-input">Campaign</label>
+                                        </td>
+                                        <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                            <select class="select2 form-control" disabled="disabled" id="editCampaignDropdown" onchange="logChange();">
+                                                <option value="-1">(Please select)</option>
+                                            </select>
+                                        </td>
+                                    </tr>*@
+
+                                <tr class="table-hover">
+                                    <td style="border: hidden;">
+                                        &nbsp;
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border:hidden;">
+                                        @if (ViewBag.ApprovedByEmployee == null && ViewBag.TimesheetSubmitted == null)
+                                        {
+                                            <a class="text-success" onclick="addNewRow('innerCategoryTable');event.preventDefault();" href="#">+ Add more activities</a>
+                                        }
+
+                                        @*<br />*@
+                                        <input id="deletedCategories" type="hidden" />
+                                        <input id="timeLogId" type="hidden" />
+                                        <input id="anyLogUpdated" type="hidden" />
+                                        <input id="currentDate" type="hidden" />
+                                        @*<a asp-action="Update" >Update</a>
+                                            <button class="btn btn-success" id="update_button" type="button">Update</button>
+                                            <a class="btn btn-success" id="update_button" asp-controller="Timesheet" asp-action="Update"
+                                                asp-route-timeLogList="@(Model.AllTimesheetLogsBreakdown.GetValueOrDefault(4) == null ? "" : Model.AllTimesheetLogsBreakdown.GetValueOrDefault(4).ToList())"
+                                                onclick="checkTotalHoursInDay(this);">Update</a>
+                                            <a class="btn btn-success" id="update_button" asp-controller="Timesheet" asp-action="Update"
+                                               onclick="checkTotalHoursInDay(this);">Update</a>*@
+
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="editNonClientPopup" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content border-0 shadow-3">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="timeLogEditHeader">
+                                <strong><label id="nonClientHeader">Other Tasks</label></strong>
+                            </h5>
+                            <a onclick="saveNonClientCharge();" data-dismiss="modal" class="close" aria-label="Close">
+                                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                            </a>
+                        </div>
+                        <div class="modal-body bg-faded" style="@(ViewBag.ApprovedByEmployee != null || ViewBag.TimesheetSubmitted != null ? "pointer-events:none;" : "")">
+                            <table class="table table-borderless" style="width:450px;" id="breakdownTable3">
+
+                                <tr class="table-hover">
+                                    <td style="border: hidden;">
+                                        &nbsp;
+                                    </td>
+                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border:hidden;">
+                                        @if (ViewBag.ApprovedByEmployee == null && ViewBag.TimesheetSubmitted == null)
+                                        {
+                                            <a class="text-success" onclick="addNewNonClientRow('innerCategoryTable3');event.preventDefault();" href="#">+ Add more activities</a>
+                                        }
+
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a id="create-ct-btn" href="#" data-toggle="modal" data-target="#createClientTaskPopup" class="@(ViewBag.ApprovedByEmployee == null && ViewBag.TimesheetSubmitted == null ? "btn btn-outline-success" : "btn btn-outline-success disabled")">Client Tasks</a> &nbsp;&nbsp;&nbsp;
+            <a id="create-ncc-btn" href="#" data-toggle="modal" data-target="#createNonClientTaskPopup" class="@(ViewBag.ApprovedByEmployee == null && ViewBag.TimesheetSubmitted == null ? "btn btn-outline-success" : "btn btn-outline-success disabled")">Other Tasks</a>
+
+            <table class="table m-0">
+                <thead class="thead-themed">
+                    <tr>
+                        @*<td><a asp-action="Create" class="btn btn-outline-success">Client Charge</a> &nbsp;&nbsp;&nbsp; <a asp-action="Create" class="btn btn-outline-success">Non Client Charge</a></td>*@
+                        <td style="width:150px;"></td>
+                        <td align="center" valign="middle">
+                            <b>
+                                @Model.StartDate.ToString("ddd d MMM")<br />
+                                <label hidden="@(Model.DailyTotalString.ElementAt(0).Contains(".red") == false)" style="color:red;">@Model.DailyTotalString.ElementAt(0).Replace(".red", "") hrs</label>
+                                <label hidden="@Model.DailyTotalString.ElementAt(0).Contains(".red")">@Model.DailyTotalString.ElementAt(0) hrs</label>
+                            </b>
+                        </td>
+                        <td align="center" valign="middle">
+                            <b>
+                                @Model.StartDate.AddDays(1).ToString("ddd d MMM")<br />
+                                <label hidden="@(Model.DailyTotalString.ElementAt(1).Contains(".red") == false)" style="color:red;">@Model.DailyTotalString.ElementAt(1).Replace(".red", "") hrs</label>
+                                <label hidden="@Model.DailyTotalString.ElementAt(1).Contains(".red")">@Model.DailyTotalString.ElementAt(1) hrs</label>
+                            </b>
+                        </td>
+                        <td align="center" valign="middle">
+                            <b>
+                                @Model.StartDate.AddDays(2).ToString("ddd d MMM")<br />
+                                <label hidden="@(Model.DailyTotalString.ElementAt(2).Contains(".red") == false)" style="color:red;">@Model.DailyTotalString.ElementAt(2).Replace(".red", "") hrs</label>
+                                <label hidden="@Model.DailyTotalString.ElementAt(2).Contains(".red")">@Model.DailyTotalString.ElementAt(2) hrs</label>
+                            </b>
+                        </td>
+                        <td align="center" valign="middle">
+                            <b>
+                                @Model.StartDate.AddDays(3).ToString("ddd d MMM")<br />
+                                <label hidden="@(Model.DailyTotalString.ElementAt(3).Contains(".red") == false)" style="color:red;">@Model.DailyTotalString.ElementAt(3).Replace(".red", "") hrs</label>
+                                <label hidden="@Model.DailyTotalString.ElementAt(3).Contains(".red")">@Model.DailyTotalString.ElementAt(3) hrs</label>
+                            </b>
+                        </td>
+                        <td align="center" valign="middle">
+                            <b>
+                                @Model.StartDate.AddDays(4).ToString("ddd d MMM")<br />
+                                <label hidden="@(Model.DailyTotalString.ElementAt(4).Contains(".red") == false)" style="color:red;">@Model.DailyTotalString.ElementAt(4).Replace(".red", "") hrs</label>
+                                <label hidden="@Model.DailyTotalString.ElementAt(4).Contains(".red")">@Model.DailyTotalString.ElementAt(4) hrs</label>
+                            </b>
+                        </td>
+                        <td align="center" valign="middle">
+                            <b>
+                                @Model.StartDate.AddDays(5).ToString("ddd d MMM")<br />
+                                <label hidden="@(Model.DailyTotalString.ElementAt(5).Contains(".red") == false)" style="color:red;">@Model.DailyTotalString.ElementAt(5).Replace(".red", "") hrs</label>
+                                <label hidden="@Model.DailyTotalString.ElementAt(5).Contains(".red")">@Model.DailyTotalString.ElementAt(5) hrs</label>
+                            </b>
+                        </td>
+                        <td align="center" valign="middle">
+                            <b>
+                                @Model.EndDate.ToString("ddd d MMM")<br />
+                                <label hidden="@(Model.DailyTotalString.ElementAt(6).Contains(".red") == false)" style="color:red;">@Model.DailyTotalString.ElementAt(6).Replace(".red", "") hrs</label>
+                                <label hidden="@Model.DailyTotalString.ElementAt(6).Contains(".red")">@Model.DailyTotalString.ElementAt(6) hrs</label>
+                            </b>
+                        </td>
+                        <td align="center" valign="middle">
+                            <b>
+                                Total<br />
+                                <label hidden="@(Model.DailyTotalString.Last().Contains(".red") == false)" style="color:red;">@Model.DailyTotalString.Last().Replace(".red", "") hrs</label>
+                                <label hidden="@Model.DailyTotalString.Last().Contains(".red")">@Model.DailyTotalString.Last() hrs</label>
+                            </b>
+                        </td>
+                        @*<th>EmployeeID</th>*@
+                    </tr>
+                </thead>
+                <tbody class="table-bordered">
+                    @{var i = 0;
+                        foreach (Dictionary<int, Data.Org> key in Model.AllTandPRowHeaderForAWeek.Keys)
+                        {
+                            Dictionary<int, Data.Org> thisDict = (Dictionary<int, Data.Org>)key;
+                            Data.Org currentOrg = thisDict.ElementAt(0).Value;
+
+                            //if (Model.AllTandPRowHeaderForAWeek[key] != null)
+                            //{
+                            //    var AllDataString = Model.AllTandPRowHeaderForAWeek[key].ToString();
+                            //}
+                            //Data.EndClient currentEndClient = (Data.EndClient)AllDataString.Split("$")[0];
+                            <tr>
+                                <td align="left" valign="middle">
+                                    <b>@currentOrg.OrgName</b><br />
+                                    OrgID: @currentOrg.Id
+                                    <br />
+                                    End client: <label> @(Model.AllEndClients.ElementAt(i) == null ? "" : Model.AllEndClients.ElementAt(i).Name)</label><br />
+                                    Brand: <label>@(Model.AllGroupeBrands.ElementAt(i) == null ? "" : Model.AllGroupeBrands.ElementAt(i).DataObjectName)</label>
+                                </td>
+
+                                <td style="flex-grow:10;width:100px;border-spacing:0px;padding:10px 0px 20px 10px;" align="center" valign="middle">
+
+                                    <table class="table-borderless">
+                                        <tr>
+                                            <td align="center" style="border-spacing:0px;padding:0px;">
+                                                <label class="text-success" title="Chargeable Task" for="cc-input">CT</label>
+                                            </td>
+                                            <td align="center" style="border-spacing:0px;padding:0px;">
+                                                <label class="text-success" title="Non Chargeable Task" for="nct-input">NCT</label>
+                                            </td>
+                                            @*<td style="border-spacing:0px;padding:0px;vertical-align:middle;">&nbsp;&nbsp;</td>*@
+                                        </tr>
+                                        <tr>
+                                            <td style="border-spacing:0px;padding:0px;">
+                                                <input type="text" id="cc-input" class="form-control" disabled="" style="width:40px;text-align:center;padding:0px;margin:0px;"
+                                                       placeholder="@(Model.AllMondayTimeLogs.ElementAt(i) == null ? 0 : Model.AllMondayTimeLogs.ElementAt(i).ClientChargeInHours):@(Model.AllMondayTimeLogs.ElementAt(i) == null ? 0 : Model.AllMondayTimeLogs.ElementAt(i).ClientChargeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;">
+                                                <input type="text" id="nct-hh-input" class="form-control" disabled="" style="width: 40px; text-align: center; padding: 0px; margin: 0px;"
+                                                       placeholder="@(Model.AllMondayTimeLogs.ElementAt(i) == null ? 0 : Model.AllMondayTimeLogs.ElementAt(i).NonChargeableTimeInHours):@(Model.AllMondayTimeLogs.ElementAt(i) == null ? 0 : Model.AllMondayTimeLogs.ElementAt(i).NonChargeableTimeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;vertical-align:middle;" class="table-borderless">
+                                                @*<a onclick="populateModal(@(Model.AllMondayTimeLogs.ElementAt(i) == null ? 0 : Model.AllMondayTimeLogs.ElementAt(i).Id));" class="btn btn-icon align-middle" id="edit-btn" href="#" data-toggle="modal" data-target="#editPopup"
+                                                    ="@(Model.AllMondayTimeLogs.ElementAt(i) == null ? "" : ("#Modal" + Model.AllMondayTimeLogs.ElementAt(i).Id.ToString()))"><i class="ni ni-note"></i></a>*@
+                                                <a onclick="populateModal(this);" class="btn btn-icon align-middle" id="edit-btn" href="#" data-toggle="modal"
+                                                   data-target="@((Model.StartDate <= DateTime.Today) ? "#editPopup" : "")" data-filter-tags="@(Model.AllMondayTimeLogs.ElementAt(i) == null ? i.ToString() + "," + 0.ToString() : Model.AllMondayTimeLogs.ElementAt(i).Id + "," + i.ToString() + "," + 0.ToString())"><i class="ni ni-note"></i></a>
+
+
+                                                @*<a class="btn btn-icon align-middle" id="edit-btn" href="#" data-toggle="modal" data-target="@(Model.AllMondayTimeLogs.ElementAt(i) == null ? "" : ("#Modal" + Model.AllMondayTimeLogs.ElementAt(i).Id.ToString()))"
+                                                    data-filter-tags="@(Model.AllMondayTimeLogs.ElementAt(i) == null ? 0 : @Model.AllMondayTimeLogs.ElementAt(i).Id)"><i class="ni ni-note"></i></a>
+                                                        <div class="modal fade" id="@(Model.AllMondayTimeLogs.ElementAt(i) == null ? "" : ("Modal" + Model.AllMondayTimeLogs.ElementAt(i).Id.ToString()))" role="dialog">
+                                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                                            <div class="modal-content border-0 shadow-3">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="timeLogEditHeader">
+                                                                        <strong>@Model.StartDate.ToString("ddd d MMM") : @Model.AllRowHeaderForAWeek.ElementAt(i).OrgName</strong>
+                                                                    </h5>
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="modal-body bg-faded">
+                                                                    <table class="table table-borderless">
+                                                                        <tr>
+                                                                            <td style="vertical-align: middle; border: hidden;">
+                                                                                <label class="text-success" for="cc-input">Client</label>
+                                                                            </td>
+                                                                            <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;">
+                                                                                <input type="text" class="form-control" value="@Model.AllRowHeaderForAWeek.ElementAt(i).Id - @Model.AllRowHeaderForAWeek.ElementAt(i).OrgName">
+                                                                            </td>
+                                                                        </tr>
+                                                                        @if (Model.AllMondayTimeLogs.ElementAt(i) != null)
+                                                                        {
+                                                                            @for (int j = 0; j <= Model.AllTimesheetLogsBreakdown.GetValueOrDefault(@Model.AllMondayTimeLogs.ElementAt(i).Id).Count() - 1; j++)
+                                                                            {
+                                                                                <tr>
+
+                                                                                    <td style="vertical-align: middle; border: hidden;">
+                                                                                        @if (j == 0)
+                                                                                        {
+                                                                                            <label class="text-success" for="cc-input">Categories</label>
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            <label class="text-success" for="cc-input"></label>
+                                                                                        }
+
+                                                                                    </td>
+                                                                                    <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden; ">
+                                                                                        <table style="width:100%;">
+
+                                                                                            <tr>
+                                                                                                <td style="border-spacing: 0px; padding: 0px; vertical-align: middle; width: 300px;border: hidden;">
+                                                                                                    <div class="form-group">
+                                                                                                        <select class="select2 form-control w-100" id="single-default">
+                                                                                                            <optgroup label="Chargeable tasks">
+                                                                                                                @for (int k = 0; k < Model.AllChargeableTasksForEmployee.Count(); k++)
+                                                                                                                {
+                                                                                                                    <option value="@Model.AllChargeableTasksForEmployee.ElementAt(k).Id"
+                                                                                                                            selected="@(Model.AllTimesheetLogsBreakdown.GetValueOrDefault(@Model.AllMondayTimeLogs.ElementAt(i).Id).ElementAt(j).CategoryID ==
+                                                                                                                                    @Model.AllChargeableTasksForEmployee.ElementAt(k).Id)">
+                                                                                                                        @Model.AllChargeableTasksForEmployee.ElementAt(k).CategoryName
+                                                                                                                    </option>
+                                                                                                                }
+                                                                                                            </optgroup>
+                                                                                                            <optgroup label="Non Chargeable tasks">
+                                                                                                                @for (int k = 0; k < Model.AllNonChargeableTasksForEmployee.Count(); k++)
+                                                                                                                {
+                                                                                                                    <option value="@Model.AllNonChargeableTasksForEmployee.ElementAt(k).Id"
+                                                                                                                            selected="@(Model.AllTimesheetLogsBreakdown.GetValueOrDefault(@Model.AllMondayTimeLogs.ElementAt(i).Id).ElementAt(j).CategoryID ==
+                                                                                                                                    @Model.AllNonChargeableTasksForEmployee.ElementAt(k).Id)">
+                                                                                                                        @Model.AllNonChargeableTasksForEmployee.ElementAt(k).CategoryName
+                                                                                                                    </option>
+                                                                                                                }
+                                                                                                            </optgroup>
+                                                                                                        </select>
+
+                                                                                                    </div>
+
+                                                                                                </td>
+                                                                                                <td style="border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden; ">
+                                                                                                    <input type="text" class="form-control" style="width:50px;" value="@Model.AllTimesheetLogsBreakdown.GetValueOrDefault(@Model.AllMondayTimeLogs.ElementAt(i).Id).ElementAt(j).TaskHours">
+                                                                                                </td>
+                                                                                                <td style="border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;">
+                                                                                                    :
+                                                                                                </td>
+                                                                                                <td style="border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;">
+                                                                                                    <input type="text" class="form-control" style="width:50px;" value="@Model.AllTimesheetLogsBreakdown.GetValueOrDefault(@Model.AllMondayTimeLogs.ElementAt(i).Id).ElementAt(j).TaskMinutes">
+                                                                                                </td>
+                                                                                            </tr>
+
+                                                                                        </table>
+                                                                                    </td>
+
+                                                                                </tr>
+                                                                            }
+                                                                        }
+
+
+
+                                                                        <tr class="table-hover">
+                                                                            <td style="border: hidden;">
+                                                                                &nbsp;
+                                                                            </td>
+                                                                            <td style="border-spacing: 0px; padding: 0px; vertical-align: middle;border:hidden;">
+                                                                                <br />
+                                                                                <a asp-action="Update" class="btn btn-success">Update</a>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>*@
+                                                @*</div>*@
+                                            </td>
+
+                                        </tr>
+                                    </table>
+
+
+                                </td>
+                                <td style="flex-grow:10;width:100px;border-spacing:0px;padding:10px 0px 20px 10px;" align="center" valign="middle">
+                                    <table class="table-borderless">
+                                        <tr>
+                                            <td align="center" style="border-spacing:0px;padding:0px;">
+                                                <label class="text-success" title="Chargeable Task" for="cc-input">CT</label>
+                                            </td>
+                                            <td align="center" style="border-spacing:0px;padding:0px;">
+                                                <label class="text-success" title="Non Chargeable Task" for="nct-input">NCT</label>
+                                            </td>
+                                            @*<td style="border-spacing:0px;padding:0px;vertical-align:middle;">&nbsp;&nbsp;</td>*@
+                                        </tr>
+                                        <tr>
+                                            <td style="border-spacing:0px;padding:0px;">
+                                                <input type="text" id="cc-input" class="form-control" disabled="" style="width:40px;text-align:center;padding:0px;margin:0px;"
+                                                       placeholder="@(Model.AllTuesdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllTuesdayTimeLogs.ElementAt(i).ClientChargeInHours):@(Model.AllTuesdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllTuesdayTimeLogs.ElementAt(i).ClientChargeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;">
+                                                <input type="text" id="nct-hh-input" class="form-control" disabled="" style="width: 40px; text-align: center; padding: 0px; margin: 0px;"
+                                                       placeholder="@(Model.AllTuesdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllTuesdayTimeLogs.ElementAt(i).NonChargeableTimeInHours):@(Model.AllTuesdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllTuesdayTimeLogs.ElementAt(i).NonChargeableTimeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;vertical-align:middle;" class="table-borderless">
+                                                @*<button class="btn btn-icon align-middle" id="edit-btn" type="button"><i class="ni ni-note"></i></button>*@
+                                                <a onclick="populateModal(this);" class="btn btn-icon align-middle" id="edit-btn" href="#" data-toggle="modal"
+                                                   data-target="@((Model.StartDate.AddDays(1) <= DateTime.Today) ? "#editPopup" : "")" data-filter-tags="@(Model.AllTuesdayTimeLogs.ElementAt(i) == null ? i.ToString() + "," + 1.ToString() : Model.AllTuesdayTimeLogs.ElementAt(i).Id + "," + i.ToString() + "," + 1.ToString())"><i class="ni ni-note"></i></a>
+                                            </td>
+
+                                        </tr>
+                                    </table>
+
+
+                                </td>
+                                <td style="flex-grow:10;width:100px;border-spacing:0px;padding:10px 0px 20px 10px;" align="center" valign="middle">
+                                    <table class="table-borderless">
+                                        <tr>
+                                            <td align="center" style="border-spacing:0px;padding:0px;">
+                                                <label class="text-success" title="Chargeable Task" for="cc-input">CT</label>
+                                            </td>
+                                            <td align="center" style="border-spacing:0px;padding:0px;">
+                                                <label class="text-success" title="Non Chargeable Task" for="nct-input">NCT</label>
+                                            </td>
+                                            @*<td style="border-spacing:0px;padding:0px;vertical-align:middle;">&nbsp;&nbsp;</td>*@
+                                        </tr>
+                                        <tr>
+                                            <td style="border-spacing:0px;padding:0px;">
+                                                <input type="text" id="cc-input" class="form-control" disabled="" style="width:40px;text-align:center;padding:0px;margin:0px;"
+                                                       placeholder="@(Model.AllWednesdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllWednesdayTimeLogs.ElementAt(i).ClientChargeInHours):@(Model.AllWednesdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllWednesdayTimeLogs.ElementAt(i).ClientChargeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;">
+                                                <input type="text" id="nct-hh-input" class="form-control" disabled="" style="width: 40px; text-align: center; padding: 0px; margin: 0px;"
+                                                       placeholder="@(Model.AllWednesdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllWednesdayTimeLogs.ElementAt(i).NonChargeableTimeInHours):@(Model.AllWednesdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllWednesdayTimeLogs.ElementAt(i).NonChargeableTimeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;vertical-align:middle;" class="table-borderless">
+                                                @*<button class="btn btn-icon align-middle" id="edit-btn" type="button"><i class="ni ni-note"></i></button>*@
+                                                <a onclick="populateModal(this);" class="btn btn-icon align-middle" id="edit-btn" href="#" data-toggle="modal"
+                                                   data-target="@((Model.StartDate.AddDays(2) <= DateTime.Today) ? "#editPopup" : "")" data-filter-tags="@(Model.AllWednesdayTimeLogs.ElementAt(i) == null ? i.ToString() + "," + 2.ToString() : Model.AllWednesdayTimeLogs.ElementAt(i).Id + "," + i.ToString() + "," + 2.ToString())"><i class="ni ni-note"></i></a>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+
+                                </td>
+                                <td style="flex-grow:10;width:100px;border-spacing:0px;padding:10px 0px 20px 10px;" align="center" valign="middle">
+                                    <table class="table-borderless">
+                                        <tr>
+                                            <td align="center" style="border-spacing:0px;padding:0px;">
+                                                <label class="text-success" title="Chargeable Task" for="cc-input">CT</label>
+                                            </td>
+                                            <td align="center" style="border-spacing:0px;padding:0px;">
+                                                <label class="text-success" title="Non Chargeable Task" for="nct-input">NCT</label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border-spacing:0px;padding:0px;">
+                                                <input type="text" id="cc-input" class="form-control" disabled="" style="width:40px;text-align:center;padding:0px;margin:0px;"
+                                                       placeholder="@(Model.AllThursdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllThursdayTimeLogs.ElementAt(i).ClientChargeInHours):@(Model.AllThursdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllThursdayTimeLogs.ElementAt(i).ClientChargeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;">
+                                                <input type="text" id="nct-hh-input" class="form-control" disabled="" style="width: 40px; text-align: center; padding: 0px; margin: 0px;"
+                                                       placeholder="@(Model.AllThursdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllThursdayTimeLogs.ElementAt(i).NonChargeableTimeInHours):@(Model.AllThursdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllThursdayTimeLogs.ElementAt(i).NonChargeableTimeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;vertical-align:middle;" class="table-borderless">
+                                                @*<button class="btn btn-icon align-middle" id="edit-btn" type="button"><i class="ni ni-note"></i></button>*@
+                                                <a onclick="populateModal(this);" class="btn btn-icon align-middle" id="edit-btn" href="#" data-toggle="modal"
+                                                   data-target="@((Model.StartDate.AddDays(3) <= DateTime.Today) ? "#editPopup" : "")" data-filter-tags="@(Model.AllThursdayTimeLogs.ElementAt(i) == null ? i.ToString() + "," + 3.ToString() : Model.AllThursdayTimeLogs.ElementAt(i).Id + "," + i.ToString() + "," + 3.ToString())"><i class="ni ni-note"></i></a>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+
+                                </td>
+                                <td style="flex-grow:10;width:100px;border-spacing:0px;padding:10px 0px 20px 10px;" align="center" valign="middle">
+                                    <table class="table-borderless">
+                                        <tr>
+                                            <td align="center" style="border-spacing:0px;padding:0px;">
+                                                <label class="text-success" title="Chargeable Task" for="cc-input">CT</label>
+                                            </td>
+                                            <td align="center" style="border-spacing:0px;padding:0px;">
+                                                <label class="text-success" title="Non Chargeable Task" for="nct-input">NCT</label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border-spacing:0px;padding:0px;">
+                                                <input type="text" id="cc-input" class="form-control" disabled="" style="width:40px;text-align:center;padding:0px;margin:0px;"
+                                                       placeholder="@(Model.AllFridayTimeLogs.ElementAt(i) == null ? 0 : Model.AllFridayTimeLogs.ElementAt(i).ClientChargeInHours):@(Model.AllFridayTimeLogs.ElementAt(i) == null ? 0 : Model.AllFridayTimeLogs.ElementAt(i).ClientChargeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;">
+                                                <input type="text" id="nct-hh-input" class="form-control" disabled="" style="width: 40px; text-align: center; padding: 0px; margin: 0px;"
+                                                       placeholder="@(Model.AllFridayTimeLogs.ElementAt(i) == null ? 0 : Model.AllFridayTimeLogs.ElementAt(i).NonChargeableTimeInHours):@(Model.AllFridayTimeLogs.ElementAt(i) == null ? 0 : Model.AllFridayTimeLogs.ElementAt(i).NonChargeableTimeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;vertical-align:middle;" class="table-borderless">
+                                                @*<button class="btn btn-icon align-middle" id="edit-btn" type="button"><i class="ni ni-note"></i></button>*@
+                                                <a onclick="populateModal(this);" class="btn btn-icon align-middle" id="edit-btn" href="#" data-toggle="modal"
+                                                   data-target="@((Model.StartDate.AddDays(4) <= DateTime.Today) ? "#editPopup" : "")" data-filter-tags="@(Model.AllFridayTimeLogs.ElementAt(i) == null ? i.ToString() + "," + 4.ToString() : Model.AllFridayTimeLogs.ElementAt(i).Id + "," + i.ToString() + "," + 4.ToString())"><i class="ni ni-note"></i></a>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+
+                                </td>
+                                <td style="flex-grow:10;width:100px;border-spacing:0px;padding:10px 0px 20px 10px;" class="bg-faded" align="center" valign="middle">
+                                    <table class="table-borderless">
+                                        <tr>
+                                            <td align="center" style="border-spacing:0px;padding:0px;border:none;">
+                                                <label class="text-success" title="Chargeable Task" for="cc-input">CT</label>
+                                            </td>
+                                            <td align="center" style="border-spacing:0px;padding:0px;border:none;">
+                                                <label class="text-success" title="Non Chargeable Task" for="nct-input">NCT</label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border-spacing:0px;padding:0px;border:none;">
+                                                <input type="text" id="cc-input" class="form-control" disabled="" style="width:40px;text-align:center;padding:0px;margin:0px;"
+                                                       placeholder="@(Model.AllSaturdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllSaturdayTimeLogs.ElementAt(i).ClientChargeInHours):@(Model.AllSaturdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllSaturdayTimeLogs.ElementAt(i).ClientChargeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;border:none;">
+                                                <input type="text" id="nct-hh-input" class="form-control" disabled="" style="width: 40px; text-align: center; padding: 0px; margin: 0px;"
+                                                       placeholder="@(Model.AllSaturdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllSaturdayTimeLogs.ElementAt(i).NonChargeableTimeInHours):@(Model.AllSaturdayTimeLogs.ElementAt(i) == null ? 0 : Model.AllSaturdayTimeLogs.ElementAt(i).NonChargeableTimeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;vertical-align:middle;border:none;" class="table-borderless">
+                                                @*<button class="btn btn-icon align-middle" id="edit-btn" type="button"><i class="ni ni-note"></i></button>*@
+                                                <a onclick="populateModal(this);" class="btn btn-icon align-middle" id="edit-btn" href="#" data-toggle="modal"
+                                                   data-target="@((Model.StartDate.AddDays(5) <= DateTime.Today) ? "#editPopup" : "")" data-filter-tags="@(Model.AllSaturdayTimeLogs.ElementAt(i) == null ? i.ToString() + "," + 5.ToString() : Model.AllSaturdayTimeLogs.ElementAt(i).Id + "," + i.ToString() + "," + 5.ToString())"><i class="ni ni-note"></i></a>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+
+                                </td>
+                                <td style="flex-grow:10;width:100px;border-spacing:0px;padding:10px 0px 20px 10px;" class="bg-faded" align="center" valign="middle">
+                                    <table class="table-borderless">
+                                        <tr>
+                                            <td align="center" style="border-spacing:0px;padding:0px;border:none;">
+                                                <label class="text-success" title="Chargeable Task" for="cc-input">CT</label>
+                                            </td>
+                                            <td align="center" style="border-spacing:0px;padding:0px;border:none;">
+                                                <label class="text-success" title="Non Chargeable Task" for="nct-input">NCT</label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border-spacing:0px;padding:0px;border:none;">
+                                                <input type="text" id="cc-input" class="form-control" disabled="" style="width:40px;text-align:center;padding:0px;margin:0px;"
+                                                       placeholder="@(Model.AllSundayTimeLogs.ElementAt(i) == null ? 0 : Model.AllSundayTimeLogs.ElementAt(i).ClientChargeInHours):@(Model.AllSundayTimeLogs.ElementAt(i) == null ? 0 : Model.AllSundayTimeLogs.ElementAt(i).ClientChargeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;border:none;">
+                                                <input type="text" id="nct-hh-input" class="form-control" disabled="" style="width: 40px; text-align: center; padding: 0px; margin: 0px;"
+                                                       placeholder="@(Model.AllSundayTimeLogs.ElementAt(i) == null ? 0 : Model.AllSundayTimeLogs.ElementAt(i).NonChargeableTimeInHours):@(Model.AllSundayTimeLogs.ElementAt(i) == null ? 0 : Model.AllSundayTimeLogs.ElementAt(i).NonChargeableTimeInMinutes)" />
+                                            </td>
+                                            <td style="border-spacing:0px;padding:0px;vertical-align:middle;border:none;" class="table-borderless">
+                                                @*<button class="btn btn-icon align-middle" id="edit-btn" type="button"><i class="ni ni-note"></i></button>*@
+                                                <a onclick="populateModal(this);" class="btn btn-icon align-middle" id="edit-btn" href="#" data-toggle="modal"
+                                                   data-target="@((Model.StartDate.AddDays(6) <= DateTime.Today) ? "#editPopup" : "")" data-filter-tags="@(Model.AllSundayTimeLogs.ElementAt(i) == null ? i.ToString() + "," + 6.ToString() : Model.AllSundayTimeLogs.ElementAt(i).Id + "," + i.ToString() + "," + 6.ToString())"><i class="ni ni-note"></i></a>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+
+                                </td>
+                                <td style="flex-grow:10;width:100px;border-spacing:0px;padding:10px 0px 20px 10px;" align="center" valign="middle">
+                                    <br />
+                                    <b>@Model.WeeklyTotalString.ElementAt(i) hrs</b>
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                    <tr>
+                        <td align="left" valign="middle">
+                            <br /><b>Other Tasks</b>
+                        </td>
+                        @for (var k = 0; k < Model.AllNonClientTasksForEmployee.Count(); k++)
+                        {
+                            <td style="flex-grow:10;width:100px;border-spacing:0px;padding:10px 0px 20px 10px;" class="@((k == 6 || k ==5) ? "bg-faded" : "")" align="center" valign="middle">
+                                <table class="table-borderless">
+                                    <tr>
+                                        <td align="center" style="border-spacing:0px;padding:0px;border:none;">
+                                            &nbsp;
+                                            @*<label class="text-success" title="Non Client Charge" for="cc-input">NCC</label>*@
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td style="border-spacing:0px;padding:0px;border:none;">
+                                            <input type="text" id="cc-input" class="form-control" disabled="" style="width:40px;text-align:center;padding:0px;margin:0px;"
+                                                   placeholder="@(Model.AllNonClientTasksForEmployee.ElementAt(k) == null ? "0:0" : (Model.AllNonClientTasksForEmployee.ElementAt(k).NonClientChargeInHours.ToString() + ":" + Model.AllNonClientTasksForEmployee.ElementAt(k).NonClientChargeInMinutes.ToString()))" />
+                                        </td>
+                                        <td style="border-spacing:0px;padding:0px;vertical-align:middle;border:none;" class="table-borderless">
+                                            <a onclick="populateNonClientModal(this);" class="btn btn-icon align-middle" id="edit-btn" href="#" data-toggle="modal"
+                                               data-target="@((Model.StartDate.AddDays(k) <= DateTime.Today) ? "#editNonClientPopup" : "")" data-filter-tags="@k">
+                                                <i class="ni ni-note"></i>
+                                            </a>
+
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        }
+                        <td style="flex-grow:10;width:100px;border-spacing:0px;padding:10px 0px 20px 10px;" align="center" valign="middle">
+                            <br />
+                            <b>@Model.WeeklyTotalString.Last() hrs </b>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+<style>
+    .autocomplete-items {
+        position: absolute;
+        border: 1px solid #d4d4d4;
+        border-bottom: none;
+        border-top: none;
+        z-index: 99;
+        /*position the autocomplete items to be the same width as the container:*/
+        top: 100%;
+        left: 0;
+        right: 0;
+        overflow-y: scroll;
+        max-height: 500px;
+        /*opacity: 0.1;*/
+    }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            /*position: absolute;*/
+            color: rgb(16, 11, 11);
+            background-color: rgb(255, 255, 255);
+            border-bottom: 1px solid #d4d4d4;
+        }
+
+
+            .autocomplete-items div:hover {
+                /*when hovering an item:*/
+                background-color: #e9e9e9;
+            }
+
+    /*.autocomplete-items div:focus {*/
+    /*when hovering an item:*/
+    /*background-color: #e9e9e9;
+            }*/
+
+    .autocomplete-active {
+        /*when navigating through the items using the arrow keys:*/
+        /*background-color: #e9e9e9 !important;*/
+        /*color: #ffffff;*/
+    }
+</style>
+@section ScriptsBlock{
+    @*<script src="~/js/formplugins/select2/select2.bundle.js"></script>*@
+    <script>
+
+        function populateModal(anchorTag) {
+
+            //debugger;
+
+            var logIdAndIndex = anchorTag.attributes['data-filter-tags'].nodeValue;
+            var dataFilterValues = logIdAndIndex.split(",");
+            var logId; var index; var dayOfWeek;
+            if (dataFilterValues.length == 3) {
+                logId = parseInt(dataFilterValues[0]);
+                index = parseInt(dataFilterValues[1]);
+                dayOfWeek = parseInt(dataFilterValues[2]);
+            }
+            else if (dataFilterValues.length == 2) {
+                index = parseInt(dataFilterValues[0]);
+                dayOfWeek = parseInt(dataFilterValues[1]);
+            }
+
+            //debugger;
+
+            var allRowheaders = @Html.Raw(Json.Serialize(Model.AllTandPRowHeaderForAWeek.Keys));
+            //debugger;
+            var startDateString;
+            var startDate;
+            if (dayOfWeek == 0) {
+                startDateString = @Html.Raw(Json.Serialize(Model.StartDate.ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate));
+            }
+            else  if (dayOfWeek == 1) {
+                startDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(1).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(1)));
+            }
+            else  if (dayOfWeek == 2) {
+                startDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(2).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(2)));
+            }
+            else  if (dayOfWeek == 3) {
+                startDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(3).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(3)));
+            }
+            else  if (dayOfWeek == 4) {
+                startDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(4).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(4)));
+            }
+            else  if (dayOfWeek == 5) {
+                startDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(5).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(5)));
+            }
+            else  if (dayOfWeek == 6) {
+                startDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(6).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(6)));
+            }
+
+            var index1 = 1;
+            while (index1 <= allRowheaders.length) {
+                if (allRowheaders[index][index1] != null) {
+                    break;
+                }
+                index1++;
+            }
+
+            var orgName = allRowheaders[index][index1].orgName;
+            var orgId = allRowheaders[index][index1].id;
+            var allEndclient = @Html.Raw(Json.Serialize(Model.AllEndClients));
+            var allBrands = @Html.Raw(Json.Serialize(Model.AllGroupeBrands));
+            var allCategories = @Html.Raw(Json.Serialize(Model.AllGroupeCategories));
+            var allCampaigns = @Html.Raw(Json.Serialize(Model.AllGroupeCampaigns));
+
+            var modalheader = $("#modal_header");
+            var currentDate = document.getElementById('currentDate');
+            currentDate.value = startDate;
+            //debugger;
+            var clientnamebox = $("#client-name-input");
+            $("#modal_header").text(startDateString + ' : ' + orgName);
+            $("#client-name-input").val(orgId + ' - ' + orgName);
+            if (allEndclient[index] != null) {
+                $("#end-client-input").val(allEndclient[index].name);
+                $("#end-client-hidden").val(allEndclient[index].id);
+            }
+            else {
+                $("#end-client-input").val('');
+                $("#end-client-hidden").val('');
+            }
+
+            if (allBrands[index] != null) {
+                $("#brand-input").val(allBrands[index].dataObjectName);
+                $("#brand-hidden").val(allBrands[index].id);
+            }
+            else {
+                $("#brand-input").val('');
+                $("#brand-hidden").val('');
+            }
+
+            if (allCategories[index] != null) {
+                $("#category-input").val(allCategories[index].dataObjectName);
+                $("#category-hidden").val(allCategories[index].id);
+            }
+            else {
+                $("#category-input").val('');
+                $("#category-hidden").val('');
+            }
+
+            if (allCampaigns[index] != null) {
+                $("#campaign-input").val(allCampaigns[index].dataObjectName);
+                $("#campaign-hidden").val(allCampaigns[index].id);
+            }
+            else {
+                $("#campaign-input").val('');
+                $("#campaign-hidden").val('');
+            }
+
+            var tabletoAddRowTo = document.getElementById('breakdownTable');
+            var currentRowIndex = tabletoAddRowTo.rows.length - 1;
+
+            //delete any previous rows if any
+            if (currentRowIndex > 5) {
+                while (currentRowIndex > 5) {
+                    tabletoAddRowTo.deleteRow(currentRowIndex -1 );
+                    currentRowIndex = tabletoAddRowTo.rows.length - 1;
+                }
+            }
+
+
+            //debugger;
+            if (logId != undefined) {
+
+                var allTimesheetbreakdown = @Html.Raw(Json.Serialize(Model.AllTimesheetLogsBreakdown));
+                document.getElementById('timeLogId').value = logId;
+
+                //var endClientID = null;
+                //var brandID = null;
+                //var categoryID = null;
+                //var campaignID = null;
+                ////get timesheet details
+                //var xhr2 = new XMLHttpRequest();
+                //xhr2.onreadystatechange = function () {
+                //    if (this.readyState == 4 && this.status == 200) {
+
+                //        var response = xhr2.responseText;
+                //        var timesheetDetails = $.parseJSON(response);
+                //        //debugger;
+                //        if (timesheetDetails.endClientId != null) {
+                //            $('#editEndClientDropdown').val(timesheetDetails.endClientId);
+                //            endClientID = timesheetDetails.endClientId;
+                //            brandID = timesheetDetails.brandId;
+                //            categoryID = timesheetDetails.categoryId;
+                //            campaignID = timesheetDetails.campaignId;
+                //        }
+                //        var endClientDropdown = document.getElementById('editEndClientDropdown');
+                //        var brandDropdown = document.getElementById('editBrandDropdown');
+                //        var categoryDropdown = document.getElementById('editCategoryDropdown');
+                //        var campaignDropdown = document.getElementById('editCampaignDropdown');
+
+                //        if (endClientID != null) {
+
+
+                //            var xhr = new XMLHttpRequest();
+                //            xhr.onreadystatechange = function () {
+                //                if (this.readyState == 4 && this.status == 200) {
+
+                //                    var response = xhr.responseText;
+                //                    var allBrandList = $.parseJSON(response);
+                //                    //debugger;
+                //                    if (allBrandList.length > 0) {
+
+                //                        //brandDropdown.disabled = false;
+                //                        for (var i = 0; i < allBrandList.length; i++) {
+                //                            var brandOption = document.createElement("option");
+                //                            brandOption.setAttribute("value", allBrandList[i].id);
+                //                            brandOption.innerText = allBrandList[i].dataObjectName;
+                //                            if (allBrandList[i].id == brandID) {
+                //                                brandOption.selected = true;
+                //                            }
+                //                            brandDropdown.appendChild(brandOption);
+                //                        }
+                //                    }
+
+                //                }
+                //            };
+
+                //            xhr.open("POST", "Timesheet/GetAllBrandsForEndClient", true);
+                //            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                //            xhr.send(endClientID);
+
+                //            var xhr1 = new XMLHttpRequest();
+                //            xhr1.onreadystatechange = function () {
+                //                if (this.readyState == 4 && this.status == 200) {
+
+                //                    var response = xhr1.responseText;
+                //                    var allCategoryList = $.parseJSON(response);
+
+                //                    if (allCategoryList.length > 0) {
+
+                //                        //categoryDropdown.disabled = false;
+                //                        for (var i = 0; i < allCategoryList.length; i++) {
+                //                            var categoryOption = document.createElement("option");
+                //                            categoryOption.setAttribute("value", allCategoryList[i].id);
+                //                            categoryOption.innerText = allCategoryList[i].dataObjectName;
+                //                            if (allCategoryList[i].id == categoryID) {
+                //                                categoryOption.selected = true;
+                //                            }
+                //                            categoryDropdown.appendChild(categoryOption);
+                //                        }
+                //                    }
+
+
+                //                }
+                //            };
+
+                //            xhr1.open("POST", "Timesheet/GetAllCategoriesForEndClient", true);
+                //            xhr1.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                //            xhr1.send(endClientID);
+
+                //            var xhr3 = new XMLHttpRequest();
+                //            xhr3.onreadystatechange = function () {
+                //                if (this.readyState == 4 && this.status == 200) {
+
+                //                    var response = xhr3.responseText;
+                //                    var allCampaignList = $.parseJSON(response);
+
+                //                    if (allCampaignList.length > 0) {
+
+                //                        //campaignDropdown.disabled = false;
+
+                //                        for (var i = 0; i < allCampaignList.length; i++) {
+                //                            var campaignOption = document.createElement("option");
+                //                            campaignOption.setAttribute("value", allCampaignList[i].id);
+                //                            campaignOption.innerText = allCampaignList[i].dataObjectName;
+                //                            if (allCampaignList[i].id == categoryID) {
+                //                                campaignOption.selected = true;
+                //                            }
+                //                            campaignDropdown.appendChild(campaignOption);
+                //                        }
+                //                    }
+
+
+                //                }
+                //            };
+
+                //            xhr3.open("POST", "Timesheet/GetAllCampaignForEndClient", true);
+                //            xhr3.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                //            xhr3.send(endClientID);
+                //        }
+                //        else {
+                //            brandDropdown.innerHTML = '';
+                //            categoryDropdown.innerHTML = '';
+                //            campaignDropdown.innerHTML = '';
+
+                //            var pleaseSelectOption = document.createElement("option");
+                //            pleaseSelectOption.setAttribute("value", -1);
+                //            pleaseSelectOption.innerText = "(Please select)";
+                //            brandDropdown.appendChild(pleaseSelectOption);
+                //            brandDropdown.disabled = true;
+
+                //            var pleaseSelectOption1 = document.createElement("option");
+                //            pleaseSelectOption1.setAttribute("value", -1);
+                //            pleaseSelectOption1.innerText = "(Please select)";
+                //            categoryDropdown.appendChild(pleaseSelectOption1);
+                //            categoryDropdown.disabled = true;
+
+                //            var pleaseSelectOption2 = document.createElement("option");
+                //            pleaseSelectOption2.setAttribute("value", -1);
+                //            pleaseSelectOption2.innerText = "(Please select)";
+                //            campaignDropdown.appendChild(pleaseSelectOption2);
+                //            campaignDropdown.disabled = true;
+                //        }
+                //    }
+                //};
+
+
+                //xhr2.open("POST", "Timesheet/GetTimesheetDetails", true);
+                //xhr2.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                //xhr2.send(logId);
+
+                //debugger;
+
+
+                //debugger;
+                var currentRow;
+                if (allTimesheetbreakdown[logId] != null) {
+                    if (allTimesheetbreakdown[logId].length == 0) {
+                        var categoryLabel = document.createElement("label");
+                        categoryLabel.setAttribute("class", "text-success");
+                        categoryLabel.innerText = "Activities"
+
+                        currentRow = tabletoAddRowTo.insertRow(currentRowIndex);
+
+                        var currentCell = currentRow.insertCell(-1);
+                        currentCell.appendChild(categoryLabel);
+
+                        var innerCategoryTable = document.createElement("table");
+                        innerCategoryTable.setAttribute("style", "width:100%;border-spacing: 0px; padding: 0px;")
+                        innerCategoryTable.setAttribute("id", "innerCategoryTable");
+
+                        currentCell = currentRow.insertCell(-1);
+                        currentCell.appendChild(innerCategoryTable);
+                        currentCell.setAttribute("style", "border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;");
+                    }
+                    for (var i = 0; i < allTimesheetbreakdown[logId].length; i++) {
+
+
+
+                        if (i == 0) {
+                            //add activity button
+                            //var addLink = document.createElement("a");
+                            ////addLink.setAttribute("class", "btn");
+                            //addLink.innerHTML = '<span class="fa-2x d-inline l-h-n"><i class="ni ni-big-plus"></i></span>';
+
+                            var categoryLabel = document.createElement("label");
+                            categoryLabel.setAttribute("class", "text-success");
+                            categoryLabel.innerText = "Activities"
+                            //categoryLabel.innerHTML = '<span class="d-inline l-h-n">Activities</span>';
+
+
+                            currentRow = tabletoAddRowTo.insertRow(currentRowIndex);
+
+                            var currentCell = currentRow.insertCell(-1);
+                            //currentCell.appendChild(addLink);
+                            currentCell.appendChild(categoryLabel);
+                        }
+
+                        var categoryDropdown = document.createElement("select");
+                        categoryDropdown.setAttribute("class", "select2 form-control w-100");
+                        categoryDropdown.setAttribute("id", allTimesheetbreakdown[logId][i].id); //breakdownID assigned to category select control
+                        categoryDropdown.setAttribute("onchange", "logChange();");
+
+                        var optionGroup = document.createElement("optgroup");
+                        optionGroup.setAttribute("label", "Chargeable tasks");
+
+                        var allChargeableTasks =  @Html.Raw(Json.Serialize(Model.AllChargeableTasksForEmployee));
+                        //debugger;
+                        for (var j = 0; j < allChargeableTasks.length; j++) {
+                            var categoryOption = document.createElement("option");
+                            categoryOption.setAttribute("value", allChargeableTasks[j].id);
+                            categoryOption.innerText = allChargeableTasks[j].categoryName;
+                            if (allChargeableTasks[j].id == allTimesheetbreakdown[logId][i].categoryId) {
+                                categoryOption.setAttribute("selected", "selected");
+                            }
+                            optionGroup.appendChild(categoryOption);
+                        }
+
+                        categoryDropdown.appendChild(optionGroup);
+
+                        var optionGroup2 = document.createElement("optgroup");
+                        optionGroup2.setAttribute("label", "Non Chargeable tasks");
+
+                        var allNonChargeableTasks =  @Html.Raw(Json.Serialize(Model.AllNonChargeableTasksForEmployee));
+
+                        for (var j = 0; j < allNonChargeableTasks.length; j++) {
+                            var categoryOption = document.createElement("option");
+                            categoryOption.setAttribute("value", allNonChargeableTasks[j].id);
+                            categoryOption.innerText = allNonChargeableTasks[j].categoryName;
+                            if (allNonChargeableTasks[j].id == allTimesheetbreakdown[logId][i].categoryId) {
+                                categoryOption.setAttribute("selected", "selected");
+                            }
+                            optionGroup2.appendChild(categoryOption);
+                        }
+                        categoryDropdown.appendChild(optionGroup2);
+
+                        var innerCategoryTable;
+                        if (i == 0) {
+                            innerCategoryTable = document.createElement("table");
+                            innerCategoryTable.setAttribute("style", "width:100%;border-spacing: 0px; padding: 0px;")
+                            innerCategoryTable.setAttribute("id", "innerCategoryTable");
+
+                            currentCell = currentRow.insertCell(-1);
+                            currentCell.appendChild(innerCategoryTable);
+                            currentCell.setAttribute("style", "border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;");
+
+                        }
+                        var categoryTableRow = innerCategoryTable.insertRow(-1);
+                        var categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 0px; vertical-align: middle; width: 320px;border: hidden;")
+
+                        categoryTableCell.appendChild(categoryDropdown);
+
+
+                        var timeInHours = document.createElement("select");
+                        timeInHours.setAttribute("type", "text");
+                        timeInHours.setAttribute("style", "width:70px;");
+                        timeInHours.setAttribute("class", "select2 form-control");
+                        timeInHours.setAttribute("onchange", "logChange();");
+                        timeInHours.setAttribute("id", "timeInHours");
+
+                     for (var h = 0; h < 24; h++) {
+                            var hourOption = document.createElement("option");
+                            hourOption.setAttribute("value", h);
+                            hourOption.innerText = h.toString();
+                            if (allTimesheetbreakdown[logId][i].taskHours == h) {
+                                hourOption.setAttribute("selected", "selected");
+                            }
+                            timeInHours.appendChild(hourOption);
+                        }
+
+
+                        //var timeInHours = document.createElement("input");
+                        //timeInHours.setAttribute("type", "text");
+                        //timeInHours.setAttribute("style", "width:50px;");
+                        //timeInHours.setAttribute("class", "form-control");
+                        //timeInHours.setAttribute("value", allTimesheetbreakdown[logId][i].taskHours);
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;")
+                        categoryTableCell.appendChild(timeInHours);
+
+                        var colonLabel = document.createElement("label");
+                        colonLabel.innerText = ":"
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;")
+                        categoryTableCell.appendChild(colonLabel);
+
+                        var timeInMinutes = document.createElement("select");
+                        timeInMinutes.setAttribute("type", "text");
+                        timeInMinutes.setAttribute("style", "width:70px;");
+                        timeInMinutes.setAttribute("class", "select2 form-control");
+                        timeInMinutes.setAttribute("id", "timeInMinutes");
+                        timeInMinutes.setAttribute("onchange", "logChange();");
+
+                        for (var h = 0; h < 60; h+=15) {
+                            var minuteOption = document.createElement("option");
+                            minuteOption.setAttribute("value", h);
+                            minuteOption.innerText = h.toString();
+                            if (allTimesheetbreakdown[logId][i].taskMinutes == h) {
+                                minuteOption.setAttribute("selected", "selected");
+                            }
+                            timeInMinutes.appendChild(minuteOption);
+                        }
+
+                        //var timeInMinutes = document.createElement("input");
+                        //timeInMinutes.setAttribute("type", "text");
+                        //timeInMinutes.setAttribute("style", "width:50px;");
+                        //timeInMinutes.setAttribute("class", "form-control");
+                        //timeInMinutes.setAttribute("value", allTimesheetbreakdown[logId][i].taskMinutes);
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;")
+                        categoryTableCell.appendChild(timeInMinutes);
+
+                        var DeleteIcon = document.createElement("a");
+                        DeleteIcon.innerHTML = '<i class="fa-1x fal fa-trash-alt fa-x"></i>'
+                        DeleteIcon.setAttribute("href", "#");
+                        DeleteIcon.setAttribute("onclick", "deleteRowFromEditModal(this);event.preventDefault();");
+                        DeleteIcon.setAttribute("hidden", "@ViewBag.ApprovedByEmployee != null || @ViewBag.TimesheetSubmitted != null ? hidden : false");
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 7px; vertical-align: middle; border: hidden;");
+                        categoryTableCell.appendChild(DeleteIcon);
+
+                    }
+
+                }
+
+            }
+            else {
+                document.getElementById('timeLogId').value = '';
+
+                //var endclientDropdown = document.getElementById('editEndClientDropdown');
+                //var brandDropdown = document.getElementById('editBrandDropdown');
+                //var categoryDropdown = document.getElementById('editCategoryDropdown');
+                //var campaignDropdown = document.getElementById('editCampaignDropdown');
+
+                //brandDropdown.innerHTML = '';
+                //categoryDropdown.innerHTML = '';
+                //campaignDropdown.innerHTML = '';
+
+                //var pleaseSelectOption = document.createElement("option");
+                //pleaseSelectOption.setAttribute("value", -1);
+                //pleaseSelectOption.innerText = "(Please select)";
+                //brandDropdown.appendChild(pleaseSelectOption);
+                //brandDropdown.disabled = true;
+
+                //var pleaseSelectOption1 = document.createElement("option");
+                //pleaseSelectOption1.setAttribute("value", -1);
+                //pleaseSelectOption1.innerText = "(Please select)";
+                //categoryDropdown.appendChild(pleaseSelectOption1);
+                //categoryDropdown.disabled = true;
+
+                //var pleaseSelectOption2 = document.createElement("option");
+                //pleaseSelectOption2.setAttribute("value", -1);
+                //pleaseSelectOption2.innerText = "(Please select)";
+                //campaignDropdown.appendChild(pleaseSelectOption2);
+                //campaignDropdown.disabled = true;
+
+                //var pleaseSelectOption3 = document.createElement("option");
+                //pleaseSelectOption3.setAttribute("value", -1);
+                //pleaseSelectOption3.innerText = "(Please select)";
+                //pleaseSelectOption3.selected = true;
+                //endclientDropdown.appendChild(pleaseSelectOption3);
+
+
+               for (var i = 0; i < 1; i++) {
+
+                        var currentRow;
+
+                        var categoryLabel = document.createElement("label");
+                        categoryLabel.setAttribute("class", "text-success");
+                        if (i == 0) {
+                            categoryLabel.innerText = "Activities"
+                            currentRow = tabletoAddRowTo.insertRow(currentRowIndex);
+                        }
+
+                        var currentCell = currentRow.insertCell(-1);
+                        currentCell.appendChild(categoryLabel);
+
+                        var categoryDropdown = document.createElement("select");
+                        categoryDropdown.setAttribute("class", "select2 form-control w-100");
+                        categoryDropdown.setAttribute("required", "required");
+                        categoryDropdown.setAttribute("onchange", "logChange();");
+
+                        var defaultOption = document.createElement("option");
+                        defaultOption.setAttribute("value", -1);
+                        defaultOption.setAttribute("selected", "selected")
+                        defaultOption.innerText = "(Please select)";
+                        categoryDropdown.appendChild(defaultOption);
+
+                        var optionGroup = document.createElement("optgroup");
+                        optionGroup.setAttribute("label", "Chargeable tasks");
+
+                        var allChargeableTasks =  @Html.Raw(Json.Serialize(Model.AllChargeableTasksForEmployee));
+
+                        for (var j = 0; j < allChargeableTasks.length; j++) {
+                            var categoryOption = document.createElement("option");
+                            categoryOption.setAttribute("value", allChargeableTasks[j].id);
+                            categoryOption.innerText = allChargeableTasks[j].categoryName;
+                            optionGroup.appendChild(categoryOption);
+                        }
+
+                        categoryDropdown.appendChild(optionGroup);
+
+                        var optionGroup2 = document.createElement("optgroup");
+                        optionGroup2.setAttribute("label", "Non Chargeable tasks");
+
+                        var allNonChargeableTasks =  @Html.Raw(Json.Serialize(Model.AllNonChargeableTasksForEmployee));
+
+                        for (var j = 0; j < allNonChargeableTasks.length; j++) {
+                            var categoryOption = document.createElement("option");
+                            categoryOption.setAttribute("value", allNonChargeableTasks[j].id);
+                            categoryOption.innerText = allNonChargeableTasks[j].categoryName;
+                            optionGroup2.appendChild(categoryOption);
+                        }
+                        categoryDropdown.appendChild(optionGroup2);
+
+                        var innerCategoryTable;
+                        if (i == 0) {
+                            innerCategoryTable = document.createElement("table");
+                            innerCategoryTable.setAttribute("style", "width:100%;border-spacing: 0px; padding: 0px;")
+                            innerCategoryTable.setAttribute("id", "innerCategoryTable");
+
+                            currentCell = currentRow.insertCell(-1);
+                            currentCell.appendChild(innerCategoryTable);
+                            currentCell.setAttribute("style", "border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;");
+                        }
+                        var categoryTableRow = innerCategoryTable.insertRow(-1);
+                        var categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 0px; vertical-align: middle; width: 320px;border: hidden;")
+
+                        categoryTableCell.appendChild(categoryDropdown);
+
+
+                   var timeInHours = document.createElement("select");
+                   timeInHours.setAttribute("type", "text");
+                   timeInHours.setAttribute("style", "width:70px;");
+                   timeInHours.setAttribute("class", "select2 form-control");
+                   timeInHours.setAttribute("onchange", "logChange();");
+                   timeInHours.setAttribute("id", "timeInHours");
+
+                   var defaulthhOption = document.createElement("option");
+                   defaulthhOption.setAttribute("value", -1);
+                   defaulthhOption.setAttribute("selected", "selected")
+                   defaulthhOption.innerText = "hh";
+                   timeInHours.appendChild(defaulthhOption);
+
+
+
+                   for (var h = 0; h < 24; h++) {
+                       var hourOption = document.createElement("option");
+                       hourOption.setAttribute("value", h);
+                       hourOption.innerText = h.toString();
+                       timeInHours.appendChild(hourOption);
+                   }
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+                        categoryTableCell.appendChild(timeInHours);
+
+                        var colonLabel = document.createElement("label");
+                        colonLabel.innerText = ":"
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;")
+                        categoryTableCell.appendChild(colonLabel);
+
+                   var timeInMinutes = document.createElement("select");
+                   timeInMinutes.setAttribute("type", "text");
+                   timeInMinutes.setAttribute("style", "width:75px;");
+                   timeInMinutes.setAttribute("class", "select2 form-control");
+                   timeInMinutes.setAttribute("id", "timeInMinutes");
+                   timeInMinutes.setAttribute("onchange", "logChange();");
+
+                   var defaultmmOption = document.createElement("option");
+                   defaultmmOption.setAttribute("value", -1);
+                   defaultmmOption.setAttribute("selected", "selected")
+                   defaultmmOption.innerText = "mm";
+                   timeInMinutes.appendChild(defaultmmOption);
+
+                   for (var h = 0; h < 60; h += 15) {
+                       var minuteOption = document.createElement("option");
+                       minuteOption.setAttribute("value", h);
+                       minuteOption.innerText = h.toString();
+                       timeInMinutes.appendChild(minuteOption);
+                   }
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                   categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+                   categoryTableCell.appendChild(timeInMinutes);
+
+                   var DeleteIcon = document.createElement("a");
+                   DeleteIcon.innerHTML = '<i class="fa-1x fal fa-trash-alt fa-x"></i>'
+                   DeleteIcon.setAttribute("href", "#");
+                   DeleteIcon.setAttribute("onclick", "deleteRowFromEditModal(this);event.preventDefault();");
+                   DeleteIcon.setAttribute("hidden", "@ViewBag.ApprovedByEmployee != null || @ViewBag.TimesheetSubmitted != null ? hidden : false");
+
+                   categoryTableCell = categoryTableRow.insertCell(-1);
+                   categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 7px; vertical-align: middle; border: hidden;");
+                   categoryTableCell.appendChild(DeleteIcon);
+
+                   @*var test =  @Json.Serialize(Model.AllNonChargeableTasksForEmployee);
+                   debugger;*@
+                   @*var test1 = JSON.stringify(@Model.AllNonChargeableTasksForEmployee);
+                   debugger;*@
+                    }
+
+            }
+
+        }
+
+
+        function populateNonClientModal(anchorTag) {
+            var timeLogIndex = parseInt(anchorTag.attributes['data-filter-tags'].nodeValue);
+            //debugger;
+            var LogDateString;
+            var startDate;
+            if (timeLogIndex == 0) {
+                LogDateString = @Html.Raw(Json.Serialize(Model.StartDate.ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate));
+            }
+            else if (timeLogIndex == 1) {
+                LogDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(1).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(1)));
+            }
+            else if (timeLogIndex == 2) {
+                LogDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(2).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(2)));
+            }
+            else if (timeLogIndex == 3) {
+                LogDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(3).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(3)));
+            }
+            else if (timeLogIndex == 4) {
+                LogDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(4).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(4)));
+            }
+            else if (timeLogIndex == 5) {
+                LogDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(5).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(5)));
+            }
+            else if (timeLogIndex == 6) {
+                LogDateString = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(6).ToString("ddd d MMM")));
+                startDate = @Html.Raw(Json.Serialize(Model.StartDate.AddDays(6)));
+            }
+            $("#nonClientHeader").text(LogDateString + ' : Other Tasks');
+            var currentDate = document.getElementById('currentDate');
+            currentDate.value = startDate;
+
+            var allNonClientTasks = @Html.Raw(Json.Serialize(Model.AllNonClientTasksForEmployee));
+            var thisLog = allNonClientTasks[timeLogIndex];
+
+            var tabletoAddRowTo = document.getElementById('breakdownTable3');
+            var currentRowIndex = tabletoAddRowTo.rows.length - 1;
+
+            //delete any previous rows if any
+            if (currentRowIndex > 0) {
+                while (currentRowIndex > 0) {
+                    tabletoAddRowTo.deleteRow(currentRowIndex -1 );
+                    currentRowIndex = tabletoAddRowTo.rows.length - 1;
+                }
+            }
+
+            var allTimesheetbreakdown = @Html.Raw(Json.Serialize(Model.AllTimesheetLogsBreakdown));
+            //debugger;
+            if (thisLog != null) {
+                var logId = thisLog.id;
+                var allTimesheetbreakdown = @Html.Raw(Json.Serialize(Model.AllTimesheetLogsBreakdown));
+                document.getElementById('timeLogId').value = logId;
+                var currentRow;
+                if (allTimesheetbreakdown[logId] != null) {
+                    if (allTimesheetbreakdown[logId].length == 0) {
+                        var categoryLabel = document.createElement("label");
+                        categoryLabel.setAttribute("class", "text-success");
+                        categoryLabel.innerText = "Activities"
+
+                        currentRow = tabletoAddRowTo.insertRow(currentRowIndex);
+
+                        var currentCell = currentRow.insertCell(-1);
+                        currentCell.appendChild(categoryLabel);
+
+                        var innerCategoryTable = document.createElement("table");
+                        innerCategoryTable.setAttribute("style", "width:100%;border-spacing: 0px; padding: 0px;")
+                        innerCategoryTable.setAttribute("id", "innerCategoryTable3");
+
+                        currentCell = currentRow.insertCell(-1);
+                        currentCell.appendChild(innerCategoryTable);
+                        currentCell.setAttribute("style", "border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;");
+                    }
+                    for (var i = 0; i < allTimesheetbreakdown[logId].length; i++) {
+
+
+                        if (i == 0) {
+
+                            var categoryLabel = document.createElement("label");
+                            categoryLabel.setAttribute("class", "text-success");
+                            categoryLabel.innerText = "Activities"
+
+                            currentRow = tabletoAddRowTo.insertRow(currentRowIndex);
+
+                            var currentCell = currentRow.insertCell(-1);
+                            currentCell.appendChild(categoryLabel);
+                        }
+
+                        var categoryDropdown = document.createElement("select");
+                        categoryDropdown.setAttribute("class", "select2 form-control w-100");
+                        categoryDropdown.setAttribute("id", allTimesheetbreakdown[logId][i].id); //breakdownID assigned to category select control
+                        categoryDropdown.setAttribute("onchange", "logChange();");
+
+                        var allNonClientTasks =  @Html.Raw(Json.Serialize(Model.AllNonClientActivitiesForEmployee));
+
+                        for (var j = 0; j < allNonClientTasks.length; j++) {
+                            var categoryOption = document.createElement("option");
+                            categoryOption.setAttribute("value", allNonClientTasks[j].id);
+                            categoryOption.innerText = allNonClientTasks[j].categoryName;
+                            if (allNonClientTasks[j].id == allTimesheetbreakdown[logId][i].categoryId) {
+                                categoryOption.setAttribute("selected", "selected");
+                            }
+                            categoryDropdown.appendChild(categoryOption);
+                        }
+
+                        var innerCategoryTable;
+                        if (i == 0) {
+                            innerCategoryTable = document.createElement("table");
+                            innerCategoryTable.setAttribute("style", "width:100%;border-spacing: 0px; padding: 0px;")
+                            innerCategoryTable.setAttribute("id", "innerCategoryTable3");
+
+                            currentCell = currentRow.insertCell(-1);
+                            currentCell.appendChild(innerCategoryTable);
+                            currentCell.setAttribute("style", "border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;");
+
+                        }
+                        var categoryTableRow = innerCategoryTable.insertRow(-1);
+                        var categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 0px; vertical-align: middle; width: 320px;border: hidden;")
+
+                        categoryTableCell.appendChild(categoryDropdown);
+
+
+                        var timeInHours = document.createElement("select");
+                        timeInHours.setAttribute("type", "text");
+                        timeInHours.setAttribute("style", "width:70px;");
+                        timeInHours.setAttribute("class", "select2 form-control");
+                        timeInHours.setAttribute("onchange", "logChange();");
+                        timeInHours.setAttribute("id", "timeInHours");
+
+                        for (var h = 0; h < 24; h++) {
+                            var hourOption = document.createElement("option");
+                            hourOption.setAttribute("value", h);
+                            hourOption.innerText = h.toString();
+                            if (allTimesheetbreakdown[logId][i].taskHours == h) {
+                                hourOption.setAttribute("selected", "selected");
+                            }
+                            timeInHours.appendChild(hourOption);
+                        }
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;")
+                        categoryTableCell.appendChild(timeInHours);
+
+                        var colonLabel = document.createElement("label");
+                        colonLabel.innerText = ":"
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;")
+                        categoryTableCell.appendChild(colonLabel);
+
+                        var timeInMinutes = document.createElement("select");
+                        timeInMinutes.setAttribute("type", "text");
+                        timeInMinutes.setAttribute("style", "width:70px;");
+                        timeInMinutes.setAttribute("class", "select2 form-control");
+                        timeInMinutes.setAttribute("id", "timeInMinutes");
+                        timeInMinutes.setAttribute("onchange", "logChange();");
+
+                        for (var h = 0; h < 60; h+=15) {
+                            var minuteOption = document.createElement("option");
+                            minuteOption.setAttribute("value", h);
+                            minuteOption.innerText = h.toString();
+                            if (allTimesheetbreakdown[logId][i].taskMinutes == h) {
+                                minuteOption.setAttribute("selected", "selected");
+                            }
+                            timeInMinutes.appendChild(minuteOption);
+                        }
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;")
+                        categoryTableCell.appendChild(timeInMinutes);
+
+                        var DeleteIcon = document.createElement("a");
+                        DeleteIcon.innerHTML = '<i class="fa-1x fal fa-trash-alt fa-x"></i>'
+                        DeleteIcon.setAttribute("href", "#");
+                        DeleteIcon.setAttribute("onclick", "deleteRowFromNonClientEditModal(this);event.preventDefault();");
+                        DeleteIcon.setAttribute("hidden", "@ViewBag.ApprovedByEmployee != null || @ViewBag.TimesheetSubmitted != null ? hidden : false");
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 7px; vertical-align: middle; border: hidden;");
+                        categoryTableCell.appendChild(DeleteIcon);
+
+
+                    }
+
+                }
+
+            }
+            else {
+                document.getElementById('timeLogId').value = '';
+               for (var i = 0; i < 1; i++) {
+
+                        var currentRow;
+
+                        var categoryLabel = document.createElement("label");
+                        categoryLabel.setAttribute("class", "text-success");
+                        if (i == 0) {
+                            categoryLabel.innerText = "Activities"
+                            currentRow = tabletoAddRowTo.insertRow(currentRowIndex);
+                        }
+
+                        var currentCell = currentRow.insertCell(-1);
+                        currentCell.appendChild(categoryLabel);
+
+                        var categoryDropdown = document.createElement("select");
+                        categoryDropdown.setAttribute("class", "select2 form-control w-100");
+                        categoryDropdown.setAttribute("required", "required");
+                        categoryDropdown.setAttribute("onchange", "logChange();");
+
+                        var defaultOption = document.createElement("option");
+                        defaultOption.setAttribute("value", -1);
+                        defaultOption.setAttribute("selected", "selected")
+                        defaultOption.innerText = "(Please select)";
+                        categoryDropdown.appendChild(defaultOption);
+
+
+                        var allChargeableTasks =  @Html.Raw(Json.Serialize(Model.AllNonClientActivitiesForEmployee));
+
+                        for (var j = 0; j < allChargeableTasks.length; j++) {
+                            var categoryOption = document.createElement("option");
+                            categoryOption.setAttribute("value", allChargeableTasks[j].id);
+                            categoryOption.innerText = allChargeableTasks[j].categoryName;
+                            categoryDropdown.appendChild(categoryOption);
+                        }
+
+                        var innerCategoryTable;
+                        if (i == 0) {
+                            innerCategoryTable = document.createElement("table");
+                            innerCategoryTable.setAttribute("style", "width:100%;border-spacing: 0px; padding: 0px;")
+                            innerCategoryTable.setAttribute("id", "innerCategoryTable3");
+
+                            currentCell = currentRow.insertCell(-1);
+                            currentCell.appendChild(innerCategoryTable);
+                            currentCell.setAttribute("style", "border-spacing: 0px; padding: 0px; vertical-align: middle; border: hidden;");
+                        }
+                        var categoryTableRow = innerCategoryTable.insertRow(-1);
+                        var categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 0px; vertical-align: middle; width: 320px;border: hidden;")
+
+                        categoryTableCell.appendChild(categoryDropdown);
+
+
+                   var timeInHours = document.createElement("select");
+                   timeInHours.setAttribute("type", "text");
+                   timeInHours.setAttribute("style", "width:70px;");
+                   timeInHours.setAttribute("class", "select2 form-control");
+                   timeInHours.setAttribute("onchange", "logChange();");
+                   timeInHours.setAttribute("id", "timeInHours");
+
+                   var defaulthhOption = document.createElement("option");
+                   defaulthhOption.setAttribute("value", -1);
+                   defaulthhOption.setAttribute("selected", "selected")
+                   defaulthhOption.innerText = "hh";
+                   timeInHours.appendChild(defaulthhOption);
+
+
+                   for (var h = 0; h < 24; h++) {
+                       var hourOption = document.createElement("option");
+                       hourOption.setAttribute("value", h);
+                       hourOption.innerText = h.toString();
+                       timeInHours.appendChild(hourOption);
+                   }
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                   categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+                        categoryTableCell.appendChild(timeInHours);
+
+                        var colonLabel = document.createElement("label");
+                        colonLabel.innerText = ":"
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                        categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;")
+                        categoryTableCell.appendChild(colonLabel);
+
+                   var timeInMinutes = document.createElement("select");
+                   timeInMinutes.setAttribute("type", "text");
+                   timeInMinutes.setAttribute("style", "width:75px;");
+                   timeInMinutes.setAttribute("class", "select2 form-control");
+                   timeInMinutes.setAttribute("id", "timeInMinutes");
+                   timeInMinutes.setAttribute("onchange", "logChange();");
+
+                   var defaultmmOption = document.createElement("option");
+                   defaultmmOption.setAttribute("value", -1);
+                   defaultmmOption.setAttribute("selected", "selected")
+                   defaultmmOption.innerText = "mm";
+                   timeInMinutes.appendChild(defaultmmOption);
+
+                   for (var h = 0; h < 60; h += 15) {
+                       var minuteOption = document.createElement("option");
+                       minuteOption.setAttribute("value", h);
+                       minuteOption.innerText = h.toString();
+                       timeInMinutes.appendChild(minuteOption);
+                   }
+
+                        categoryTableCell = categoryTableRow.insertCell(-1);
+                   categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+                   categoryTableCell.appendChild(timeInMinutes);
+
+                   var DeleteIcon = document.createElement("a");
+                   DeleteIcon.innerHTML = '<i class="fa-1x fal fa-trash-alt fa-x"></i>'
+                   DeleteIcon.setAttribute("href", "#");
+                   DeleteIcon.setAttribute("onclick", "deleteRowFromNonClientEditModal(this);event.preventDefault();");
+                   DeleteIcon.setAttribute("hidden", "@ViewBag.ApprovedByEmployee != null || @ViewBag.TimesheetSubmitted != null ? hidden : false");
+
+                   categoryTableCell = categoryTableRow.insertCell(-1);
+                   categoryTableCell.setAttribute("style", "border-spacing: 0px; padding: 7px; vertical-align: middle; border: hidden;");
+                   categoryTableCell.appendChild(DeleteIcon);
+
+                   @*var test =  @Json.Serialize(Model.AllNonChargeableTasksForEmployee);
+                   debugger;*@
+                   @*var test1 = JSON.stringify(@Model.AllNonChargeableTasksForEmployee);
+                   debugger;*@
+                    }
+
+            }
+
+            //debugger;
+
+        }
+        function checkTotalHoursInDay(updateButton) {
+
+            var logIdString = document.getElementById('timeLogId').value;
+            var deletedBreakdowns = document.getElementById('deletedCategories').value;
+            var anyLogUpdated = document.getElementById('anyLogUpdated').value;
+            //debugger;
+            if (anyLogUpdated == 'true') {
+
+                if (logIdString != '') {
+                    var logId = parseInt(logIdString);
+
+                    //var xhr2 = new XMLHttpRequest();
+                    //xhr2.onreadystatechange = function () {
+                    //    if (this.readyState == 4 && this.status == 200) {
+
+                    //        var response = xhr2.responseText;
+                    //        var timesheetDetails = $.parseJSON(response);
+
+                    //        var endClientID = document.getElementById('editEndClientDropdown').value;
+                    //        var brandID = document.getElementById('editBrandDropdown').value;
+                    //        var categoryID = document.getElementById('editCategoryDropdown').value;
+                    //        var campaignID = document.getElementById('editCampaignDropdown').value;
+
+                    //        timesheetDetails.endClientId = endClientID;
+                    //        timesheetDetails.brandId = brandID;
+                    //        timesheetDetails.categoryId = categoryID;
+                    //        timesheetDetails.campaignId = campaignID;
+
+                    //        var updatedTimesheetString = JSON.stringify(timesheetDetails);
+
+                    //        debugger;
+                    //        var xhr = new XMLHttpRequest();
+                    //        xhr.open("POST", "Timesheet/UpdateTimesheet", true);
+                    //        xhr.setRequestHeader('Content-Type', 'application/json');
+                    //        xhr.send(updatedTimesheetString);
+
+                    //    }
+                    //};
+
+
+                    //xhr2.open("POST", "Timesheet/GetTimesheetDetails", true);
+                    //xhr2.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    //xhr2.send(logId);
+
+                    var timeLogList =  @Html.Raw(Json.Serialize(Model.AllTimesheetLogsBreakdown));
+                    //debugger;
+                    var thisTimeLog = timeLogList[logId];
+                    var categoryTable = document.getElementById('innerCategoryTable');
+                    for (var i = 0; i < categoryTable.rows.length; i++) {
+                        var thisRow = categoryTable.rows[i];
+                        //var categoryId;
+                        var timeInHours;
+                        var timeInMinutes;
+                        //var counter = -1;
+                        //if the category already exists
+                        var categoryControl = thisRow.cells[0].firstChild;
+                        if (categoryControl.id != '') {
+
+                            var logIndexToUpdate;
+                            //find breakdownID in the Model variable
+                            for (var j = 0; j < thisTimeLog.length; j++) {
+                                if (parseInt(categoryControl.id) == thisTimeLog[j].id) {
+                                    logIndexToUpdate = j;
+                                    break;
+                                }
+                            }
+
+                            timeInHours = thisRow.cells[1].firstChild.value;
+                            timeInMinutes = thisRow.cells[3].firstChild.value;
+
+                            thisTimeLog[logIndexToUpdate].categoryId = parseInt(categoryControl.value);
+                            thisTimeLog[logIndexToUpdate].taskHours = parseInt(timeInHours);
+                            thisTimeLog[logIndexToUpdate].taskMinutes = parseInt(timeInMinutes);
+                        }
+                        //if a new category has been added
+                        else {
+                            //debugger;
+                            timeInHours = thisRow.cells[1].firstChild.value;
+                            timeInMinutes = thisRow.cells[3].firstChild.value;
+
+                            const newBreakdown = { id: -1, timesheetId: logId, categoryId: categoryControl.value, taskHours: timeInHours, taskMinutes: timeInMinutes };
+                            thisTimeLog.push(newBreakdown);
+                            //thisTimeLog.appendChild()
+                            //thisTimeLog[counter].categoryID = categoryControl.value;
+                            //thisTimeLog[counter].taskHours = timeInHours;
+                            //thisTimeLog[counter].taskMinutes = timeInMinutes;
+                        }
+
+
+                    }
+
+                    var jsonString = JSON.stringify(thisTimeLog);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "Timesheet/Update", true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.send(jsonString);
+
+                    //window.location.href = window.location.href;
+
+                }
+                //if category has been added to a new log
+                else {
+
+                    var categoryTable = document.getElementById('innerCategoryTable');
+                    var thisEmployeeId = @ViewBag.CurrentEmployeeId;
+                    var clientInputValue = document.getElementById('client-name-input').value;
+
+                    var orgId = parseInt(clientInputValue.split(" - ")[0]);
+                    var logDate = document.getElementById('currentDate').value;
+                    var timeshetLogArray = new Array();
+
+                    var endClientID = document.getElementById('end-client-hidden').value;
+                    if (endClientID == '') { endClientID = 0; }
+
+                    var brandID = document.getElementById('brand-hidden').value;
+                    if (brandID == '') { brandID = 0; }
+
+                    var categoryID = document.getElementById('category-hidden').value;
+                    if (categoryID == '') { categoryID = 0; }
+
+                    var campaignID = document.getElementById('campaign-hidden').value;
+                    if (campaignID == '') { campaignID = 0; }
+
+                    const newLog = { id: -1, employeeId: thisEmployeeId, orgId: orgId, timeLogDate: logDate, endClientId: endClientID, brandId: brandID, categoryId: categoryID, campaignId: campaignID };
+                    timeshetLogArray.push(newLog);
+
+                    var logJsonString = JSON.stringify(timeshetLogArray);
+
+                    var breakdownArray = new Array();
+                    for (var i = 0; i < categoryTable.rows.length; i++) {
+                        var thisRow = categoryTable.rows[i];
+                        var categoryControl = thisRow.cells[0].firstChild;
+                        var timeInHours = thisRow.cells[1].firstChild.value;
+                        var timeInMinutes = thisRow.cells[3].firstChild.value;
+                        const newBreakdown = { id: -1, timesheetId: -1 ,categoryId: categoryControl.value, taskHours: timeInHours, taskMinutes: timeInMinutes };
+                        breakdownArray.push(newBreakdown);
+                    }
+                    var breakdownJsonString = JSON.stringify(breakdownArray);
+
+                    var stringToSend = logJsonString + "$tp_timesheet$" + breakdownJsonString
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "Timesheet/CreateTimesheetLog", false);
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.send(stringToSend);
+                }
+            }
+            //else {
+            //    updateButton.attributes["href"].nodeValue = window.location.href;
+            //}
+            //alert('line 1590');
+            //debugger;
+            if (deletedBreakdowns != '') {
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "Timesheet/BulkDelete", true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(deletedBreakdowns);
+            }
+            if (anyLogUpdated == 'true' || deletedBreakdowns != '') {
+                //window.location.href = window.location.href;
+                window.location.reload(false);
+                //alert('line 1600');
+                //updateButton.attributes["href"].nodeValue = window.location.href;
+            }
+            else {
+                //window.location.href = window.location.href;
+                //alert('line 1604');
+                updateButton.attributes["href"].nodeValue = window.location.href;
+                //event.preventDefault();
+            }
+
+
+        }
+
+        function saveNonClientCharge(updateButton) {
+             var logIdString = document.getElementById('timeLogId').value;
+            var deletedBreakdowns = document.getElementById('deletedCategories').value;
+            var anyLogUpdated = document.getElementById('anyLogUpdated').value;
+            //debugger;
+            if (anyLogUpdated == 'true') {
+                if (logIdString != '') {
+                    var logId = parseInt(logIdString);
+                    var timeLogList =  @Html.Raw(Json.Serialize(Model.AllTimesheetLogsBreakdown));
+                    //debugger;
+                    var thisTimeLog = timeLogList[logId];
+                    var categoryTable = document.getElementById('innerCategoryTable3');
+                    for (var i = 0; i < categoryTable.rows.length; i++) {
+                        var thisRow = categoryTable.rows[i];
+                        //var categoryId;
+                        var timeInHours;
+                        var timeInMinutes;
+                        //var counter = -1;
+                        //if the category already exists
+                        var categoryControl = thisRow.cells[0].firstChild;
+                        if (categoryControl.id != '') {
+
+                            var logIndexToUpdate;
+                            //find breakdownID in the Model variable
+                            for (var j = 0; j < thisTimeLog.length; j++) {
+                                if (parseInt(categoryControl.id) == thisTimeLog[j].id) {
+                                    logIndexToUpdate = j;
+                                    break;
+                                }
+                            }
+
+                            timeInHours = thisRow.cells[1].firstChild.value;
+                            timeInMinutes = thisRow.cells[3].firstChild.value;
+
+                            thisTimeLog[logIndexToUpdate].categoryId = parseInt(categoryControl.value);
+                            thisTimeLog[logIndexToUpdate].taskHours = parseInt(timeInHours);
+                            thisTimeLog[logIndexToUpdate].taskMinutes = parseInt(timeInMinutes);
+                        }
+                        //if a new category has been added
+                        else {
+                            //debugger;
+                            timeInHours = thisRow.cells[1].firstChild.value;
+                            timeInMinutes = thisRow.cells[3].firstChild.value;
+
+                            const newBreakdown = { id: -1, timesheetId: logId, categoryId: categoryControl.value, taskHours: timeInHours, taskMinutes: timeInMinutes };
+                            thisTimeLog.push(newBreakdown);
+                            //thisTimeLog.appendChild()
+                            //thisTimeLog[counter].categoryID = categoryControl.value;
+                            //thisTimeLog[counter].taskHours = timeInHours;
+                            //thisTimeLog[counter].taskMinutes = timeInMinutes;
+                        }
+
+
+                    }
+
+                    var jsonString = JSON.stringify(thisTimeLog);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "Timesheet/Update", true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.send(jsonString);
+
+                    //window.location.href = window.location.href;
+
+                }
+                //if category has been added to a new log
+                else {
+
+                    var categoryTable = document.getElementById('innerCategoryTable3');
+                    var thisEmployeeId = @ViewBag.CurrentEmployeeId;
+                    var clientInputValue = document.getElementById('client-name-input').value;
+
+                    var logDate = document.getElementById('currentDate').value;
+                    var timeshetLogArray = new Array();
+
+                    const newLog = { id: -1, employeeId: thisEmployeeId, orgId: null, timeLogDate: logDate };
+                    timeshetLogArray.push(newLog);
+
+                    var logJsonString = JSON.stringify(timeshetLogArray);
+
+                    var breakdownArray = new Array();
+                    for (var i = 0; i < categoryTable.rows.length; i++) {
+                        var thisRow = categoryTable.rows[i];
+                        var categoryControl = thisRow.cells[0].firstChild;
+                        var timeInHours = thisRow.cells[1].firstChild.value;
+                        var timeInMinutes = thisRow.cells[3].firstChild.value;
+                        const newBreakdown = { id: -1, timesheetId: -1 ,categoryId: categoryControl.value, taskHours: timeInHours, taskMinutes: timeInMinutes };
+                        breakdownArray.push(newBreakdown);
+                    }
+                    var breakdownJsonString = JSON.stringify(breakdownArray);
+
+                    var stringToSend = logJsonString + "$tp_timesheet$" + breakdownJsonString
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "Timesheet/CreateTimesheetLog", false);
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.send(stringToSend);
+                }
+            }
+            //else {
+            //    updateButton.attributes["href"].nodeValue = window.location.href;
+            //}
+
+            if (deletedBreakdowns != '') {
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "Timesheet/BulkDelete", true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(deletedBreakdowns);
+            }
+            if (anyLogUpdated == 'true' || deletedBreakdowns != '') {
+                //window.location.href = window.location.href;
+                window.location.reload(false);
+            }
+            else {
+                updateButton.attributes["href"].nodeValue = window.location.href;
+            }
+        }
+
+        function logChange() {
+            document.getElementById('anyLogUpdated').value = 'true';
+        }
+
+        function gotoWeek(datepicker) {
+            var employeeIdToApprove = @ViewBag.CurrentEmployeeId;
+            window.location.href = `Timesheet/MyTeamsTimesheetTandP/${datepicker.value}/${employeeIdToApprove}`;
+            @*//datepicker.value = datepicker.value;
+            var dateSelected = new Date(Date.parse(datepicker.value));
+            var currentDate = new Date();
+            if (dateSelected <= currentDate) {
+
+            }
+            else {
+
+                var test = @ViewBag.DateSelectedString;
+                //datepicker.value = @ViewBag.DateSelected
+                debugger;
+                //datepicker.value = currentDate.getFullYear() + '-' + (currentDate.getMonth() + 1) + '-' + currentDate.getDate();
+                event.preventDefault();
+            }*@
+
+        }
+
+        function addNewRow(categoryTableName) {
+
+            var categoryTable = document.getElementById(categoryTableName);
+            var currentRowIndex = categoryTable.rows.length;
+            var currentRow = categoryTable.insertRow(currentRowIndex);
+
+            var categoryDropdown = document.createElement("select");
+            categoryDropdown.setAttribute("class", "select2 form-control");
+            categoryDropdown.setAttribute("required", "required");
+            //debugger;
+
+
+            var defaultOption = document.createElement("option");
+            defaultOption.setAttribute("value", -1);
+            defaultOption.setAttribute("selected", "selected")
+            defaultOption.innerText = "(Please select)";
+            categoryDropdown.appendChild(defaultOption);
+
+            var optionGroup = document.createElement("optgroup");
+            optionGroup.setAttribute("label", "Chargeable tasks");
+
+            var allChargeableTasks =  @Html.Raw(Json.Serialize(Model.AllChargeableTasksForEmployee));
+
+            for (var j = 0; j < allChargeableTasks.length; j++) {
+                var categoryOption = document.createElement("option");
+                categoryOption.setAttribute("value", allChargeableTasks[j].id);
+                categoryOption.innerText = allChargeableTasks[j].categoryName;
+                optionGroup.appendChild(categoryOption);
+            }
+
+            categoryDropdown.appendChild(optionGroup);
+
+            var optionGroup2 = document.createElement("optgroup");
+            optionGroup2.setAttribute("label", "Non Chargeable tasks");
+
+            var allNonChargeableTasks =  @Html.Raw(Json.Serialize(Model.AllNonChargeableTasksForEmployee));
+
+            for (var j = 0; j < allNonChargeableTasks.length; j++) {
+                var categoryOption = document.createElement("option");
+                categoryOption.setAttribute("value", allNonChargeableTasks[j].id);
+                categoryOption.innerText = allNonChargeableTasks[j].categoryName;
+                optionGroup2.appendChild(categoryOption);
+            }
+            categoryDropdown.appendChild(optionGroup2);
+
+            currentCell = currentRow.insertCell(-1);
+            currentCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+            currentCell.appendChild(categoryDropdown);
+
+            var timeInHours = document.createElement("select");
+            timeInHours.setAttribute("type", "text");
+            timeInHours.setAttribute("style", "width:70px;");
+            timeInHours.setAttribute("class", "select2 form-control");
+            timeInHours.setAttribute("onchange", "logChange();");
+            timeInHours.setAttribute("id", "timeInHours");
+
+            var defaulthhOption = document.createElement("option");
+            defaulthhOption.setAttribute("value", -1);
+            defaulthhOption.setAttribute("selected", "selected")
+            defaulthhOption.innerText = "hh";
+            timeInHours.appendChild(defaulthhOption);
+
+            for (var h = 0; h < 24; h++) {
+                var hourOption = document.createElement("option");
+                hourOption.setAttribute("value", h);
+                hourOption.innerText = h.toString();
+                timeInHours.appendChild(hourOption);
+            }
+            currentCell = currentRow.insertCell(-1);
+            currentCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+            currentCell.appendChild(timeInHours);
+
+            var colonLabel = document.createElement("label");
+            colonLabel.innerText = ":";
+
+            currentCell = currentRow.insertCell(-1);
+            currentCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+            currentCell.appendChild(colonLabel);
+
+            var timeInMinutes = document.createElement("select");
+            timeInMinutes.setAttribute("type", "text");
+            timeInMinutes.setAttribute("style", "width:75px;");
+            timeInMinutes.setAttribute("class", "select2 form-control");
+            timeInMinutes.setAttribute("id", "timeInMinutes");
+            timeInMinutes.setAttribute("onchange", "logChange();");
+
+
+            var defaultmmOption = document.createElement("option");
+            defaultmmOption.setAttribute("value", -1);
+            defaultmmOption.setAttribute("selected", "selected")
+            defaultmmOption.innerText = "mm";
+            timeInMinutes.appendChild(defaultmmOption);
+
+            for (var h = 0; h < 60; h += 15) {
+                var minuteOption = document.createElement("option");
+                minuteOption.setAttribute("value", h);
+                minuteOption.innerText = h.toString();
+                timeInMinutes.appendChild(minuteOption);
+            }
+
+            currentCell = currentRow.insertCell(-1);
+            currentCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+            currentCell.appendChild(timeInMinutes);
+
+            var DeleteIcon = document.createElement("a");
+            DeleteIcon.innerHTML = '<i class="fa-1x fal fa-trash-alt fa-x"></i>';
+            DeleteIcon.setAttribute("href", "#");
+            if (categoryTableName == 'innerCategoryTable') {
+                DeleteIcon.setAttribute("onclick", 'deleteRowFromEditModal(this);event.preventDefault();');
+            }
+            else if (categoryTableName == 'innerCategoryTable1') {
+                DeleteIcon.setAttribute("onclick", 'deleteRowFromCreateModal(this);event.preventDefault();');
+            }
+
+
+            currentCell = currentRow.insertCell(-1);
+            currentCell.setAttribute("style", "border-spacing: 0px; padding: 7px; vertical-align: middle; border: hidden;");
+            currentCell.appendChild(DeleteIcon);
+        }
+
+        function deleteRowFromEditModal(DeleteButton) {
+            var categoryTable = document.getElementById('innerCategoryTable');
+            var rowIndexToDelete = DeleteButton.parentNode.parentNode.rowIndex;
+            var thisRow = categoryTable.rows[rowIndexToDelete];
+            var categoryControl = thisRow.cells[0].firstChild;
+
+            if (categoryControl.id != '') {
+                var deletedCategories = document.getElementById('deletedCategories');
+                if (deletedCategories.value == "") {
+                    deletedCategories.value = categoryControl.id;
+                }
+                else {
+                    deletedCategories.value += "," + categoryControl.id;
+                }
+
+            }
+            //debugger;
+            categoryTable.deleteRow(rowIndexToDelete);
+
+        }
+
+        function deleteRowFromNonClientEditModal(DeleteButton) {
+            var categoryTable = document.getElementById('innerCategoryTable3');
+            var rowIndexToDelete = DeleteButton.parentNode.parentNode.rowIndex;
+            var thisRow = categoryTable.rows[rowIndexToDelete];
+            var categoryControl = thisRow.cells[0].firstChild;
+            //debugger;
+            if (categoryControl.id != '') {
+                var deletedCategories = document.getElementById('deletedCategories');
+                if (deletedCategories.value == "") {
+                    deletedCategories.value = categoryControl.id;
+                }
+                else {
+                    deletedCategories.value += "," + categoryControl.id;
+                }
+
+            }
+            //debugger;
+            categoryTable.deleteRow(rowIndexToDelete);
+
+        }
+
+        function deleteRowFromCreateModal(DeleteButton) {
+            var categoryTable = document.getElementById('innerCategoryTable1');
+            var rowIndexToDelete = DeleteButton.parentNode.parentNode.rowIndex;
+            categoryTable.deleteRow(rowIndexToDelete);
+
+        }
+
+
+
+
+
+        function test() {
+            alert("works!!!");
+        }
+
+        function createClientTask(createButton) {
+
+            var categoryTable = document.getElementById('innerCategoryTable1');
+            var thisEmployeeId = @ViewBag.CurrentEmployeeId;
+            var clientInputValue = document.getElementById('client-input').value;
+            //debugger;
+            var orgId = parseInt(clientInputValue.split(" - ")[0]);
+            var logDate = document.getElementById('timesheet-log-date').value;
+            var endClientId = document.getElementById('createEndClientDropdown').value;
+            var brandId = document.getElementById('createBrandDropdown').value;
+            var categoryId = document.getElementById('createCategoryDropdown').value;
+            var campaignId = document.getElementById('createCampaignDropdown').value;
+            var timeshetLogArray = new Array();
+
+                const newLog = { id: -1, employeeId: thisEmployeeId, orgId: orgId, timeLogDate: logDate, endClientId: endClientId, brandId: brandId, categoryId: categoryId, campaignId: campaignId };
+                timeshetLogArray.push(newLog);
+
+                var logJsonString = JSON.stringify(timeshetLogArray);
+
+                var breakdownArray = new Array();
+                for (var i = 0; i < categoryTable.rows.length; i++) {
+                    var thisRow = categoryTable.rows[i];
+                    var categoryControl = thisRow.cells[0].children[0];
+                    var timeInHours = thisRow.cells[1].children[0].value;
+                    var timeInMinutes = thisRow.cells[3].children[0].value;
+                    const newBreakdown = { id: -1, timesheetId: -1, categoryId: categoryControl.value, taskHours: timeInHours, taskMinutes: timeInMinutes };
+                    breakdownArray.push(newBreakdown);
+                }
+                var breakdownJsonString = JSON.stringify(breakdownArray);
+
+                var stringToSend = logJsonString + "$tp_timesheet$" + breakdownJsonString
+
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "Timesheet/CreateTimesheetLog", false);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(stringToSend);
+
+                //debugger;
+                window.location.reload(false);
+            //debugger;
+            //createButton.attributes["href"].nodeValue = window.location.href;
+
+
+        }
+
+        //$("#client-input").on("change keyup paste", function () {
+        //    getAutoCompleteOrgSuggestions();
+        //})
+
+        var selectedIndex = 0;
+        function getAutoCompleteOrgSuggestions(e) {
+            var mainDiv = document.getElementById('mainDiv');
+            //when down key is pressed
+            if (mainDiv != null && e.keyCode == 40) {
+                if (selectedIndex < mainDiv.children.length) {
+                    if (selectedIndex > 0) {
+                        mainDiv.children[selectedIndex - 1].classList.remove("autocomplete-active");
+                    }
+                    mainDiv.children[selectedIndex].classList.add("autocomplete-active");
+                    selectedIndex++;
+                }
+
+            }
+            //when up key is pressed
+            else if (mainDiv != null && e.keyCode == 38) {
+                if (selectedIndex >= 0) {
+                    selectedIndex--;
+                    if (selectedIndex > 0) {
+                        mainDiv.children[selectedIndex].classList.remove("autocomplete-active");
+                    }
+                    mainDiv.children[selectedIndex - 1].classList.add("autocomplete-active");
+                }
+            }
+            //when enter key is pressed
+            else if (mainDiv != null && e.keyCode == 13 && selectedIndex >= 0) {
+                e.preventDefault();
+                mainDiv.children[selectedIndex - 1].click();
+                selectedIndex = 0;
+            }
+            else
+            {
+                var clientInput = document.getElementById('client-input');
+                if (clientInput.value.length > 1) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.onreadystatechange = function () {
+                        if (this.readyState == 4 && this.status == 200) {
+                            var response = xhr.responseText;
+                            var allOrgList = $.parseJSON(response);
+                            var mainDiv = document.createElement("div");
+                            mainDiv.setAttribute("id", "mainDiv");
+                            mainDiv.setAttribute("class", "autocomplete-items");
+
+                            closeAllLists();
+                            for (var i = 0; i < allOrgList.length; i++) {
+                                var childDiv = document.createElement("div");
+                                //childDiv.setAttribute("class", "autocomplete-active");
+                                childDiv.innerHTML = allOrgList[i];
+                                childDiv.innerHTML += "<input type='hidden' value='" + allOrgList[i] + "'>";
+                                childDiv.addEventListener("click", function (e) {
+                                    clientInput.value = this.getElementsByTagName("input")[0].value;
+                                    closeAllLists();
+                                });
+                                mainDiv.appendChild(childDiv);
+                            }
+                            clientInput.parentNode.appendChild(mainDiv);
+                            //debugger;
+                        }
+                    };
+
+                    xhr.open("POST", "OrgDetails/GetAllOrgSuggestions", true);
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.send(clientInput.value);
+                }
+                else {
+                    closeAllLists();
+                }
+            }
+
+
+        }
+
+        function closeAllLists() {
+            /*close all autocomplete lists in the document,
+            except the one passed as an argument:*/
+            var x = document.getElementsByClassName("autocomplete-items");
+            for (var i = 0; i < x.length; i++) {
+                    x[i].parentNode.removeChild(x[i]);
+            }
+            selectedIndex = 0;
+        }
+
+        function addNewNonClientRow(categoryTableId) {
+            var categoryTable = document.getElementById(categoryTableId);
+            var currentRowIndex = categoryTable.rows.length;
+            var currentRow = categoryTable.insertRow(currentRowIndex);
+
+            var categoryDropdown = document.createElement("select");
+            categoryDropdown.setAttribute("class", "select2 form-control");
+            categoryDropdown.setAttribute("required", "required");
+            categoryDropdown.setAttribute("onchange", "logChange();");
+            //debugger;
+
+
+            var defaultOption = document.createElement("option");
+            defaultOption.setAttribute("value", -1);
+            defaultOption.setAttribute("selected", "selected")
+            defaultOption.innerText = "(Please select)";
+            categoryDropdown.appendChild(defaultOption);
+
+
+            var allTasks =  @Html.Raw(Json.Serialize(Model.AllNonClientActivitiesForEmployee));
+
+            for (var j = 0; j < allTasks.length; j++) {
+                var categoryOption = document.createElement("option");
+                categoryOption.setAttribute("value", allTasks[j].id);
+                categoryOption.innerText = allTasks[j].categoryName;
+                categoryDropdown.appendChild(categoryOption);
+            }
+
+
+            currentCell = currentRow.insertCell(-1);
+            currentCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+            currentCell.appendChild(categoryDropdown);
+
+            var timeInHours = document.createElement("select");
+            timeInHours.setAttribute("type", "text");
+            timeInHours.setAttribute("style", "width:70px;");
+            timeInHours.setAttribute("class", "select2 form-control");
+            timeInHours.setAttribute("id", "timeInHours");
+            timeInHours.setAttribute("onchange", "logChange();");
+
+            var defaulthhOption = document.createElement("option");
+            defaulthhOption.setAttribute("value", -1);
+            defaulthhOption.setAttribute("selected", "selected")
+            defaulthhOption.innerText = "hh";
+            timeInHours.appendChild(defaulthhOption);
+
+
+            for (var h = 0; h < 24; h++) {
+                var hourOption = document.createElement("option");
+                hourOption.setAttribute("value", h);
+                hourOption.innerText = h.toString();
+                timeInHours.appendChild(hourOption);
+            }
+            currentCell = currentRow.insertCell(-1);
+            currentCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+            currentCell.appendChild(timeInHours);
+
+            var colonLabel = document.createElement("label");
+            colonLabel.innerText = ":"
+
+            currentCell = currentRow.insertCell(-1);
+            currentCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+            currentCell.appendChild(colonLabel);
+
+            var timeInMinutes = document.createElement("select");
+            timeInMinutes.setAttribute("type", "text");
+            timeInMinutes.setAttribute("style", "width:75px;");
+            timeInMinutes.setAttribute("class", "select2 form-control");
+            timeInMinutes.setAttribute("id", "timeInMinutes");
+            timeInMinutes.setAttribute("onchange", "logChange();");
+
+            var defaultmmOption = document.createElement("option");
+            defaultmmOption.setAttribute("value", -1);
+            defaultmmOption.setAttribute("selected", "selected")
+            defaultmmOption.innerText = "mm";
+            timeInMinutes.appendChild(defaultmmOption);
+
+            for (var h = 0; h < 60; h += 15) {
+                var minuteOption = document.createElement("option");
+                minuteOption.setAttribute("value", h);
+                minuteOption.innerText = h.toString();
+                timeInMinutes.appendChild(minuteOption);
+            }
+
+            currentCell = currentRow.insertCell(-1);
+            currentCell.setAttribute("style", "border-spacing: 0px; padding: 2px; vertical-align: middle; border: hidden;");
+            currentCell.appendChild(timeInMinutes);
+
+            var DeleteIcon = document.createElement("a");
+            DeleteIcon.innerHTML = '<i class="fa-1x fal fa-trash-alt fa-x"></i>'
+            DeleteIcon.setAttribute("href", "#");
+            if (categoryTableId == "innerCategoryTable2") {
+                DeleteIcon.setAttribute("onclick", "deleteNonClientRow(this);event.preventDefault();");
+            }
+            else if (categoryTableId == "innerCategoryTable3") {
+                DeleteIcon.setAttribute("onclick", "deleteRowFromNonClientEditModal(this);event.preventDefault();");
+            }
+
+
+            currentCell = currentRow.insertCell(-1);
+            currentCell.setAttribute("style", "border-spacing: 0px; padding: 7px; vertical-align: middle; border: hidden;");
+            currentCell.appendChild(DeleteIcon);
+        }
+        function AddNonClientTask(createButton) {
+
+            var categoryTable = document.getElementById('innerCategoryTable2');
+            var thisEmployeeId = @ViewBag.CurrentEmployeeId;
+
+            var logDate = document.getElementById('timesheet-log-date1').value;
+
+
+            var timesheetLogArray = new Array();
+            //debugger;
+            const newLog = { id: -1, employeeId: thisEmployeeId, orgId: null, timeLogDate: logDate};
+            timesheetLogArray.push(newLog);
+
+            var logJsonString = JSON.stringify(timesheetLogArray);
+
+            var breakdownArray = new Array();
+            for (var i = 0; i < categoryTable.rows.length; i++) {
+                var thisRow = categoryTable.rows[i];
+                var categoryControl = thisRow.cells[0].children[0];
+                var timeInHours = thisRow.cells[1].children[0].value;
+                var timeInMinutes = thisRow.cells[3].children[0].value;
+                const newBreakdown = { id: -1, timesheetId: -1 ,categoryId: categoryControl.value, taskHours: timeInHours, taskMinutes: timeInMinutes };
+                breakdownArray.push(newBreakdown);
+            }
+            var breakdownJsonString = JSON.stringify(breakdownArray);
+
+            var stringToSend = logJsonString + "$tp_timesheet$" + breakdownJsonString
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Timesheet/CreateTimesheetLog", false);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(stringToSend);
+
+
+            //debugger;
+            //createButton.attributes["href"].nodeValue = window.location.href;
+            window.location.reload(false);
+
+        }
+
+        function deleteNonClientRow(deleteButton) {
+            var categoryTable = document.getElementById("innerCategoryTable2");
+            var rowIndexToDelete = deleteButton.parentNode.parentNode.rowIndex;
+            categoryTable.deleteRow(rowIndexToDelete);
+        }
+        //$("#client-input").
+
+        //$("#client-input").autocomplete({
+        //    source: function (data, cb) {
+        //        var xhr = new XMLHttpRequest();
+        //        //debugger;
+        //        var clientInput = document.getElementById('client-input');
+        //        xhr.open("POST", "OrgDetails/GetAllOrgSuggestions", true);
+        //        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        //        xhr.send(clientInput.value);
+        //    }
+        //});
+
+        function updateEndClientData(endclientDropdown) {
+
+            var brandDropdown = document.getElementById("createBrandDropdown");
+            var categoryDropdown = document.getElementById("createCategoryDropdown");
+            var campaignDropdown = document.getElementById("createCampaignDropdown");
+
+            brandDropdown.innerHTML = '';
+            categoryDropdown.innerHTML = '';
+            campaignDropdown.innerHTML = '';
+
+            var pleaseSelectOption = document.createElement("option");
+            pleaseSelectOption.setAttribute("value", -1);
+            pleaseSelectOption.innerText = "(Please select)";
+            brandDropdown.appendChild(pleaseSelectOption);
+
+            var pleaseSelectOption1 = document.createElement("option");
+            pleaseSelectOption1.setAttribute("value", -1);
+            pleaseSelectOption1.innerText = "(Please select)";
+            categoryDropdown.appendChild(pleaseSelectOption1);
+
+            var pleaseSelectOption2 = document.createElement("option");
+            pleaseSelectOption2.setAttribute("value", -1);
+            pleaseSelectOption2.innerText = "(Please select)";
+            campaignDropdown.appendChild(pleaseSelectOption2);
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+
+                    var response = xhr.responseText;
+                    var allBrandList = $.parseJSON(response);
+                    //debugger;
+                    if (allBrandList.length > 0) {
+                        brandDropdown.disabled = false;
+                        for (var i = 0; i < allBrandList.length; i++) {
+                            var brandOption = document.createElement("option");
+                            brandOption.setAttribute("value", allBrandList[i].id);
+                            brandOption.innerText = allBrandList[i].dataObjectName;
+                            brandDropdown.appendChild(brandOption);
+                        }
+                    }
+
+                }
+            };
+
+
+            xhr.open("POST", "Timesheet/GetAllBrandsForEndClient", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(endclientDropdown.value);
+            //debugger;
+
+            var xhr1 = new XMLHttpRequest();
+            xhr1.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+
+                    var response = xhr1.responseText;
+                    var allCategoryList = $.parseJSON(response);
+
+                    if (allCategoryList.length > 0) {
+                        categoryDropdown.disabled = false;
+                        for (var i = 0; i < allCategoryList.length; i++) {
+                            var categoryOption = document.createElement("option");
+                            categoryOption.setAttribute("value", allCategoryList[i].id);
+                            categoryOption.innerText = allCategoryList[i].dataObjectName;
+                            categoryDropdown.appendChild(categoryOption);
+                        }
+                    }
+
+
+                }
+            };
+
+            xhr1.open("POST", "Timesheet/GetAllCategoriesForEndClient", true);
+            xhr1.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr1.send(endclientDropdown.value);
+
+            var xhr2 = new XMLHttpRequest();
+            xhr2.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+
+                    var response = xhr2.responseText;
+                    var allCampaignList = $.parseJSON(response);
+
+                    if (allCampaignList.length > 0) {
+                        campaignDropdown.disabled = false;
+
+                        for (var i = 0; i < allCampaignList.length; i++) {
+                            var campaignOption = document.createElement("option");
+                            campaignOption.setAttribute("value", allCampaignList[i].id);
+                            campaignOption.innerText = allCampaignList[i].dataObjectName;
+                            campaignDropdown.appendChild(campaignOption);
+                        }
+                    }
+
+
+                }
+            };
+
+            xhr2.open("POST", "Timesheet/GetAllCampaignForEndClient", true);
+            xhr2.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr2.send(endclientDropdown.value);
+
+            //var endClientValidationLabel = document.getElementById('endClientValidationLabel');
+            //var createButton = document.getElementById('createButton');
+            //if (endclientDropdown.value == '') {
+            //    endClientValidationLabel.hidden = false;
+            //    createButton.attributes('class', 'btn btn-success disabled');
+            //}
+            //else {
+            //    endClientValidationLabel.hidden = true;
+            //    createButton.attributes('class', 'btn btn-success');
+            //}
+        }
+
+
+    (function () {
+        'use strict';
+        window.addEventListener('load', function () {
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        }, false);
+        })();
+
+        function selectEmployeeForApproval(selectEmployee) {
+            var dateString = document.getElementById("dateStringHiddenField").value;
+            var timesheetDiv = document.getElementById('panel-timesheet');
+            //if (selectEmployee.value > 0) {
+            //    timesheetDiv.hidden = false;
+            //}
+            //else {
+            //    timesheetDiv.hidden = true;
+            //}
+            window.location.href = `timesheet/MyTeamsTimesheetTandP/${dateString}/${selectEmployee.value}`;
+
+        }
+
+        function approveThisWeek(approveButton) {
+            var employeeIdToApprove = @ViewBag.CurrentEmployeeId;
+            var dateString = document.getElementById('dateStringHiddenField').value;
+            var stringToSend = employeeIdToApprove.toString() + '$' + dateString;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Timesheet/ApproveThisWeek", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(stringToSend);
+
+            window.location.reload(false);
+        }
+
+        function unlockForEditing(unlockButton) {
+                var employeeIdToApprove = @ViewBag.CurrentEmployeeId;
+                var dateString = document.getElementById('dateStringHiddenField').value;
+                var stringToSend = employeeIdToApprove.toString() + '$' + dateString;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "Timesheet/UnlockTimesheetForEditing", true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(stringToSend);
+
+                ('#unlock-successful').modal('show');
+
+
+                window.location.reload(false);
+        }
+
+    </script>
+}
+

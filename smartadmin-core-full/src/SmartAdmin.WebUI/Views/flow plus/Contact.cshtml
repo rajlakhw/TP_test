@@ -1,0 +1,2146 @@
+﻿@{
+    ViewData["Title"] = "Contact";
+    ViewData["PageName"] = "contact";
+    ViewData["Category1"] = "flow plus";
+    ViewData["Heading"] = "";
+
+    @using Data;
+    @using ViewModels.Contact;
+
+    @using System.Text.Json;
+    @using Global_Settings;
+    @model ContactViewModel;
+
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/reactions/reactions.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/jqvmap/jqvmap.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+}
+<style>
+    .form-group {
+        margin-bottom: 0.5rem;
+    }
+
+    .bg-danger-50 {
+        background-color: #e2b7ff !important;
+        color: rgba(0, 0, 0, 0.8) !important;
+    }
+
+    .bg-fusion-50 {
+        background-color: #828282 !important;
+        color: white !important;
+    }
+
+    .bg-info-50 {
+        background-color: #b7d4ff !important;
+        color: rgba(0, 0, 0, 0.8) !important;
+    }
+
+    .bg-fusion-50 {
+        background-color: #828282 !important;
+        color: white !important;
+    }
+
+    .select2-container {
+        z-index: 99999;
+    }
+
+    body.modal-open {
+        overflow: visible;
+    }
+
+    .was-validated .custom-select:invalid + .select2 .select2-selection {
+        border-color: #fd3995;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23fd3995' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23fd3995' stroke='none'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:invalid:focus + .select2 .select2-selection:invalid:focus {
+        border-color: #fd3995;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+    }
+
+
+    .was-validated .custom-select:valid + .select2 .select2-selection {
+        border-color: #1dc9b7 !important;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%231dc9b7' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:valid:focus + .select2 .select2-selection:valid:focus {
+        border-color: #1dc9b7;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+    }
+</style>
+
+<div id="js-page-content">
+
+    <div class="row justify-content-between px-5">
+        @if (Model.contactDeletedDate != null)
+        {
+            <div class="col-12 mb-3 text-center">
+
+                <i class="fad fa-exclamation-triangle fa-lg" style="color: red;"></i>
+                <span style="color:red;">
+                    Note that this contact has
+                    been deleted. If this was accidental, please do not add a new duplicate contact,
+                    but instead contact
+                    <a href="mailto:ITSupport@translateplus.com">IT Support</a>
+                    to un-delete the contact.
+                </span>
+
+            </div>
+        }
+        <div class="col-lg-4 mb-3 text-center">
+
+            <div class="row">
+                <label class="form-label col-lg-4 d-flex align-items-center px-0">Group</label>
+                @if (Model.orgGroupDeletedDate != null)
+                {
+
+                    <label>@Model.orgGroupId - @Model.orgGroupName </label> <span class="font-italic" style="color: red;"> &nbsp; (Deleted)</span>
+
+                }
+                else
+                {
+                    @if (Model.orgGroupId != 0)
+                    {
+                        <a target="_blank" style="text-decoration: none !important;" href="@("https://myplusbeta.publicisgroupe.net/OrgGroup?groupid=" + Model.GroupID)">
+                            @Model.orgGroupId - @Model.orgGroupName
+                        </a>
+                    }
+                    else
+                    { <label>No organisation group  </label>}
+
+                }
+
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-4 d-flex align-items-center px-0">Organisation</label>
+                @if (Model.orgDeletedDate != null)
+                {
+
+                    <label>@Model.orgId - @Model.orgName</label> <span class="font-italic" style="color: red;">&nbsp; (Deleted)</span>
+                }
+                else
+                {
+                    <a target="_blank" style="text-decoration: none !important;" href="@("https://myplusbeta.publicisgroupe.net/Organisation?id=" + Model.orgId)">
+                        @Model.orgId - @Model.orgName
+                    </a>
+                }
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-4 d-flex align-items-center px-0">Contact</label>
+                <label>@Model.Id - @Model.Name</label>
+                @if (Model.contactDeletedDate != null)
+                {<span class="font-italic" style="color: red;">&nbsp; (Deleted)</span>}
+
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3 text-center">
+            @if (Model.LogoImageBase64 != "" && Model.LogoImageBase64 != null)
+            {
+                <img src="@Model.LogoImageBase64" height="100" alt="Organisation Logo" />
+            }
+            else if (Model.CustomerLogoImageBinary != null)
+            {
+                var binaryImg = "data:image/png;base64, " + Convert.ToBase64String(Model.CustomerLogoImageBinary);
+                <img src="@binaryImg" height="100" alt="Organisation Logo" />
+            }
+        </div>
+        <div class="col-lg-4 mb-3 text-center">
+            <div class="row justify-content-lg-end">
+                @*<a>
+                        <i class="fal fa-folder-open fa-2x d-block"></i>
+                        KCI
+                    </a>*@
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="row">
+
+    <div class="col-lg-6">
+        <div id="panel-1" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-info-circle fa-2x"></i> &nbsp; &nbsp;
+                <h2>
+                    Contact information
+                </h2>
+            </div>
+            <div class="panel-container collapse" id="KeyInforParentPanel">
+                <div class="panel-content">
+                    <div class="container" id="KeyInfoPanel">
+                        <form id="KeyInfo">
+                            <div class="form-group row">
+                                <label class="form-label col-sm-3 form-control-md  d-flex align-items-center" for="simpleinput">Contact name:</label>
+                                <input onchange="UpdatingValue()" asp-for="@(Model.Name)" type="text" class="form-control col-sm-9 form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                            </div>
+                            <div class="form-group row">
+                                <label class="form-label col-sm-3 form-control-md  d-flex align-items-center" for="simpleinput">Contact ID number:</label>
+                                <label id="IDinput" class="form-control form-control-md rounded-0 col-sm-3 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.Id</label>
+                            </div>
+                            <div class="form-group row">
+                                <label class="form-label col-sm-3 form-control-md" for="simpleinput">Organisation:</label>
+                                <input type="text" onchange="UpdatingValue()" readonly class="form-control form-control-md col-sm-9 rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@Model.orgName">
+                            </div>
+                            <div class="form-group row">
+                                <label class="form-label col-sm-3 form-control-md" for="simpleinput">Job title:</label>
+                                <input onchange="UpdatingValue()" asp-for="@Model.JobTitle" type="text" id="TitleInput" class="form-control col-sm-9 form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">
+                            </div>
+                            <div class="form-group row">
+                                <label class="form-label col-sm-3 form-control-md" for="simpleinput">Department:</label>
+                                <input onchange="UpdatingValue()" asp-for="@Model.Department" type="text" class="form-control col-sm-9 form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                            </div>
+                            @if (Model.GDPRStatusId != 0 && Model.GDPRStatusId != 2)
+                            {
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 form-control-md" id="MoreDetails" onclick="OpenNumbers()" for="simpleinput" style="color:#BA9765; cursor:pointer"><u>More contact details</u></label>
+                                </div>
+                                <div class="form-group row" id="LandLineRowCountry" hidden>
+                                    <label class="form-label col-sm-3 form-control-md" for="simpleinput">Landline number:</label>
+                                    <select id="itemClientCountry" onchange="UpdatingValue()" class="form-control col-sm-3" style="width:auto" asp-for="LandlineCountryID" asp-items="Model.CountryNamesAndPrefix.Select(x => new SelectListItem(x.CountryName,x.Id.ToString()))">
+                                        <option value="0"></option>
+                                    </select>
+                                    <div class="col-0"></div>
+                                    <input onchange="UpdatingValue()" asp-for="@Model.LandlineNumber" type="text" class="form-control col-sm-5 form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                                </div>
+                                <div class="form-group row" id="MobileRowCountry" hidden>
+                                    <label class="form-label col-sm-3 form-control-md" for="simpleinput">Mobile number:</label>
+                                    <select id="itemClientCountry" onchange="UpdatingValue()" class="form-control col-sm-3" style="width:auto" asp-for="MobileCountryID" asp-items="Model.CountryNamesAndPrefix.Select(x => new SelectListItem(x.CountryName,x.Id.ToString()))">
+                                        <option value="0"></option>
+                                    </select>
+                                    <div class="col-0"></div>
+                                    <input asp-for="@Model.MobileNumber" onchange="UpdatingValue()" type="text" class="form-control col-sm-5 form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                                </div>
+                                <div class="form-group row" id="FaxRowCountry" hidden>
+                                    <label class="form-label col-sm-3 form-control-md" for="simpleinput">Fax number:</label>
+                                    <select id="itemClientCountry" onchange="UpdatingValue()" class="form-control col-sm-3" asp-for="FaxCountryID" asp-items="Model.CountryNamesAndPrefix.Select(x => new SelectListItem(x.CountryName,x.Id.ToString()))">
+                                        <option value="0"></option>
+                                    </select>
+                                    <div class="col-0"></div>
+                                    <input asp-for="@Model.FaxNumber" onchange="UpdatingValue()" type="text" class="form-control col-sm-5 form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 form-control-md  d-flex align-items-center" for="simpleinput">E-mail address:</label>
+                                    <input asp-for="@Model.EmailAddress" type="email" class="form-control col-sm-9 form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">
+                                </div>
+
+                            }
+
+                            <div class="form-group row">
+                                <label class="form-label col-sm-3 form-control-md" for="simpleinput">How did they hear about us:</label>
+                                <select id="TPIntroductionSource" onchange="UpdatingValue()" class="form-control col-sm-4" style="width:auto" asp-for="TPIntroductionSource" asp-items="Model.TPIntroductionSourceListIdAndName.Select(x => new SelectListItem(x.SourceName,x.Id.ToString()))">
+                                </select>
+                            </div>
+                            @if (Model.contactDeletedDate == null)
+                            {
+
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 form-control-md" for="simpleinput">i plus user name:</label>
+                                    @if (Model.iplusName != "")
+                                    {
+                                        <input readonly type="text" class="form-control col-sm-8 form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput" value="@Model.iplusName">
+                                        @*<a href="@("http://myplus/ExtranetUser.aspx?UserName=" + Model.iplusName)">
+                                                <img src="@Url.Content("~/img/cogwheel16.png")" />
+                                            </a>*@
+                                        <a data-toggle="modal" data-target="#extranetUserSettingsModal">
+                                            <img src="@Url.Content("~/img/cogwheel16.png")" />
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        @*<a href='@string.Format("http://myplus/EnableForExtranet.aspx?DataObjectTypeID=1&DataObjectID={0}", @Model.Id)' target="_blank" class="col-sm-4 form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">Enable for i plus access</a>*@
+                                        <a href="#" onclick="verifyEmailAddress('@Model.EmailAddress'); return false;">
+                                            Enable for i plus access
+                                        </a>
+
+                                    }
+
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 form-control-md" for="simpleinput">&nbsp; </label>
+                                    <label class="text-danger" id="no-email-add-label" hidden>Please add email address first to enable the contact for i plus</label>
+                                </div>
+                            }
+
+
+                            @if (Model.contactDeletedDate == null && Model.AccessToEditContact == true)
+                            {
+                                <div class="form-group-row d-flex flex-row-reverse">
+                                    <button id="keyInfoSave" class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                </div>
+                            }
+
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @if (Model.iplusName != null && Model.iplusName != "")
+    {
+        <div class="modal fade" id="extranetUserSettingsModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content border-0 shadow-3">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <strong><label id="modal_header1">i plus user details</label> </strong>
+                        </h5>
+                        <button type="submit" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                        </button>
+                    </div>
+                    <div class="modal-body bg-faded">
+                        <div class="col-lg-12">
+                            <div class="form-group row">
+                                <label class="form-label col-sm-3 form-control-md  d-flex align-items-center" for="username">User name:</label>
+                                @*<div class="col-lg-6">
+                                        <label class="form-label col-sm-3 form-control-md  d-flex align-items-center" for="username">User name:</label>
+                                    </div>*@
+                                <div class="col-lg-6">
+                                    <label>@Model.iplusName</label>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="form-label col-sm-3 form-control-md  d-flex align-items-center" for="username">Access level:</label>
+                                @*<div class="col-lg-6">
+
+                                    </div>*@
+                                <div class="col-lg-6">
+                                    @if (@Model.extranetUserObj != null)
+                                    {
+                                        <label>@Model.extranetUserObj.UserAccessLevel.AccessLevelName</label>
+                                    }
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="form-label col-sm-3 form-control-md  d-flex align-items-center" for="username">translate online:</label>
+                                @*<div class="col-lg-6">
+
+                                    </div>*@
+                                <div class="col-lg-6">
+                                    @if (@Model.extranetUserObj != null)
+                                    {
+                                        @if (Model.extranetUserObj.translateOnlineEnabled == true)
+                                        {
+                                            <label>Allowed</label>
+                                        }
+                                        else
+                                        {
+                                            <label>Not allowed</label>
+                                        }
+                                    }
+
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="form-label col-sm-3 form-control-md  d-flex align-items-center" for="username">design plus:</label>
+                                @*<div class="col-lg-6">
+
+                                    </div>*@
+                                <div class="col-lg-6">
+                                    @if (Model.extranetUserObj != null)
+                                    {
+                                        @if (Model.extranetUserObj.designPlusEnabled == true)
+                                        {
+                                            <label>Enabled</label>
+                                        }
+                                        else
+                                        {
+                                            <label>Not enabled</label>
+                                        }
+                                    }
+
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-lg-6">
+                                    <a href="@("http://myplus/ExtranetUser.aspx?UserName=" + Model.iplusName)" target="_blank">
+                                        View more i plus user details
+                                    </a>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="form-group row">
+                                <div class="col-lg-12">
+                                    <a class="btn btn-success" onclick="SendPasswordResetEmail()">Reset this user's password</a><br /><br />
+                                    <label id="ResetEmailSentMessage" class="text-warning" hidden><i>Password reset email has been sent to the client</i></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+
+    @if (Model.iplusName == null || Model.iplusName == "")
+    {
+        <div class="modal fade" id="enableIPlusLoginModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content border-0 shadow-3">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <strong><label id="modal_header1">Enable a user for access to i plus</label> </strong>
+                        </h5>
+                        <button type="submit" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                        </button>
+                    </div>
+                    <form class="needs-validation" id="enable-iplus-form" novalidate>
+                        <div class="modal-body bg-faded">
+                            <div class="col-lg-12">
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 form-control-md  d-flex align-items-center" for="access-level-select">Access level:</label>
+                                    <div class="col-lg-12">
+
+                                        <select required id="access-level-select" class="select2 form-control custom-select">
+                                            <option value="-1">(Please select)</option>
+                                            @for (var t = 0; t < Model.AllAvailableAccess.Count; t++)
+                                            {
+                                                <option value="@Model.AllAvailableAccess.ElementAtDynamic(t).Id">
+                                                    @Model.AllAvailableAccess.ElementAtDynamic(t).Name
+                                                </option>
+                                            }
+                                        </select>
+                                        <label class="text-warning" hidden id="access-level-warning">*Please select access level</label>
+
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 form-control-md  d-flex align-items-center" for="time-zone-select">Time zone:</label>
+                                    <div class="col-lg-12">
+                                        <select required id="time-zone-select" class="select2 form-control">
+                                            <option value="-1">(Please select)</option>
+                                            @for (var t = 0; t < Model.AllTimeZones.Count; t++)
+                                            {
+                                                <option value="@Model.AllTimeZones.ElementAtDynamic(t).Id">
+                                                    @Model.AllTimeZones.ElementAtDynamic(t).DisplayName
+                                                </option>
+                                            }
+                                        </select>
+                                        <label class="text-warning" hidden id="time-zone-warning">*Please select time zone</label>
+                                    </div>
+                                </div>
+
+                                @if (Model.orgTranslateOnlineStatus != null)
+                                {
+                                    <div class="form-group row">
+                                        &nbsp;
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-lg-6">
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" id="translateOnlineSwitch" disabled="@(Model.orgTranslateOnlineRemainingUsers <= 0)">
+                                                <label class="custom-control-label" for="translateOnlineSwitch">translate online</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            <label hidden="@(Model.orgTranslateOnlineRemainingUsers > 0)" class="text-warning">No more users can be allowed to use translate online</label>
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (Model.orgDesignPlusStatus != null)
+                                {
+                                    <div class="form-group row">
+                                        <div class="col-lg-6">
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" id="designPlusSwitch" disabled="@(Model.orgTranslateOnlineRemainingUsers <= 0)">
+                                                <label class="custom-control-label" for="designPlusSwitch">design plus</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-12">
+                                            <label hidden="@(Model.orgTranslateOnlineRemainingUsers > 0)" class="text-warning">No more users can be enabled for design plus</label>
+                                        </div>
+                                    </div>
+                                    <br />
+                                }
+
+                                <div class="form-group row">
+                                    <div class="col-lg-12">
+                                        <div class="panel-tag">
+                                            <label class="custom-control-label font-italic">Once you click on "Enable" button, client will be automatically sent an email to create their password.</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    &nbsp;
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-lg-12">
+                                        <a class="btn btn-success" onclick="enableIplusUser(event);">Enable</a><br /><br />
+                                        @*<button type="submit" class="btn btn-success" onclick="enableIplusUser(event);">Enable</button>*@<br /><br />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    }
+
+
+    <div class="modal fade" id="iPlusUserCreatedModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-3">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <strong><label id="modal_header1">i plus user created</label> </strong>
+                    </h5>
+                    <button type="submit" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body bg-faded">
+                    <div class="col-lg-12">
+                        i plus user created with username <label class="font-weight-bold" id="iplus-user-name-label"></label>.<br /><br />Contact has been sent an email with details to create their password.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div id="panel-2" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-info fa-2x"></i> &nbsp; &nbsp;
+                <h2>
+                    Other
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content">
+                            <div class="h-100" style="width:100%">
+                                <div class="d-flex flex-row px-3 pt-3 pb-2">
+                                    <table width="100%">
+                                        <tr style="height:1px;">
+                                            <td height="1">
+                                                <label class="form-label form-control-md" for="simpleinput">Contact added on:</label>
+                                            </td>
+                                            <td height="1">
+                                                <input type="text" readonly="readonly" id="SetUpDateinput" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@Model.contactCreatedOn">
+                                            </td>
+                                        </tr>
+                                        <tr style="height:1px;">
+                                            <td height="1"> <label class="form-label form-control-md" for="simpleinput">Created by:</label></td>
+                                            <td height="1">
+
+                                                <div class="form-group row">
+
+                                                    @*<label class="form-label col-sm-9">Some name here</label>*@
+                                                    <div class="form-label col-sm-9">@await Component.InvokeAsync("EmployeeDetails", new { employeeId = Model.contactCreatedBy })</div>
+                                                </div>
+
+                                            </td>
+                                        </tr>
+                                        <tr style="height:1px;">
+                                            <td height="1">
+                                                <label class="form-label form-control-md" for="simpleinput">Details last modified on:</label>&nbsp;
+                                            </td>
+                                            @if (Model.contactModifiedBy != null)
+                                            {
+                                                <td height="1">
+                                                    <input type="text" readonly="readonly" id="LastModifiedDateinput" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@Model.contactModified">
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td height="1">
+                                                    <input type="text" readonly="readonly" id="LastModifiedDateinput" class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="(never)">
+                                                </td>
+                                            }
+
+                                        </tr>
+                                        <tr style="height:1px;">
+                                            <td height="1">
+                                                <label class="form-label form-control-md" for="simpleinput">Last modified by:</label>
+                                            </td>
+                                            <td height="1">
+
+                                                <div class="form-group row">
+
+
+                                                    @if (Model.contactModifiedBy == null)
+                                                    {
+                                                        <div class="form-label col-sm-9">
+                                                            <label class="form-label form-control-md col-sm-9">N/A</label>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="form-label col-sm-9">
+                                                            @await Component.InvokeAsync("EmployeeDetails", new { employeeId = Model.contactModifiedBy })
+                                                        </div>
+                                                    }
+                                                </div>
+
+
+                                            </td>
+                                        </tr>
+                                        <tr style="height:1px;">
+                                            <td height="1">
+                                                <label class="form-label form-control-md" for="simpleinput">GDPR status:</label>&nbsp;
+                                            </td>
+                                            <td height="1">
+                                                <label class="form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">@Html.Raw(Model.GDPRStatus)</label>
+                                            </td>
+
+                                        </tr>
+
+
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-lg-6">
+        <div id="panel-3" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-list-alt fa-2x"></i> &nbsp; &nbsp;
+                <h2>
+                    Notes
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content;">
+                            <div class="h-100" style="width:100%" id="NotesPanel">
+                                <form id="NotesForm">
+                                    <div class="px-3 pt-3 pb-2">
+                                        <div style="white-space: nowrap;">
+                                            <textarea asp-for="@Model.notes" onchange="UpdatingValueNotes()" style="width:100%; height: 100px;"></textarea>
+                                            <br />
+                                            @if (Model.contactDeletedDate == null && Model.AccessToEditContact == true)
+                                            {<div class="form-group-row d-flex flex-row-reverse">
+                                                    <button id="notesSave" class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                                    &nbsp;
+                                                </div>}
+
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-lg-6">
+        <div id="panel-4" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-cogs fa-2x"></i> &nbsp; &nbsp;
+                <h2>
+                    Contact account settings
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div class="container" id="AccountSettingsPanel">
+                        <form id="ContactSettingsForm">
+                            <div class="form-group row">
+
+                                <div class="custom-control custom-switch col-sm-9">
+                                    @*@if (Model.ApprovedHighLowMargin == true)
+                                        {<input type="checkbox" asp-for="@Model.ApprovedHighLowMargin" checked class="custom-control-input" id="HighLowInput">}
+                                        else
+                                        { <input type="checkbox" class="custom-control-input" id="HighLowInput">}*@
+                                    @{ var AccessToEditHighLowMargin = Model.AccessToEditHighLowMargin;}
+                                    <input type="checkbox" onchange="UpdatingValueSettings()" asp-for="@Model.ApprovedHighLowMargin" class="custom-control-input" id="ApprovedHighLowMargin" disabled="!@AccessToEditHighLowMargin">
+                                    <label class="custom-control-label" for="ApprovedHighLowMargin">High/low margin approval</label>
+                                </div>
+
+                                <div class="custom-control custom-switch col-sm-9">
+                                    @*@if (Model.ExcludeZeroMargin == true)
+                                        {<input type="checkbox" checked class="custom-control-input" id="ZeroMargin">}
+                                        else
+                                        { <input type="checkbox" class="custom-control-input" id="ZeroMargin">}*@
+                                    @{ var AccessToEditExcludeZeroMargin = Model.AccessToEditExcludeZeroMargin;}
+                                    <input type="checkbox" onchange="UpdatingValueSettings()" asp-for="@Model.ExcludeZeroMargin" class="custom-control-input" id="ExcludeZeroMargin" disabled="!@AccessToEditExcludeZeroMargin">
+                                    <label class="custom-control-label" for="ExcludeZeroMargin">Exclude zero-margin & zero-client costs from approvals</label>
+                                </div>
+
+                                <div class="custom-control custom-switch col-sm-9">
+                                    @*@if (Model.NotifyOnlyWhenLastJob == true)
+                                        {<input type="checkbox" checked class="custom-control-input" id="LastJob">}
+                                        else
+                                        { <input type="checkbox" class="custom-control-input" id="LastJob">}*@
+                                    <input type="checkbox" onchange="UpdatingValueSettings()" asp-for="@Model.NotifyOnlyWhenLastJob"
+                                           class="custom-control-input" id="NotifyOnlyWhenLastJob">
+                                    <label class="custom-control-label" for="NotifyOnlyWhenLastJob">Notify on last job item delivery only</label>
+                                </div>
+
+                                <div class="custom-control custom-switch col-sm-9">
+                                    @*@if (Model.Notifications == true)
+                                        {<input type="checkbox" checked class="custom-control-input" id="Notifications">}
+
+                                        else
+                                        { <input type="checkbox" class="custom-control-input" id="Notifications">
+                                        }*@
+                                    <input type="checkbox" onchange="UpdatingValueSettings()" asp-for="@Model.Notifications" class="custom-control-input" id="Notifications">
+                                    <label class="custom-control-label" for="Notifications">Additional e-mail address to be included</label>
+                                </div>
+
+                                <div class="custom-control custom-switch col-sm-9" id="NotificationEmails" hidden>
+                                    <textarea onchange="UpdatingValueSettings()" asp-for="@Model.NotificationEmails" style="width:100%; height: 100px;"></textarea>
+                                </div>
+
+                                <div class="custom-control custom-switch col-sm-9">
+                                    @if (Model.ContacRelatedAlerts > 0)
+                                    {<input type="checkbox" checked class="custom-control-input" id="ContacRelatedAlertsBool">
+                                        <label class="custom-control-label" for="ContacRelatedAlertsBool">Alert if contact stops sending after @Html.Raw(Model.ContacRelatedAlerts)  day(s)</label>}
+                                    else
+                                    { <input type="checkbox" class="custom-control-input" id="ContacRelatedAlertsBool">
+                                        <label class="custom-control-label" for="ContacRelatedAlertsBool">Alert if contact stops sending</label>}
+                                    <input id="ContacRelatedAlerts" onchange="UpdatingValueSettings()" placeholder="day(s)" hidden type="number" asp-for="@Model.ContacRelatedAlerts" class="form-control form-control-lg rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">
+                                </div>
+
+                                <div class="custom-control custom-switch col-sm-9">
+                                    <input type="checkbox" onchange="UpdatingValueSettings()" asp-for="@Model.OptedInForMarketingCampaign" class="custom-control-input" id="OptedInForMarketingCampaign">
+                                    <label class="custom-control-label" for="OptedInForMarketingCampaign">Opted in for direct marketing</label>
+                                </div>
+
+                            </div>
+                            @if (Model.contactDeletedDate == null && Model.AccessToEditContact == true)
+                            {
+                                <div class="form-group-row d-flex flex-row-reverse">
+                                    <button id="AccountSettingsSave" class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" style="float:right;" title="Save"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                </div>
+                            }
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @if (Model.contactDeletedDate == null)
+    {<div class="col-lg-12">
+            <div class="panel panel-locked" data-panel-lock="false" data-panel-close="false" data-panel-fullscreen="false" data-panel-collapsed="true" data-panel-color="false" data-panel-locked="false" data-panel-refresh="false" data-panel-reset="false">
+                <div class="panel-hdr">
+                    <h2>
+                        Action Centre
+                    </h2>
+                </div>
+                <div class="panel-hdr">
+                    <div class="panel-toolbar pr-3 align-self-end">
+                        <ul id="demo_panel-tabs" class="nav nav-tabs border-bottom-0 nav-tabs-clean" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-toggle="tab" href="#tab_default-1" role="tab"><i class="fal fa-ballot-check fa-1x"></i>&nbsp;Reports</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-toggle="tab" href="#tab_default-2" role="tab"><i class="fal fa-cogs fa-1x"></i>&nbsp;Contact management</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-toggle="tab" href="#tab_default-3" role="tab"><i class="fal fa-money-bill-wave fa-1x"></i>&nbsp;Price lists</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="tab-content p-3">
+                    <div class="tab-pane fade show active" id="tab_default-1" role="tabpanel">
+                        <div class="row justify-content-center">
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a target="_blank" href='@string.Format("http://myplus/ClientStatusReportGeneric.aspx?ContactID={0}", @Model.Id)' class="btn">
+                                        <div class="rounded-top w-100 bg-danger-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base base-7 icon-stack-3x opacity-100 color-success-600" style="color: #af37ff !important"></i>
+                                                    <i class="base base-7 icon-stack-2x opacity-100 color-success-700" style="color: #b951ff !important"></i>
+                                                    <i class="ni ni-list icon-stack-1x opacity-100 text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Client status report</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href='@string.Format("http://myplus/PunctualityReport.aspx?ContactID={0}", @Model.Id)' target="_blank" class="btn">
+                                        <div class="rounded-top w-100 bg-danger-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base-7 icon-stack-3x color-primary-500" style="color: #af37ff !important"></i>
+                                                    <i class="base-7 icon-stack-2x color-primary-500" style="color: #b951ff !important"></i>
+                                                    <i class="ni ni-clock color-primary-500 icon-stack-1x text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Punctuality report</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tab_default-2" role="tabpanel">
+                        <div class="row justify-content-center">
+
+                            @{
+                                string contactLink = "javascript:void(0);";
+                                if (Model.contactDeletedDate == null && Model.AccessToEditContact == true)
+                                    contactLink = String.Format("http://myplus/MoveContact.aspx?ContactID={0}", @Model.Id);
+                            }
+                            <div class="col col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href='@contactLink' class="btn">
+                                        <div class="rounded-top w-100 bg-info-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base-7 icon-stack-3x color-primary-600" style="color: #3787ff !important"></i>
+                                                    <i class="base-7 icon-stack-2x color-primary-700" style="color: #0468ff !important"></i>
+                                                    <i class="ni ni-arrow-right icon-stack-1x text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Move this contact</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            @{
+                                string salesLink = "javascript:void(0);";
+                                if (Model.contactDeletedDate == null)
+                                    salesLink = String.Format("http://myplus/SalesHotListEntryAddOrRemove.aspx?Mode=Add&AppliesToDataObjectTypeID=1&AppliesToDataObjectID={0}&OwnerEmployeeID=9", @Model.Id);
+                            }
+                            <div class="col col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href='@salesLink' class="btn">
+                                        <div class="rounded-top w-100 bg-info-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base-7 icon-stack-3x color-primary-600" style="color: #3787ff !important"></i>
+                                                    <i class="base-7 icon-stack-2x color-primary-700" style="color: #0468ff !important"></i>
+                                                    <i class="ni ni-plus icon-stack-1x text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Add to sales hot list</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            @{
+                                string deleteLink = "javascript:void(0);";
+                                if (Model.contactDeletedDate == null && Model.AccessToEditContact == true)
+                                    deleteLink = String.Format("http://myplus/ConfirmContactDeletion.aspx?ContactID={0}", @Model.Id);
+                            }
+                            <div class="col col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href='@deleteLink' target="_blank" class="btn">
+                                        <div class="rounded-top w-100 bg-fusion-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base-2 icon-stack-3x color-primary-600" style="color: #505050 !important"></i>
+                                                    <i class="base-3 icon-stack-2x color-primary-700" style="color: black !important"></i>
+                                                    <i class="ni ni-trash icon-stack-1x text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Delete this contact</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tab_default-3" role="tabpanel">
+                        <div class="row justify-content-center">
+                            <div class="col col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href='@string.Format("http://myplus/PriceListAutomationManagement.aspx?OrgGroupID={0}", Model.GroupID)' target="_blank" class="btn">
+                                        <div class="rounded-top w-100 bg-success-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base-7 icon-stack-3x color-primary-600" style="color: #35d28e !important"></i>
+                                                    <i class="base-7 icon-stack-2x color-primary-700" style="color: #2bc381 !important"></i>
+                                                    <i class="ni ni-settings icon-stack-1x text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Price lists for automation</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>}
+
+    <div class="col-lg-12">
+        @*Job orders*@
+        <div class="panel panel-locked" data-panel-locked data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+
+                    Job orders&nbsp;
+                    @if (Model.contactDeletedDate == null && Model.AccessToAddJobOrder == true)
+                    {<a asp-controller="TMSJobOrder" asp-action="CreateJobOrder" asp-route-ContactID="@Model.Id" target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>}
+
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div style="width:100%">
+                        @*<component type="typeof(AllJobOrdersComponent)" render-mode="ServerPrerendered" param-DataObjectId="@Model.Organisation.Id" param-DataTypeId="@(((int)Global_Settings.Enumerations.DataObjectTypes.Org))" />*@
+                        @*@(await Html.RenderComponentAsync<AllJobOrdersComponent>(RenderMode.ServerPrerendered, new {DataObjectId = Model.Organisation.Id, DataTypeId=((int)Global_Settings.Enumerations.DataObjectTypes.Org)}))*@
+                        @*<component type="typeof(SmartAdmin.WebUI.Pages.HelloWorld)" render-mode="ServerPrerendered"></component>*@
+                        <table id="dt-all-orders-component" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color: #e84133">
+                                <tr>
+                                    <th>Job ID</th>
+                                    <th>Enquiry ID</th>
+                                    <th>Job</th>
+                                    <th>Contact</th>
+                                    <th>Source Languages</th>
+                                    <th>Target Languages</th>
+                                    <th>Status</th>
+                                    <th>Submission date</th>
+                                    <th>Delivery deadline</th>
+                                    <th>Margin</th>
+                                    <th>Client costs</th>
+
+                                </tr>
+                            </thead>
+
+                            @*<tfoot>
+                                    <tr>
+                                        <th>Job ID</th>
+                                        <th>Enquiry ID</th>
+                                        <th>Job</th>
+                                        <th>Contact</th>
+                                        <th>Source</th>
+                                        <th>Target</th>
+                                        <th>Status</th>
+                                        <th>Submission date</th>
+                                        <th>Delivery deadline</th>
+                                        <th>Margin</th>
+                                        <th>Client costs</th>
+                                    </tr>
+                                </tfoot>*@
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        @*Enquiries*@
+        <div class="panel panel-locked" data-panel-locked data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+
+                    Enquiries
+                    @if (Model.contactDeletedDate == null && Model.AccessToEditContact == true)
+                    //{<a href="@("http://myplus/Enquiry.aspx?Mode=Add&ContactID=" + Model.Id)" target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>}
+                    {<a asp-controller="Enquiry" asp-action="NewEnquiry" asp-route-ContactID=@Model.Id target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-html="true" data-content="Add enquiry"></i></a>}
+
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div>
+                        <table id="dt-all-enquiries-component" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color: #e84133">
+                                <tr>
+                                    <th>Enquiry ID</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Source Languages</th>
+                                    <th>Target Languages</th>
+                                    <th>Decision Reason</th>
+                                    <th>Value</th>
+                                    <th>Deadline</th>
+                                    <th>Created</th>
+                                    <th>Last Modified</th>
+                                    <th>Created By Employee</th>
+                                    <th>Sales Contact</th>
+                                </tr>
+                            </thead>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="panel panel-locked" data-panel-locked data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+
+                    Price Lists
+                    @if (Model.contactDeletedDate == null && Model.AccessToEditPriceList == true)
+                    {<a href="@("http://myplus/ClientPriceList.aspx?Mode=Add&DataObjectTypeID=1&DataObjectID=" + Model.Id)" target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>}
+
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div>
+                        <table id="dt-all-price-lists" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color:#E84133">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Currency</th>
+                                    <th>In force since</th>
+                                    <th>Applies to</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Currency</th>
+                                    <th>In force since</th>
+                                    <th>Applies to</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        @*Approved/blocked linguistic suppliers*@
+        <div class="panel panel-locked" data-panel-locked data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+
+                    Approved / blocked linguistic suppliers
+                    @if (Model.contactDeletedDate == null && Model.AccessToEditContact == true)
+                    {<a href='@string.Format("http://myplus/ApprovedOrBlockedLinguisticSupplier.aspx?Mode=Add&DataObjectID={0}&DataObjectTypeID=1", @Model.Id)' target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>}
+
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div>
+                        <table id="dt-approved-linguists" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color:#E84133">
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Source</th>
+                                    <th>Target</th>
+                                    <th>Linguistic supplier</th>
+                                    <th>Status</th>
+                                    <th>Working pattern</th>
+                                    <th>Working hours (UK time)</th>
+                                    <th>Default software</th>
+                                    <th>Applies to</th>
+                                    <th>Notes</th>
+                                    @*<th>Action</th>*@
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Source</th>
+                                    <th>Target</th>
+                                    <th>Linguistic supplier</th>
+                                    <th>Status</th>
+                                    <th>Working pattern</th>
+                                    <th>Working hours (UK time)</th>
+                                    <th>Default software</th>
+                                    <th>Applies to</th>
+                                    <th>Notes</th>
+                                    @*<th>Action</th>*@
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        @*Quote Templates*@
+        <div class="panel panel-locked" data-panel-locked data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+
+                    Quote Templates
+                    @if (Model.contactDeletedDate == null && Model.AccessToEditPriceList == true)
+                    {<a href="@("http://myplus/QuoteTemplate.aspx?Mode=Add&DataObjectTypeID=1&DataObjectID=" + Model.Id)" target="_blank" class="btn p-1"><i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;"></i></a>}
+
+                </h2>
+            </div>
+            <div class="panel-container collapse">
+                <div class="panel-content">
+                    <div>
+                        <table id="dt-quote-templates" class="table-sm table table-bordered table-hover table-striped w-100">
+                            <thead style="background-color:#E84133">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Language</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Last Modified</th>
+                                    <th>Created by</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Language</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Last Modified</th>
+                                    <th>Created by</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section ScriptsBlock {
+    <script type="text/javascript">
+        /* Activate smart panels */
+        $('#js-page-content').smartPanel();
+    </script>
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="~/js/miscellaneous/fullcalendar/fullcalendar.bundle.js"></script>
+    <script src="~/js/statistics/sparkline/sparkline.bundle.js"></script>
+    <script src="~/js/statistics/easypiechart/easypiechart.bundle.js"></script>
+    <script src="~/js/statistics/flot/flot.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/miscellaneous/jqvmap/jqvmap.bundle.js"></script>
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script>
+
+        var butID = undefined;
+
+        $('.btn-outline-default').on('click', function (e) {
+            e.preventDefault();
+            let formId = $(this).parents("form").attr("id");
+            butID = $(this).attr("id");
+
+
+            let data = {
+                @nameof(Model.SectionToUpdate): formId,
+                @nameof(Model.EmployeCurrentlyLoggedInID) : @Model.EmployeCurrentlyLoggedInID,
+                "@nameof(Model.Id)": @Model.Id.ToString(),
+                // key info
+                "@nameof(Model.Name)": $('input[name="@(nameof(Model.Name))"]').val(),
+                    "@nameof(Model.JobTitle)": $('input[name="@(nameof(Model.JobTitle))"]').val(),
+                        "@nameof(Model.Department)": $('input[name="@(nameof(Model.Department))"]').val(),
+                            "@nameof(Model.LandlineNumber)": $('input[name="@(nameof(Model.LandlineNumber))"]').val(),
+                                "@nameof(Model.MobileNumber)": $('input[name="@(nameof(Model.MobileNumber))"]').val(),
+                                 "@nameof(Model.FaxNumber)": $('input[name="@(nameof(Model.FaxNumber))"]').val(),
+                                  "@nameof(Model.LandlineCountryID)": $('select[name="@(nameof(Model.LandlineCountryID))"]').find(':selected').val(),
+                                    "@nameof(Model.MobileCountryID)": $('select[name="@(nameof(Model.MobileCountryID))"]').find(':selected').val(),
+                                    "@nameof(Model.FaxCountryID)": $('select[name="@(nameof(Model.FaxCountryID))"]').find(':selected').val(),
+                                          "@nameof(Model.TPIntroductionSource)": $('select[name="@(nameof(Model.TPIntroductionSource))"]').find(':selected').val(),
+                                        "@nameof(Model.EmailAddress)": $('input[name="@(nameof(Model.EmailAddress))"]').val(),
+                                          "@nameof(Model.notes)": $('textarea[name="@(nameof(Model.notes))"]').val(),
+                                            "@nameof(Model.ApprovedHighLowMargin)": $('input[name="@(nameof(Model.ApprovedHighLowMargin))"]').prop('checked'),
+                                              "@nameof(Model.NotifyOnlyWhenLastJob)": $('input[name="@(nameof(Model.NotifyOnlyWhenLastJob))"]').prop('checked'),
+                                                "@nameof(Model.ExcludeZeroMargin)": $('input[name="@(nameof(Model.ExcludeZeroMargin))"]').prop('checked'),
+                                                  "@nameof(Model.Notifications)": $('input[name="@(nameof(Model.Notifications))"]').prop('checked'),
+                                                     "@nameof(Model.NotificationEmails)": $('textarea[name="@(nameof(Model.NotificationEmails))"]').val(),
+                                                      "@nameof(Model.ContacRelatedAlerts)": $('input[name="@(nameof(Model.ContacRelatedAlerts))"]').prop('checked'),
+                                                       "@nameof(Model.OptedInForMarketingCampaign)": $('input[name="@(nameof(Model.OptedInForMarketingCampaign))"]').prop('checked')
+        }
+
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/ContactUpdate",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function (data) {
+                    //confirm update was successfull
+
+                    $("#" + butID).css({ background: 'lightgreen' });
+
+                    $('.error-span').remove();
+
+                    setTimeout(function () { btnWhite(butID)}, 2500);
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+        });
+        function UpdatingValue() {
+
+            $('#keyInfoSave').css({ background: 'red' });
+
+        }
+        function OpenNumbers() {
+            if ($("#LandLineRowCountry").is(":hidden")) {
+/*                $('#LandLineRowNumber').removeAttr('hidden');*/
+                $('#LandLineRowCountry').removeAttr('hidden');
+                $('#FaxRowCountry').removeAttr('hidden');
+            /*    $('#FaxRowNumber').removeAttr('hidden');*/
+               /* $('#MobileRowNumber').removeAttr('hidden');*/
+                $('#MobileRowCountry').removeAttr('hidden');
+                $('#MoreDetails').text("Less contact details");
+                $('#MoreDetails').css({"text-decoration": "underline" });
+            }
+            else {
+               /* $('#LandLineRowNumber').attr('hidden', 'hidden');*/
+                $('#LandLineRowCountry').attr('hidden', 'hidden');
+                $('#FaxRowCountry').attr('hidden', 'hidden');
+               /* $('#FaxRowNumber').attr('hidden', 'hidden');*/
+        /*        $('#MobileRowNumber').attr('hidden', 'hidden');*/
+                $('#MobileRowCountry').attr('hidden', 'hidden');
+                $('#MoreDetails').text("More contact details");
+                $('#MoreDetails').css({"text-decoration": "underline" });
+            }
+
+        }
+
+        function UpdatingValueNotes() {
+
+            $('#notesSave').css({ background: 'red' });
+
+        }
+
+        function getDateString(date) {
+            var dataObj = new Date(date);
+            var dayofweek = dataObj.toLocaleString('default', { weekday: 'short' });
+            var month = dataObj.toLocaleString('default', { month: 'long' });
+            var day = dataObj.getUTCDate();
+            var year = dataObj.getUTCFullYear();
+            return dayofweek + " " + day + " " + month + " " + year;
+
+        }
+
+        function btnWhite(butID) {
+            $("#" + butID).css({ background: 'white' });
+        }
+         function initializeEnquiriesTable() {
+            var dataObjectId = @Model.Id;
+            var dataTypeId = @(((int)Global_Settings.Enumerations.DataObjectTypes.Contact));
+
+            $("#dt-all-enquiries-component").dataTable(
+            {
+                processing: true,
+                    serverSide: true,
+                    searching: true,
+                ajax: {
+                    contentType: "application/json; charset=utf-8",
+                    url: "/api/components/GetAllEnquiriesDataTableComponentData",
+                    type: 'POST',
+                    data: function (d) {
+                        return JSON.stringify({ parameters: d, dataObjectId, dataTypeId });
+                    }
+                    },
+                    order: [[8, "desc"]],
+                lengthMenu: [10, 20, 50, 100, 200],
+
+                columns: [
+                    {
+                        "data": "id",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    //let link = `https://myplusbeta.publicisgroupe.net/enquiry?ID=${row.id}`;
+                                    let link = `Enquiry?id=${row.id}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }},
+                    {
+                        "data": "enqName",
+
+                    },
+                    { "data": "enqStatus" },
+                    { "data": "sourceLanguagesCombined" },
+                    { "data": "targetLanguagesCombined" },
+                    { "data": "enqReason" },
+                    { "data": "enqCurrencyName",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == '(none)') {
+                                    return 'N/A';
+                                }
+                                else {
+                                    if (data == "") {
+                                        return "";
+                                    }
+                                    else {
+                                        const fraction = new Intl.NumberFormat('en-GB', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                        });
+
+                                        return `${data}${fraction.format(row.enqValue)}`;
+
+                                    }
+                                }
+                            }
+                            return data;
+                        } },
+                    {
+                        "data": "deadline",
+                        render: function (data, type, row, meta) {
+                            if (data == "1989-01-01T00:00:00") {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        } },
+                    {
+                        "data": "submittedDateTime",
+                        render: function (data, type, row, meta) {
+                            if (data == "1989-01-01T00:00:00") {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        } },
+                    {
+                        "data": "enqModified",
+                        render: function (data, type, row, meta) {
+                            if (data == "1989-01-01T00:00:00") {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        } },
+                    { "data": "submittedBy",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == '(none)') {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplusbeta.publicisgroupe.net/HR/EmployeeProfile/${row.submittedByID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        } },
+                    {
+                        "data": "enqSales",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == '(none)') {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplusbeta.publicisgroupe.net/HR/EmployeeProfile/${row.enqSalesID}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }
+                    }
+
+                ],
+                fixedHeader: true,
+                colReorder: true,
+                responsive: true,
+                dom:
+                    "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-outline-default'
+                    },
+                    {
+                        extend: 'colvis',
+                        text: 'Column Visibility',
+                        titleAttr: 'Col visibility',
+                        className: 'btn-outline-default'
+                    }
+                ]
+            });
+        }
+
+                function initializeApprovedLinguistsTable() {
+        var dataSet = @Html.Raw(JsonSerializer.Serialize( Model.ApprovedOrBlockedLinguists ));
+
+            $('#dt-approved-linguists').dataTable(
+            {
+                    data: dataSet,
+                    searching: true,
+                dataSrc: "",
+                columns: [
+                    { "data": "LanguageServiceName" },
+                    { "data": "SourceLangName" },
+                    { "data": "TargetLangName" },
+                    {
+                        "data": "LinguistName",
+                        "defaultContent": "N/A",
+                        render: function (data, type, row, meta) {
+                            if (type == "display") {
+                                let link = `https://myplusbeta.publicisgroupe.net/Linguist?id=${row.LinguistId}`;
+                                return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                            }
+                        }
+                    },
+                    {
+                        "data": "StatusString",
+                        "defaultContent": "N/A",
+                        render: function (data, type, row, meta) {
+                            if (type == "display") {
+
+                                switch (row.Status) {
+                                        case @((int)Enumerations.SupplierStatus.Blocked):
+                                            //return `<span style="color: red;">Blocked (don't use for this client)</span>`;
+                                            return `<span style="color: red;">${data}</span>`;
+                                        break;
+                                        case @((int)Enumerations.SupplierStatus.TemporarilyUnavailable):
+                                            //return `<span style="color: red;">Temporarily unavailable</span>`;
+                                            return `<span style="color: red;">${data}</span>`;
+                                        break;
+                                        case @((int)Enumerations.SupplierStatus.ApprovedByTheEndClient):
+                                            //return `<span style="color: green;">Approved (by the client)</span>`;
+                                            return `<span style="color: green;">${data}</span>`;
+                                        break;
+                                        case @((int)Enumerations.SupplierStatus.ApprovedByUsOnly):
+                                            //return `<span style="color: green;">Approved (by us, but not by the client)</span>`;
+                                            return `<span style="color: green;">${data}</span>`;
+                                        break;
+                                        default:
+                                            return 'N/A';
+                                }
+                            }
+                        }},
+                    { "data": "WorkingPatternString"},
+                    { "data": "WorkingTime"},
+                    { "data": "SoftwareApplication"},
+                    { "data": "AppliesToTypeString"},
+                    { "data": "Notes"}//,
+                    //{
+                    //    "data": null,
+                    //    "defaultContent": "N/A",
+                    //    render: function (data, type, row, meta) {
+                    //        if (type == "display") {
+                    //            //return '<a class="delete-iplusfileBtn" href="javascript:void(0);" >' + data + '</a>';
+                    //            return '<div class="d-flex"><button href="javascript:void(0);" class="btn btn-sm btn-icon btn-outline-warning rounded-circle mr-1" data-absolutepath="" ><i class="fal fa-ellipsis-v"></i></button>' + '<button href="javascript:void(0);" class="btn btn-sm btn-icon btn-outline-danger rounded-circle" ><i class="fal fa-times"></i></button></div>';
+                    //        }
+                    //    }
+                    //}
+                    ],
+                 "order": [[3, "asc"]],
+                colReorder: true,
+                responsive: true,
+                dom:
+                    "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-outline-default'
+                    },
+                    {
+                        extend: 'colvis',
+                        text: 'Column Visibility',
+                        titleAttr: 'Col visibility',
+                        className: 'btn-outline-default'
+                    }
+                ],
+
+                initComplete: function () {
+                    this.api().columns().every(function () {
+                        var column = this;
+                        var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                            .appendTo($(column.footer()).empty())
+                            .on('change', function () {
+                                var val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            select.append('<option value="' + d + '">' + d + '</option>')
+                        });
+                    });
+                }
+            });
+        }
+                 function initializeJobOrdersTable() {
+            var dataObjectId = @Model.Id;
+            var dataTypeId = @(((int)Global_Settings.Enumerations.DataObjectTypes.Contact));
+
+        $("#dt-all-orders-component").dataTable(
+            {
+                processing: true,
+
+                serverSide: true,
+                ajax: {
+                    contentType: "application/json; charset=utf-8",
+                    url: "/api/components/GetAllJobOrdersDataTableComponentData",
+                    type: 'POST',
+                    data: function (d) {
+                        return JSON.stringify({ parameters: d, dataObjectId, dataTypeId });
+                    }
+                },
+                searching: true,
+                order: [[7, "desc"]],
+                lengthMenu: [10, 20, 50, 100, 200],
+                columns: [
+                    {
+                        "data": "jobOrderId",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                let link = `https://myplusbeta.publicisgroupe.net/tmsjoborder/joborder?joborderid=${row.jobOrderId}`;
+
+                                return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                            }
+                            return data;
+                        }},
+                    {
+                        "data": "enquiryId",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    //let link = `https://myplusbeta.publicisgroupe.net/enquiry?ID=${row.enquiryId}`;
+                                    let link = `http://myplusbeta/Enquiry?id=${row.enquiryId}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "jobOrderName"
+
+                    },
+
+                    {
+                        "data": "contactName",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                let link = `https://myplusbeta.publicisgroupe.net/Contact?ContactID=${row.contactId}`;
+
+                                return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                            }
+                            return data;
+                        }
+                    },
+                    { "data": "sourceLangsCombined" },
+                    { "data": "targetLangsCombined" },
+                    { "data": "status" },
+                    {
+                        "data": "submittedDate",
+                        render: function (data, type, row, meta) {
+                            if (data == "1989-01-01T00:00:00") {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        } },
+                    {
+                        "data": "deliveryDeadline",
+                        render: function (data, type, row, meta) {
+                            if (data == "1989-01-01T00:00:00") {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        } },
+                    {
+                        "data": "margin",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                const fraction = new Intl.NumberFormat('en-GB', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                });
+
+                                return `${fraction.format(data)}`;
+
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data": "value",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                const fraction = new Intl.NumberFormat('en-GB', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                });
+
+                                return `${row.currency}${fraction.format(data)}`;
+                            }
+                            return data;
+                        }
+                    }
+                ],
+                fixedHeader: true,
+                colReorder: true,
+                responsive: true,
+                dom:
+                    "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-outline-default'
+                    },
+                    {
+                        extend: 'colvis',
+                        text: 'Column Visibility',
+                        titleAttr: 'Col visibility',
+                        className: 'btn-outline-default'
+                    }
+                ]
+            });
+        }
+
+          function initializePriceListsTable() {
+        var dataSet = @Html.Raw(JsonSerializer.Serialize( Model.AllPriceLists ));
+
+        $('#dt-all-price-lists').dataTable(
+            {
+                data: dataSet,
+                searching: true,
+                dataSrc: "",
+                columns: [
+                    {
+                        "data": "Id",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `http://myplus/ClientPriceList.aspx?PriceListID=${row.Id}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        } },
+                    { "data": "Name"
+                    },
+                    { "data": "CurrencyName" },
+                    {
+                        "data": "InForce",
+                        render: function (data, type, row, meta) {
+                            if (data == "1989-01-01T00:00:00") {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        }
+                    },
+                    { "data": "AppliesToTypeString" }
+                ],
+                colReorder: true,
+                responsive: true,
+                dom:
+                    "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                buttons: [
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-outline-default'
+                    },
+                    {
+                        extend: 'colvis',
+                        text: 'Column Visibility',
+                        titleAttr: 'Col visibility',
+                        className: 'btn-outline-default'
+                    }
+                ],
+
+                initComplete: function () {
+                    this.api().columns().every(function () {
+                        var column = this;
+                        var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                            .appendTo($(column.footer()).empty())
+                            .on('change', function () {
+                                var val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            select.append('<option value="' + d + '">' + d + '</option>')
+                        });
+                    });
+                }
+            });
+    }
+
+         function initializeQuoteTemplatesTable() {
+        var dataSet = @Html.Raw(JsonSerializer.Serialize( Model.AllQuoteTemplates ));
+
+        $('#dt-quote-templates').dataTable(
+            {
+                data: dataSet,
+                searching: true,
+                responsive: true,
+                "bLengthChange": false,
+                buttons: [],
+                "bAutoWidth": false,
+                dataSrc: "",
+                columns: [
+                    {
+                        "data": "Id",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `http://myplus/QuoteTemplate.aspx?QuoteTemplateID=${row.Id}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        } },
+                    { "data": "Name"            },
+                    { "data": "Language" },
+                    { "data": "ApplicableToHTMLLiteral" },
+                    {
+                        "data": "CreatedOn",
+                        render: function (data, type, row, meta) {
+                            if (data == "1989-01-01T00:00:00") {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        } },
+                    {
+                        "data": "ModifiedOn",
+                        render: function (data, type, row, meta) {
+
+                            if (data == null) {
+                                return "";
+                            }
+                            else {
+                                return getDateString(data);
+                            }
+
+
+                        } },
+                    { "data": "CreatedByEmployeeName",
+                        render: function (data, type, row, meta) {
+                            if (type === "display") {
+                                if (data == 0) {
+                                    return 'N/A';
+                                }
+                                else {
+                                    let link = `https://myplusbeta.publicisgroupe.net/HR/EmployeeProfile/${row.CreatedByEmployeeId}`;
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                            }
+                            return data;
+                        }
+                    }
+                ],
+                colReorder: true,
+                responsive: true,
+                dom:
+                    "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                    "<'row'<'col-sm-12'tr>>" +
+                    "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+                initComplete: function () {
+                    this.api().columns().every(function () {
+                        var column = this;
+                        var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                            .appendTo($(column.footer()).empty())
+                            .on('change', function () {
+                                var val = $.fn.dataTable.util.escapeRegex(
+                                    $(this).val()
+                                );
+
+                                column
+                                    .search(val ? '^' + val + '$' : '', true, false)
+                                    .draw();
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            select.append('<option value="' + d + '">' + d + '</option>')
+                        });
+                    });
+                }
+            });
+        }
+        function UpdatingValueSettings() {
+
+            $('#AccountSettingsSave').css({ background: 'red' });
+
+        }
+
+        var toShowEnablePopUp = true;
+        var toShowResetPopUp = true;
+        $(document).ready(function () {
+
+            var url = window.location.href;
+            var accessToEditContact = @(JsonSerializer.Serialize(Model.AccessToEditContact));
+            var keyInfo = '#' + @Html.Raw(Json.Serialize(Model.keyInfoSection)) + ' :input';
+            var notesPanel = '#' + @Html.Raw(JsonSerializer.Serialize("NotesPanel")) + ' :input';
+            var accountSettingsPanel = '#' + @Html.Raw(JsonSerializer.Serialize("AccountSettingsPanel")) + ' :input';
+
+            if (!accessToEditContact){
+                $(keyInfo).attr("disabled", true);
+                $(notesPanel).attr("disabled", true);
+                $(accountSettingsPanel).attr("disabled", true);
+            }
+
+            if (url.indexOf("showEnableIplusPopup") >= 0 && toShowEnablePopUp == true) {
+                document.getElementById('KeyInforParentPanel').className = "panel-container collapse show";
+                $('#enableIPlusLoginModal').modal('show');
+                toShowEnablePopUp = false;
+            }
+
+
+            if (url.indexOf("showResetPswrdPopup") >= 0 && toShowResetPopUp == true) {
+                document.getElementById('KeyInforParentPanel').className = "panel-container collapse show";
+                $('#extranetUserSettingsModal').modal('show');
+                toShowResetPopUp = false;
+            }
+
+
+            var isContactDelated = @(JsonSerializer.Serialize(Model.contactDeletedDate != null));
+
+            var keyInfo = '#' + @Html.Raw(JsonSerializer.Serialize("KeyInfoPanel")) + ' :input';
+            var notesPanel = '#' + @Html.Raw(JsonSerializer.Serialize("NotesPanel")) + ' :input';
+            var accountSettingsPanel = '#' + @Html.Raw(JsonSerializer.Serialize("AccountSettingsPanel")) + ' :input';
+
+            if (isContactDelated){
+                $(keyInfo).attr("disabled", true);
+                $(notesPanel).attr("disabled", true);
+                $(accountSettingsPanel).attr("disabled", true);
+            }
+
+
+            /*  $('#testKeyInfo').children().attr('readonly', true);*/
+            if ($('#ContacRelatedAlertsBool').is(':checked')) {
+                    $("#ContacRelatedAlerts").removeAttr('hidden')
+                }
+                else {
+                    $("#ContacRelatedAlerts").attr('hidden', 'hidden');
+            }
+
+                initializeQuoteTemplatesTable();
+                initializePriceListsTable();
+                initializeEnquiriesTable();
+                initializeJobOrdersTable();
+                initializeApprovedLinguistsTable();
+
+
+                $('#Notifications').change(function () {
+                    if (this.checked) {
+                        $('#NotificationEmails').removeAttr('hidden');
+                    }
+                    else {
+                        $('#NotificationEmails').attr("hidden", true);
+                    }
+
+                });
+
+                if ($('#Notifications').is(':checked')) {
+                    $("#NotificationEmails").removeAttr('hidden')
+                }
+                else {
+                    $("#NotificationEmails").attr('hidden', 'hidden');
+                }
+
+                $('#ContacRelatedAlertsBool').change(function () {
+                    if (this.checked) {
+                        $('#ContacRelatedAlerts').removeAttr('hidden');
+                    }
+                    else {
+                        $('#ContacRelatedAlerts').attr("hidden", true);
+                    }
+
+                });
+
+                $('#JobOrdersTable').dataTable(
+                    {
+
+                        searching: true,
+                        responsive: true,
+                        "bLengthChange": false,
+                        "bAutoWidth": false,
+                        buttons: [],
+                        "pageLength": 10
+                    });
+
+
+                $('#EnqTable').dataTable(
+                    {
+
+                        searching: true,
+                        responsive: true,
+                        "bLengthChange": false,
+                        "bAutoWidth": false,
+                        buttons: [],
+                        "pageLength": 10
+                    });
+
+            $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "(Select office)"
+                });
+                $(".js-hide-search").select2({
+                    minimumResultsForSearch: 1 / 0
+                });
+                $(".js-max-length").select2({
+                    maximumSelectionLength: 2,
+                    placeholder: "Select maximum 2 items"
+                });
+                //$(".select2-placeholder").select2({
+                //    placeholder: "Select a state",
+                //    allowClear: true
+                //});
+                $(".js-select2-icons").select2({
+                    minimumResultsForSearch: 1 / 0,
+                    templateResult: icon,
+                    templateSelection: icon,
+                    escapeMarkup: function (elm) {
+                        return elm
+                    }
+                });
+                function icon(elm) {
+                    elm.element;
+                    return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+                }
+                $(".js-data-example-ajax").select2({
+                    ajax: {
+                        url: "https://api.github.com/search/repositories",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page
+                            };
+                        },
+                        processResults: function (data, params) {
+                            // parse the results into the format expected by Select2
+                            // since we are using custom formatting functions we do not need to
+                            // alter the remote JSON data, except to indicate that infinite
+                            // scrolling can be used
+                            params.page = params.page || 1;
+                            return {
+                                results: data.items,
+                                pagination: {
+                                    more: (params.page * 30) < data.total_count
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Search for a repository',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 1,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+                        "<div class='select2-result-repository__avatar mr-2'><img src='" + repo.owner.avatar_url + "' class='width-2 height-2 mt-1 rounded' /></div>" +
+                        "<div class='select2-result-repository__meta'>" +
+                        "<div class='select2-result-repository__title fs-lg fw-500'>" + repo.full_name + "</div>";
+                    if (repo.description) {
+                        markup += "<div class='select2-result-repository__description fs-xs opacity-80 mb-1'>" + repo.description + "</div>";
+                    }
+                    markup += "<div class='select2-result-repository__statistics d-flex fs-sm'>" +
+                        "<div class='select2-result-repository__forks mr-2'><i class='@(Settings.Theme.IconPrefix) fa-lightbulb'></i> " + repo.forks_count + " Forks</div>" +
+                        "<div class='select2-result-repository__stargazers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+                        "<div class='select2-result-repository__watchers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+                        "</div>" +
+                        "</div></div>";
+                    return markup;
+                }
+                function formatRepoSelection(repo) {
+                    return repo.full_name || repo.text;
+                }
+            });
+
+
+
+        function SendPasswordResetEmail() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Contact/SendPasswordResetEmail", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function () {
+
+                if (this.readyState == 4 && this.status == 200) {
+                    var resetEmailSentMessage = document.getElementById('ResetEmailSentMessage');
+                    resetEmailSentMessage.hidden = false;
+                }
+            }
+            xhr.send("@Model.iplusName");
+        }
+
+        function enableIplusUser(e) {
+
+            if ($('#access-level-select').val() == '-1') {
+                document.getElementById("access-level-warning").hidden = false;
+                e.preventDefault();
+            }
+            else if ($('#time-zone-select').val() == '-1') {
+                document.getElementById("access-level-warning").hidden = true;
+                document.getElementById("time-zone-warning").hidden = false;
+                e.preventDefault();
+            }
+            else {
+
+                document.getElementById("access-level-warning").hidden = true;
+                document.getElementById("time-zone-warning").hidden = true;
+
+                var translateOnlineCheckbox = document.getElementById("translateOnlineSwitch");
+                var designPlusCheckbox = document.getElementById("designPlusSwitch");
+
+                  var xhr = new XMLHttpRequest();
+                  xhr.open("POST", "Contact/EnableIPlusAccess", true);
+                  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                  xhr.onreadystatechange = function () {
+
+                      if (this.readyState == 4 && this.status == 200) {
+                         var response = xhr.responseText;
+
+                         $('#enableIPlusLoginModal').modal('toggle');
+                         document.getElementById('iplus-user-name-label').innerText = response;
+
+                         $( "#KeyInfoPanel" ).load(window.location.href + " #KeyInfoPanel");
+
+                         $('#iPlusUserCreatedModal').modal('show');
+                     }
+                }
+                var translateOnlineEnabled = false;
+                if (translateOnlineCheckbox != null) {
+                    translateOnlineEnabled = translateOnlineCheckbox.checked;
+                }
+
+                var designPlusEnabled = false;
+                if (designPlusCheckbox != null) {
+                    designPlusEnabled = designPlusCheckbox.checked;
+                }
+
+                var dataToSend = $('#access-level-select').val() + "$" + $('#time-zone-select').val() + "$" + translateOnlineEnabled + "$" + designPlusEnabled + "$" + @Model.Id ;
+                xhr.send(dataToSend);
+            }
+
+
+        }
+
+        function verifyEmailAddress(emailAdd) {
+
+            if (emailAdd == "" || emailAdd == null) {
+                document.getElementById("no-email-add-label").hidden = false;
+            }
+            else {
+                document.getElementById("no-email-add-label").hidden = true;
+                $('#enableIPlusLoginModal').modal('show');
+            }
+            return false;
+        }
+
+    </script>
+}

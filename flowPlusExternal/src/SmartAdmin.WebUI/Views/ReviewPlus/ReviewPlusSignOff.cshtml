@@ -1,0 +1,210 @@
+﻿@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+
+@{ ViewData["Title"] = "Review SignOff";
+}
+@{
+    @using ViewModels.flowPlusExternal.ReviewPlus;
+    @model ReviewSignOffModel;
+    @using Global_Settings;
+}
+
+@section ScriptsBlock {
+    <script src="~/js/statistics/peity/peity.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+
+
+    <script>
+        var jobItemId = getJobItemIdFromUrl();
+        $(document).ready(function () {
+                    var jobItemId = getJobItemIdFromUrl();
+
+            var controls = {
+                leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+                rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+            }
+
+        $(document).ready(function () {
+            //document.getElementById('bank-holiday-add-update-control').hidden = "hidden";
+            $('#datepicker-4-3').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $('#datepicker-4-3-edit').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $(function () {
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "(Select office)"
+                });
+                $(".js-hide-search").select2({
+                    minimumResultsForSearch: 1 / 0
+                });
+                $(".js-max-length").select2({
+                    maximumSelectionLength: 2,
+                    placeholder: "Select maximum 2 items"
+                });
+                //$(".select2-placeholder").select2({
+                //    placeholder: "Select a state",
+                //    allowClear: true
+                //});
+                $(".js-select2-icons").select2({
+                    minimumResultsForSearch: 1 / 0,
+                    templateResult: icon,
+                    templateSelection: icon,
+                    escapeMarkup: function (elm) {
+                        return elm
+                    }
+                });
+                function icon(elm) {
+                    elm.element;
+                    return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+                }
+                $(".js-data-example-ajax").select2({
+                    ajax: {
+                        url: "https://api.github.com/search/repositories",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page
+                            };
+                        },
+                        processResults: function (data, params) {
+                            // parse the results into the format expected by Select2
+                            // since we are using custom formatting functions we do not need to
+                            // alter the remote JSON data, except to indicate that infinite
+                            // scrolling can be used
+                            params.page = params.page || 1;
+                            return {
+                                results: data.items,
+                                pagination: {
+                                    more: (params.page * 30) < data.total_count
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Search for a repository',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 1,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+                        "<div class='select2-result-repository__avatar mr-2'><img src='" + repo.owner.avatar_url + "' class='width-2 height-2 mt-1 rounded' /></div>" +
+                        "<div class='select2-result-repository__meta'>" +
+                        "<div class='select2-result-repository__title fs-lg fw-500'>" + repo.full_name + "</div>";
+                    if (repo.description) {
+                        markup += "<div class='select2-result-repository__description fs-xs opacity-80 mb-1'>" + repo.description + "</div>";
+                    }
+                    markup += "<div class='select2-result-repository__statistics d-flex fs-sm'>" +
+                        "<div class='select2-result-repository__forks mr-2'><i class='@(Settings.Theme.IconPrefix) fa-lightbulb'></i> " + repo.forks_count + " Forks</div>" +
+                        "<div class='select2-result-repository__stargazers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+                        "<div class='select2-result-repository__watchers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+                        "</div>" +
+                        "</div></div>";
+                    return markup;
+                }
+                function formatRepoSelection(repo) {
+                    return repo.full_name || repo.text;
+                }
+            });
+
+
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+
+		});
+        });
+
+        function getJobItemIdFromUrl() {
+            var url = window.location.href;
+            var jobItemId = url.split('ReviewSignOff/')[1];
+            return jobItemId;
+        }
+
+        function confirmSignOff(e) {
+            var jobItemId = @Model.JobItemId;
+            var reviewComments = document.getElementById("cancel-joborder").value;
+            var stringToSend = jobItemId + '$' + reviewComments;
+                        $.ajax({
+                url: `reviewplus/approvereview`,
+                type: 'POST',
+                data: stringToSend,
+                contentType: 'application/x-www-form-urlencoded',
+                success: function (data) {
+                    console.log("Review Approved");
+                    window.location = `/ReviewPlus/ReviewStatus`
+                    //$('#confirm-review-signoff-modal').modal('show');
+                }
+            });
+            //e.preventDefault();
+        }
+
+    </script>
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div id="panel-4" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="frame-wrap">
+                        <div class="demo">
+                            <br>
+                            <div>
+                                <p>You are about to sign off the translation for job item number <b>@Model.JobItemId</b>. You can optionally add any general comments about the document/translation.</p>
+                                <p>Please be aware that once you approve this document, you will no longer be able to edit the document again. Please contact you project manager if you need to do this.</p>
+                                @if (ViewBag.SupplierAccepted == false)
+                                {
+                                    <label class="text-warning">Please be aware that by clicking <b>Confirm</b> you will be approving a document which has not been reviewed. To review the document first, please click <b>Cancel</b> and then select the <i class="ni ni-arrow-right fa-2x text-success"></i> icon against this document.<br /><br /></label>
+                                }
+                                <p><span><i class="fal fa-info-circle fa-1x" style="color: #000000"></i></span> Please note that after clicking <b>Confirm</b> you will not be able to make any further changes to the translation. If you wish to continue making changes to the translation, please click <b>Cancel</b>.</p>
+                                <p>@Model.TranslationsChanged</p>
+                            </div>
+                            <label class="form-label md-header">Comments (optional):</label>
+                            <textarea class="form-control col-sm-4" placeholder="Enter comments" rows="5" id="cancel-joborder"></textarea>
+                            <button type="button" class="btn btn-primary" style="color:white;" onclick="javascript:confirmSignOff(event)">Confirm</button>
+                            <a class="btn btn-secondary" asp-action="ReviewStatus" asp-controller="ReviewPlus">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

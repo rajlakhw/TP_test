@@ -1,0 +1,1001 @@
+﻿@{
+    @using System.Text.Json;
+    @using ViewModels.TMS.PmMgmt;
+    @model PMDashboard;
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/statistics/c3/c3.css">
+}
+<div class="text-center">
+    <h1>Project Management Dashboard</h1>
+    <h4><i>@Model.PmName</i></h4>
+</div>
+<div class="text-right px-6">
+    <a target="_blank" asp-controller="TMSHome" asp-action="TeamMgmtDashboard" asp-route-teamId="@Model.LoggedInEmployee.TeamId"><u>@Model.TeamName Dashboard</u></a><label class="col-0"></label>
+    @if (Model.DeptID == 10)
+    {
+        <a target="_blank" asp-controller="TMSHome" asp-action="OpsMgmtDashboard" asp-route-employeeID="@Model.LoggedInEmployee.Id"><u>T&P Dashboard</u></a>
+    }
+    else
+    {
+        <a target="_blank" asp-controller="TMSHome" asp-action="OpsMgmtDashboard" asp-route-employeeID="@Model.LoggedInEmployee.Id"><u>GLS Dashboard</u></a>
+    }
+    <br />
+</div>
+<div id="allOrdersTableDiv">
+    <div id="panel-4" class="panel">
+        <div class="panel-hdr">
+            <h2>
+                In Progress & Overdue Job <span class="fw-300"><i>Orders</i></span>
+            </h2>
+            <div class="panel-toolbar">
+                <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+            </div>
+        </div>
+        <div class="panel-container show">
+            <div class="panel-content">
+                <table id="dt-all-orders" class="table-sm table-bordered table-hover table-striped table-responsive-sm w-100">
+                    <thead class="bg-warning-200">
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Enquiry ID</th>
+                            <th>Job</th>
+                            <th>Org name</th>
+                            <th>Org group name</th>
+                            <th>Contact</th>
+                            <th>Source</th>
+                            <th>Target</th>
+                            <th>Status</th>
+                            <th>Submission date</th>
+                            <th>Delivery deadline</th>
+                            <th>Margin</th>
+                            <th>Client costs</th>
+                        </tr>
+                    </thead>
+
+                    <tfoot>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Enquiry ID</th>
+                            <th>Job</th>
+                            <th>Org name</th>
+                            <th>Org group name</th>
+                            <th>Contact</th>
+                            <th>Source</th>
+                            <th>Target</th>
+                            <th>Status</th>
+                            <th>Submission date</th>
+                            <th>Delivery deadline</th>
+                            <th>Margin</th>
+                            <th>Client costs</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div id="panel-5" class="panel">
+            <div class="panel-hdr">
+                <h2>
+                    Today <span class="fw-300"><i>Deliveries</i></span>
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                </div>
+            </div>
+            @{var todayDeliveriesClass = Model.TodayDeliveries.Count() > 0 ? "panel-container show" : "panel-container collapse";}
+            <div class="@todayDeliveriesClass">
+                <div class="panel-content">
+                    <table id="dt-today-jobs" class="table-sm table table-bordered table-hover table-striped w-100">
+                        <thead class="bg-warning-200">
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Job</th>
+                                <th>Org name</th>
+                                <th>Contact</th>
+                                <th>Delivery deadline</th>
+                                <th>Margin</th>
+                                <th>Client costs</th>
+                            </tr>
+                        </thead>
+
+                        <tfoot>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Job</th>
+                                <th>Org name</th>
+                                <th>Contact</th>
+                                <th>Delivery deadline</th>
+                                <th>Margin</th>
+                                <th>Client costs</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div id="panel-5" class="panel">
+            <div class="panel-hdr">
+                <h2>
+                    Overdue <span class="fw-300"><i>Jobs</i></span>
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                </div>
+            </div>
+            @{var overdueJobsClass = Model.OverdueJobs.Count() > 0 ? "panel-container show" : "panel-container collapse";}
+            <div class="@overdueJobsClass">
+                <div class="panel-content">
+                    <table id="dt-overdue-table" class="table-sm table table-bordered table-hover table-striped w-100">
+                        <thead class="bg-warning-200">
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Job</th>
+                                <th>Org name</th>
+                                <th>Contact</th>
+                                <th>Delivery deadline</th>
+                                <th>Margin</th>
+                                <th>Client costs</th>
+                            </tr>
+                        </thead>
+
+                        <tfoot>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Job</th>
+                                <th>Org name</th>
+                                <th>Contact</th>
+                                <th>Delivery deadline</th>
+                                <th>Margin</th>
+                                <th>Client costs</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div id="panel-5" class="panel">
+            <div class="panel-hdr">
+                <h2>
+                    Deadlines <span class="fw-300"><i>Approaching</i></span>
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                </div>
+            </div>
+            @{var deadlinesClass = Model.ApproachingDeadlines.Count() > 0 ? "panel-container show" : "panel-container collapse";}
+            <div class="@deadlinesClass">
+                <div class="panel-content">
+                    <table id="dt-approaching-deadlines" class="table table-bordered table-hover table-striped w-100">
+                        <thead class="bg-warning-200">
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Job</th>
+                                <th>Org name</th>
+                                <th>Contact</th>
+                                <th>Delivery deadline</th>
+                                <th>Margin</th>
+                                <th>Client costs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Tiger Nixon</td>
+                                <td>System Architect</td>
+                                <td>Edinburgh</td>
+                                <td>Slatinaa</td>
+                                <td>61</td>
+                                <td>2011/04/25</td>
+                                <td>$320,800</td>
+                            </tr>
+                            <tr>
+                                <td>Tiger Nixon</td>
+                                <td>System Architect</td>
+                                <td>Edinburgh</td>
+                                <td>Slatinaa</td>
+                                <td>61</td>
+                                <td>2011/04/25</td>
+                                <td>$320,800</td>
+                            </tr>
+                            <tr>
+                                <td>Tiger Nixon</td>
+                                <td>System Architect</td>
+                                <td>Edinburgh</td>
+                                <td>Slatinaa</td>
+                                <td>61</td>
+                                <td>2011/04/25</td>
+                                <td>$320,800</td>
+                            </tr>
+                            <tr>
+                                <td>Tiger Nixon</td>
+                                <td>System Architect</td>
+                                <td>Edinburgh</td>
+                                <td>Slatinaa</td>
+                                <td>61</td>
+                                <td>2011/04/25</td>
+                                <td>$320,800</td>
+                            </tr>
+                            <tr>
+                                <td>Tiger Nixon</td>
+                                <td>System Architect</td>
+                                <td>Edinburgh</td>
+                                <td>Slatinaa</td>
+                                <td>61</td>
+                                <td>2011/04/25</td>
+                                <td>$320,800</td>
+                            </tr>
+                            <tr>
+                                <td>Tiger Nixon</td>
+                                <td>System Architect</td>
+                                <td>Edinburgh</td>
+                                <td>Slatinaa</td>
+                                <td>61</td>
+                                <td>2011/04/25</td>
+                                <td>$320,800</td>
+                            </tr>
+                            <tr>
+                                <td>Tiger Nixon</td>
+                                <td>System Architect</td>
+                                <td>Edinburgh</td>
+                                <td>Slatinaa</td>
+                                <td>61</td>
+                                <td>2011/04/25</td>
+                                <td>$320,800</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Job</th>
+                                <th>Org name</th>
+                                <th>Contact</th>
+                                <th>Delivery deadline</th>
+                                <th>Margin</th>
+                                <th>Client costs</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div id="panel-5" class="panel">
+            <div class="panel-hdr">
+                <h2>
+                    Pending Client <span class="fw-300"><i>Review</i></span>
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                </div>
+            </div>
+            @{var pendingClass = Model.ClientReviewJobs.Count() > 0 ? "panel-container show" : "panel-container collapse";}
+            <div class="@pendingClass">
+                <div class="panel-content">
+                    <table id="dt-pending-client-review" class="table table-bordered table-hover table-striped w-100">
+                        <thead class="bg-warning-200">
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Job</th>
+                                <th>Org name</th>
+                                <th>Contact</th>
+                                <th>Delivery deadline</th>
+                                <th>Margin</th>
+                                <th>Client costs</th>
+                            </tr>
+                        </thead>
+
+                        <tfoot>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Job</th>
+                                <th>Org name</th>
+                                <th>Contact</th>
+                                <th>Delivery deadline</th>
+                                <th>Margin</th>
+                                <th>Client costs</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div id="panel-4" class="panel">
+            <div class="panel-hdr">
+                <h2>
+                    Status per <span class="fw-300"><i>Client</i></span>
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="row">
+                        <table id="dt-client-jobs-status-table" class="table m-0 table-bordered table-sm table-hover table-striped" style="margin: 0 auto; width: 100%; clear: both; border-collapse: collapse; table-layout: fixed; word-wrap:break-word;">
+                            <thead class="bg-warning-200">
+                                <tr>
+                                    <th>Org</th>
+                                    <th>Group</th>
+                                    <th><span title="Spend category" class="p-0">Spend</span></th>
+                                    <th>Total open jobs value</th>
+                                    <th>Open jobs</th>
+                                    <th>Open Items</th>
+                                    <th>Overdue jobs</th>
+                                    <th>Jobs due today</th>
+                                    <th>Items due today</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <th>Org</th>
+                                    <th>Group</th>
+                                    <th>Spend category</th>
+                                    <th>Total open jobs value</th>
+                                    <th>Open jobs</th>
+                                    <th>OpenItems</th>
+                                    <th>Overdue jobs</th>
+                                    <th>Jobs due today</th>
+                                    <th>Items due today</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col">
+                            <div class="text-center"><h3>Breakdown of items per client</h3></div>
+                            <div id="pieChart" style="width:100%; height:300px;"></div>
+                            @*<div class="text-right">
+                                    <button id="pieChartUnload" onclick="pieChartUnload();" class="btn btn-sm btn-dark ml-auto">Unload Data</button>
+                                </div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div id="panel-4" class="panel">
+            <div class="panel-hdr">
+                <h2>
+                    Status per <span class="fw-300"><i>Item</i></span>
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="row">
+
+                        <table id="dt-client-items-status-table" class="table m-0 table-bordered table-sm table-hover table-striped" style="margin: 0 auto; width: 100%; clear: both; border-collapse: collapse; table-layout: fixed; word-wrap:break-word;">
+                            <thead class="bg-warning-200">
+                                <tr>
+                                    <th>Org</th>
+                                    <th>Group</th>
+                                    <th>Not sent to supplier</th>
+                                    <th>Translation</th>
+                                    <th>Proofreading</th>
+                                    <th>Client Review</th>
+                                    <th>Production</th>
+                                    <th>Overdue</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <th>Org</th>
+                                    <th>Group</th>
+                                    <th>Not sent to supplier</th>
+                                    <th>Translation</th>
+                                    <th>Proofreading</th>
+                                    <th>Client Review</th>
+                                    <th>Production</th>
+                                    <th>Overdue</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <div class="text-center"><h3>Breakdown of items per status</h3></div>
+                            <div id="pieChart2" style="width:100%; height:300px;"></div>
+                            @*<div class="text-right">
+                                    <button id="pieChartUnload" onclick="pieChartUnload();" class="btn btn-sm btn-dark ml-auto">Unload Data</button>
+                                </div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock
+{
+    <script type="text/javascript">
+        /* Activate smart panels
+        $('#js-page-content').smartPanel();*/
+    </script>
+
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/statistics/d3/d3.js"></script>
+    <script src="~/js/statistics/c3/c3.js"></script>
+    <script src="~/js/statistics/demo-data/demo-c3.js"></script>
+
+    <script>
+        var colors = [color.success._100, color.success._900, color.danger._100, color.danger._900, color.info._100, color.info._900, color.primary._100, color.primary._900, color.warning._100, color.warning._900, color.fusion._100, color.fusion._900];
+
+        $(document).ready(function () {
+            initializeAllJobOrdersTable();
+            initializeSmallJobOrdersTables('dt-today-jobs', @(Html.Raw(JsonSerializer.Serialize( Model.TodayDeliveries ))));
+            initializeSmallJobOrdersTables('dt-overdue-table', @(Html.Raw(JsonSerializer.Serialize( Model.OverdueJobs ))));
+            initializeSmallJobOrdersTables('dt-approaching-deadlines', @(Html.Raw(JsonSerializer.Serialize( Model.ApproachingDeadlines ))));
+            initializeSmallJobOrdersTables('dt-pending-client-review', @(Html.Raw(JsonSerializer.Serialize( Model.ClientReviewJobs ))));
+
+            pieChartItemsPerStatus();
+            pieChartItemsPerOrgs();
+
+            inititalizeItemsPerClientTable();
+            inititalizeJobsPerClientTable();
+        });
+
+        function pieChartItemsPerOrgs() {
+            var jsonData = @(Html.Raw(JsonSerializer.Serialize( Model.JobOrdersClientBreakdown )));
+
+            var data = {};
+            var items = [];
+            jsonData.forEach(function (e) {
+                items.push(e.OrgName);
+                data[e.OrgName] = e.OpenItemsCount + e.ItemsDueToday;
+            })
+
+            var pieChart = c3.generate({
+                bindto: "#pieChart",
+                data: {
+                    json: [data],
+                    keys: {
+                        value: items,
+                    },
+                    type: 'pie'
+                },
+                pie: {
+                    threshold: 0.1,
+                    label: {
+                        format: function (value, ratio, id) {
+                            return d3.format('#')(value);
+                        }
+                    }
+                },
+                color: {
+                    pattern: colors
+                }
+                //data: {
+                //    // iris data from R
+                //    columns: [
+                //        ['virtigo', 30],
+                //        ['clarfy', 120],
+                //        ["setosa", 0.2, 0.2, 0.2, 0.2, 0.2, 0.4, 0.3, 0.2, 0.2, 0.1, 0.2, 0.2, 0.1, 0.1, 0.2, 0.4, 0.4, 0.3, 0.3, 0.3, 0.2, 0.4, 0.2, 0.5, 0.2, 0.2, 0.4, 0.2, 0.2, 0.2, 0.2, 0.4, 0.1, 0.2, 0.2, 0.2, 0.2, 0.1, 0.2, 0.2, 0.3, 0.3, 0.2, 0.6, 0.4, 0.3, 0.2, 0.2, 0.2, 0.2],
+                //        ["versicolor", 1.4, 1.5, 1.5, 1.3, 1.5, 1.3, 1.6, 1.0, 1.3, 1.4, 1.0, 1.5, 1.0, 1.4, 1.3, 1.4, 1.5, 1.0, 1.5, 1.1, 1.8, 1.3, 1.5, 1.2, 1.3, 1.4, 1.4, 1.7, 1.5, 1.0, 1.1, 1.0, 1.2, 1.6, 1.5, 1.6, 1.5, 1.3, 1.3, 1.3, 1.2, 1.4, 1.2, 1.0, 1.3, 1.2, 1.3, 1.3, 1.1, 1.3],
+                //        ["virginica", 2.5, 1.9, 2.1, 1.8, 2.2, 2.1, 1.7, 1.8, 1.8, 2.5, 2.0, 1.9, 2.1, 2.0, 2.4, 2.3, 1.8, 2.2, 2.3, 1.5, 2.3, 2.0, 2.0, 1.8, 2.1, 1.8, 1.8, 1.8, 2.1, 1.6, 1.9, 2.0, 2.2, 1.5, 1.4, 2.3, 2.4, 1.8, 1.8, 2.1, 2.4, 2.3, 1.9, 2.3, 2.5, 2.3, 1.9, 2.0, 2.3, 1.8],
+                //    ],
+                //    type: 'pie'//,
+                //    /*onclick: function (d, i) { console.log("onclick", d, i); },
+                //    onmouseover: function (d, i) { console.log("onmouseover", d, i); },
+                //    onmouseout: function (d, i) { console.log("onmouseout", d, i); }*/
+                //},
+                //color: {
+                //    pattern: colors
+                //}
+            });
+        }
+
+        function pieChartItemsPerStatus() {
+            var jsonData = [
+                { name: 'not sent to supplier', count: @Model.JobItemsClientBreakdown.Sum(x=>x.ItemsNotSentToSupplier) },
+                { name: 'in translation', count: @Model.JobItemsClientBreakdown.Sum(x => x.ItemsInTranslation) },
+                { name: "in proofreading", count: @Model.JobItemsClientBreakdown.Sum(x=>x.ItemsInProofreading) },
+                { name: "in client review", count: @Model.JobItemsClientBreakdown.Sum(x=>x.ItemsInClientReview) },
+                { name: "in production", count: @Model.JobItemsClientBreakdown.Sum(x => x.ItemsInProduction) },
+                { name: "overdue", count: @Model.JobItemsClientBreakdown.Sum(x => x.OverdueItems) }
+            ]
+
+            var data = {};
+                var items = [];
+                jsonData.forEach(function (e) {
+                    items.push(e.name);
+                    data[e.name] = e.count;
+                })
+
+            var pieChart = c3.generate({
+                bindto: "#pieChart2",
+                data: {
+                    json: [data],
+                    keys: {
+                        value: items,
+                    },
+                    type: 'pie'
+                },
+                pie: {
+                    threshold: 0.1,
+                    label: {
+                        format: function (value, ratio, id) {
+                            return d3.format('#')(value);
+                        }
+                    }
+                },
+                color: {
+                pattern: colors
+                }
+            })
+        };
+
+        function initializeAllJobOrdersTable() {
+                    var dataSet = @(Html.Raw(JsonSerializer.Serialize( Model.AllJobs )));
+
+            $('#dt-all-orders').dataTable(
+                {
+                    data: dataSet,
+                    dataSrc: "",
+                    columns: [
+                        { "data": "JobOrderId" },
+                        { "data": "EnquiryId",
+                            render: function (data, type, row, meta) {
+                        if (type === "display") {
+                            if (data == 0) {
+                                return 'N/A';
+                            }
+                            else {
+                                let link = `https://myplusbeta.publicisgroupe.net/enquiry?ID=${row.EnquiryId}`;
+                                return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                            }
+                        }
+                        return data;
+                    }
+                },
+                        {
+                    "data": "JobOrderName",
+                            render: function (data, type, row, meta) {
+                        if (type === "display") {
+                            let link = `https://myplusbeta.publicisgroupe.net/tmsjoborder/joborder?joborderid=${row.JobOrderId}`;
+
+                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                        }
+                        return data;
+                    }
+                },
+                        {
+                    "data": "OrgName",
+                            render: function (data, type, row, meta) {
+                        if (type === "display") {
+                            let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.OrgId}`;
+
+                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                        }
+                        return data;
+                    }
+                },
+                        {
+                    "data": "OrgGroupName",
+                            render: function (data, type, row, meta) {
+                        if (type === "display") {
+                            let link = `https://myplusbeta.publicisgroupe.net/OrgGroup?groupid=${row.OrgGroupId}`;
+
+                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                        }
+                        return data;
+                    }
+                },
+                        {
+                    "data": "ContactName",
+                            render: function (data, type, row, meta) {
+                        if (type === "display") {
+                            let link = `https://myplusbeta.publicisgroupe.net/Contact?contactid=${row.ContactId}`;
+
+                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                        }
+                        return data;
+                    }
+                },
+                        { "data": "SourceLang" },
+                        { "data": "TargetLang" },
+                        { "data": "Status" },
+                        {
+                            data: "SubmittedDate",
+                            render: function(data, type, row, meta) {
+                                if (type === "sort") {
+                                    return new Date(data).toISOString();
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            data: "DeliveryDeadline",
+                            render: function(data, type, row, meta) {
+                                if (type === "sort") {
+                                    return new Date(data).toISOString();
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                    "data": "Margin",
+                            render: function (data, type, row, meta) {
+                        if (type === "display") {
+                            return `${data.toFixed(2)} %`;
+                        }
+                        return data;
+                    }  },
+                        {
+                    "data": "Value",
+                            render: function (data, type, row, meta) {
+                        if (type === "display") {
+                            return `<i>${row.Currency}</i>  ${Number(data.toFixed(2)).toLocaleString()}`;
+                                }
+                                return data;
+                            }
+                        }
+                    ],
+                    fixedHeader: true,
+                    colReorder: true,
+                    responsive: true,
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    buttons: [
+                        {
+                            extend: 'pageLength',
+                            className: 'btn-outline-default'
+                        },
+                        {
+                            extend: 'colvis',
+                            text: 'Column Visibility',
+                            titleAttr: 'Col visibility',
+                            className: 'btn-outline-default'
+                        }
+                    ],
+
+                    initComplete: function () {
+                        this.api().columns().every(function () {
+                            var column = this;
+                            var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function () {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function (d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            });
+                        });
+                    }
+                });
+        }
+
+        function initializeSmallJobOrdersTables(id, dataSet) {
+            $(`#${id}`).dataTable(
+                {
+                    data: dataSet,
+                    dataSrc: "",
+                    columns: [
+                        { "data": "JobOrderId" },
+                        {
+                            "data": "JobOrderName",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/tmsjoborder/joborder?joborderid=${row.JobOrderId}`;
+                                    let displayValue = '<a href="' + link + '" target="_blank" >' + data + '</a>';
+
+                                    if (data.length > 15) {
+                                        displayValue = '<a href="' + link + '" target="_blank" title="' + data + '">' + data.slice(0, 15) + '...</a>';
+                                    }
+
+                                    return displayValue;
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "OrgName",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.OrgId}`;
+                                    let displayValue = '<a href="' + link + '" target="_blank" >' + data + '</a>';
+
+                                    if (data.length > 14) {
+                                        displayValue = '<a href="' + link + '" target="_blank" title="' + data + '">' + data.slice(0, 14) + '...</a>';
+                                    }
+
+                                    return displayValue;
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "ContactName",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/Contact?contactid=${row.ContactId}`;
+
+                                    let displayValue = '<a href="' + link + '" target="_blank" >' + data + '</a>';
+
+                                    if (data.length > 15) {
+                                        displayValue = '<a href="' + link + '" target="_blank" title="' + data + '">' + data.slice(0, 15) + '...</a>';
+                                    }
+
+                                    return displayValue;
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            data: "DeliveryDeadline",
+                            render: function(data, type, row, meta) {
+                                if (type === "sort") {
+                                    return new Date(data).toISOString();
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "Margin",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    return `${data.toFixed(2)} %`;
+                                }
+                                return data;
+                            }  },
+                        {
+                            "data": "OverallChargeToClient",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let displayValue = `<i>${row.Currency}</i>  ${Number(data.toFixed(2)).toLocaleString()}`;
+                                    if (displayValue.length > 6) {
+                                        displayValue = '<span title="' + `${row.Currency}  ${Number(data.toFixed(2)).toLocaleString()}` + '">' + displayValue.slice(0, 15) + '...</span>';
+                                    }
+
+                                    return displayValue;
+                                }
+                                return `<i>${row.Currency}</i>  ${Number(data.toFixed(2)).toLocaleString()}`;
+                            }
+                        }
+                    ],
+                    responsive: true,
+                    buttons: [],
+                    "bLengthChange": false,
+                    "bAutoWidth": false,
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+                    initComplete: function () {
+                        this.api().columns().every(function () {
+                            var column = this;
+                            var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function () {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function (d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            });
+                        });
+                    }
+                });
+        }
+
+        function inititalizeItemsPerClientTable() {
+            var dataSet = @(Html.Raw(JsonSerializer.Serialize( Model.JobItemsClientBreakdown )));
+
+            $('#dt-client-items-status-table').dataTable(
+                {
+                    "autoWidth": false,
+                    colReorder: true,
+                    responsive: false,
+                    buttons: [],
+                    "bLengthChange": false,
+                    data: dataSet,
+                    dataSrc: "",
+                    columns: [
+                        {
+                            "data": "OrgName",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/Organisation?idD=${row.OrgId}`;
+                                    if (data.length > 14) {
+                                        displayValue = '<a href="' + link + '" target="_blank" title="' + data + '">' + data.slice(0, 14) + '...</a>';
+                                        return displayValue;
+                                    }
+
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "OrgGroupName",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/OrgGroup?groupid=${row.OrgGroupId}`;
+                                    if (data.length > 15) {
+                                        displayValue = '<a href="' + link + '" target="_blank" title="' + data + '">' + data.slice(0, 15) + '...</a>';
+                                        return displayValue;
+                                    }
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        {"data": "ItemsNotSentToSupplier"},
+                        {"data": "ItemsInTranslation"},
+                        {"data": "ItemsInProofreading"},
+                        {"data": "ItemsInClientReview"},
+                        {"data": "ItemsInProduction"},
+                        {"data": "OverdueItems"},
+                    ],
+                    //columnDefs: [
+                    //    { "width": "12.5%", "targets": 0 },
+                    //    { "width": "12.5%", "targets": 1 },
+                    //    { "width": "12.5%", "targets": 2 },
+                    //    { "width": "8%", "targets": 3 },
+                    //    { "width": "7%", "targets": 4 },
+                    //    { "width": "12.5%", "targets": 5 },
+                    //    { "width": "12.5%", "targets": 6 },
+                    //    { "width": "12.5%", "targets": 7 }
+                    //    //{ "width": "5%", "targets": 3 },
+                    //],
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+                    initComplete: function () {
+                        this.api().columns().every(function () {
+                            var column = this;
+                            var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function () {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function (d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            });
+                        });
+                    }
+                });
+    }
+
+        function inititalizeJobsPerClientTable() {
+            var dataSet = @(Html.Raw(JsonSerializer.Serialize( Model.JobOrdersClientBreakdown )));
+
+            $('#dt-client-jobs-status-table').dataTable(
+                {
+                    "autoWidth": false,
+                    colReorder: true,
+                    responsive: false,
+                    buttons: [],
+                    data: dataSet,
+                    dataSrc: "",
+                    columns: [
+                        {
+                            "data": "OrgName",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.OrgId}`;
+                                    if (data.length > 14) {
+                                        displayValue = '<a href="' + link + '" target="_blank" title="' + data + '">' + data.slice(0, 14) + '...</a>';
+                                        return displayValue;
+                                    }
+
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "OrgGroupName",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/OrgGroup?groupid=${row.OrgGroupId}`;
+                                    if (data.length > 15) {
+                                        displayValue = '<a href="' + link + '" target="_blank" title="' + data + '">' + data.slice(0, 15) + '...</a>';
+                                        return displayValue;
+                                    }
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        { "data": "SpendCategory"},
+                        { "data": "TotalOpenOrdersGBPValue"},
+                        { "data": "OpenJobsCount"},
+                        { "data": "OpenItemsCount"},
+                        { "data": "OverdueJobsCount"},
+                        { "data": "JobsDueToday"},
+                        { "data": "ItemsDueToday"}
+                    ],
+                    //columnDefs: [
+                    //    { "width": "15%", "targets": 0 },
+                    //    { "width": "14%", "targets": 1 },
+                    //    { "width": "6%", "targets": 2 },
+                    //    { "width": "5%", "targets": 3 },
+                    //    { "width": "5%", "targets": 4 },
+                    //    { "width": "5%", "targets": 5 },
+                    //    { "width": "5%", "targets": 6 },
+                    //    { "width": "5%", "targets": 7 },
+                    //    { "width": "5%", "targets": 8 },
+                    //],
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+                    initComplete: function () {
+                        this.api().columns().every(function () {
+                            var column = this;
+                            var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function () {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function (d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            });
+                        });
+                    }
+                });
+    }
+
+    </script>
+}

@@ -1,0 +1,790 @@
+﻿@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+    <link type="text/css" rel="stylesheet" href="css/demo_table_jui.css" />
+}
+
+@{ ViewData["Title"] = "Translation status";
+    ViewData["Category1"] = "translate online";
+}
+@{
+    @using ViewModels.translateOnline;
+    @model translateOnlineStatusModel;
+    @using Global_Settings;
+}
+
+<style>
+    .list {
+        display: inline;
+        list-style-type: none;
+    }
+
+    .select2-container {
+        z-index: 5000;
+    }
+
+    body.modal-open {
+        overflow: visible;
+    }
+
+    .was-validated .custom-select:invalid + .select2 .select2-selection {
+        border-color: #fd3995;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23fd3995' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23fd3995' stroke='none'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:invalid:focus + .select2 .select2-selection:invalid:focus {
+        border-color: #fd3995;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+    }
+
+
+    .was-validated .custom-select:valid + .select2 .select2-selection {
+        border-color: #1dc9b7 !important;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%231dc9b7' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:valid:focus + .select2 .select2-selection:valid:focus {
+        border-color: #1dc9b7;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+    }
+
+    /*   .was-validated .select2:valid:focus {
+            border-color: #1dc9b7;
+            -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        }*/
+
+    /*  *:focus {
+        outline: 0px;
+    }*/
+</style>
+@section ScriptsBlock {
+    <script src="~/js/statistics/peity/peity.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script>
+        var loadAssigned = true;
+        $(document).ready(function () {
+
+            if (document.URL.indexOf("signoffConfirmed") > -1) {
+                const params = new Proxy(new URLSearchParams(window.location.search), {
+                    get: (searchParams, prop) => searchParams.get(prop),
+                });
+                var jobItemId = params.signoffConfirmed;
+                document.getElementById('jobitem-label-2').innerText = jobItemId;
+                $('#jobitemSignedOffModal').modal('show');
+            }
+
+            initializePendingTranslationsTable();
+            initializeInProgressTranslationsTable();
+
+            var controls = {
+                leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+                rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+            };
+
+            $(document).ready(function () {
+            //document.getElementById('bank-holiday-add-update-control').hidden = "hidden";
+            $('#datepicker-4-3').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $('#datepicker-4-3-edit').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $(function () {
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "(Select office)"
+                });
+                $(".js-hide-search").select2({
+                    minimumResultsForSearch: 1 / 0
+                });
+                $(".js-max-length").select2({
+                    maximumSelectionLength: 2,
+                    placeholder: "Select maximum 2 items"
+                });
+                //$(".select2-placeholder").select2({
+                //    placeholder: "Select a state",
+                //    allowClear: true
+                //});
+                $(".js-select2-icons").select2({
+                    minimumResultsForSearch: 1 / 0,
+                    templateResult: icon,
+                    templateSelection: icon,
+                    escapeMarkup: function (elm) {
+                        return elm
+                    }
+                });
+                function icon(elm) {
+                    elm.element;
+                    return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+                }
+                $(".js-data-example-ajax").select2({
+                    ajax: {
+                        url: "https://api.github.com/search/repositories",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page
+                            };
+                        },
+                        processResults: function (data, params) {
+                            // parse the results into the format expected by Select2
+                            // since we are using custom formatting functions we do not need to
+                            // alter the remote JSON data, except to indicate that infinite
+                            // scrolling can be used
+                            params.page = params.page || 1;
+                            return {
+                                results: data.items,
+                                pagination: {
+                                    more: (params.page * 30) < data.total_count
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Search for a repository',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 1,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+                        "<div class='select2-result-repository__avatar mr-2'><img src='" + repo.owner.avatar_url + "' class='width-2 height-2 mt-1 rounded' /></div>" +
+                        "<div class='select2-result-repository__meta'>" +
+                        "<div class='select2-result-repository__title fs-lg fw-500'>" + repo.full_name + "</div>";
+                    if (repo.description) {
+                        markup += "<div class='select2-result-repository__description fs-xs opacity-80 mb-1'>" + repo.description + "</div>";
+                    }
+                    markup += "<div class='select2-result-repository__statistics d-flex fs-sm'>" +
+                        "<div class='select2-result-repository__forks mr-2'><i class='@(Settings.Theme.IconPrefix) fa-lightbulb'></i> " + repo.forks_count + " Forks</div>" +
+                        "<div class='select2-result-repository__stargazers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+                        "<div class='select2-result-repository__watchers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+                        "</div>" +
+                        "</div></div>";
+                    return markup;
+                }
+                function formatRepoSelection(repo) {
+                    return repo.full_name || repo.text;
+                }
+            });
+
+            $(function() {
+
+                $('#datepicker-4-3').datepicker({
+                    orientation: "bottom left",
+                    todayHighlight: true,
+                    templates: controls,
+                    format: 'dd/mm/yyyy'
+                });
+
+                $('#datepicker-4-3-edit').datepicker({
+                    orientation: "bottom left",
+                    todayHighlight: true,
+                    templates: controls,
+                    format: 'dd/mm/yyyy'
+                });
+
+            });
+
+		});
+        });
+        function loadAssignedTranslationItems() {
+            loadAssigned = true;
+            $('#dt-pending-translations').DataTable().clear();
+            initializePendingTranslationsTable();
+
+            $('#dt-inprogress-translations').DataTable().clear();
+            initializeInProgressTranslationsTable();
+
+            $('#show-assigned-jobs-button').removeClass("btn-secondary").addClass("btn-primary");
+            $('#show-permitted-jobs-button').removeClass("btn-primary").addClass("btn-secondary");
+
+        }
+
+        function loadAllPermittedTranslationItems() {
+            loadAssigned = false;
+
+            $('#dt-pending-translations').DataTable().clear();
+            initializePendingTranslationsTable();
+
+            $('#dt-inprogress-translations').DataTable().clear();
+            initializeInProgressTranslationsTable();
+            $('#show-assigned-jobs-button').removeClass("btn-primary").addClass("btn-secondary");
+            $('#show-permitted-jobs-button').removeClass("btn-secondary").addClass("btn-primary");
+
+        }
+
+        function initializePendingTranslationsTable() {
+            var dataObjectId = @ViewBag.DataObjectID;
+            var dataTypeId = @ViewBag.DataObjectTypeId;
+			$('#dt-pending-translations').dataTable(
+                {
+                order: [[2, 'desc']],
+                    destroy: true,
+
+                processing: true,
+                serverSide: true,
+                ajax: {
+                        contentType: "application/json; charset=utf-8",
+                        url: "/translateOnline/GetPendingDocumentsToBeTranslated",
+                        type: 'POST',
+                    data: function (d) {
+                            params = d;
+                        return JSON.stringify({ parameters: d, dataObjectId, dataTypeId, loadAssigned });
+                        }
+                },
+                lengthMenu: [10, 20, 50, 100, 200],
+                    responsive: true,
+                //orderable: false,
+                    //"ordering" : false,
+                columns: [
+                        {
+                            "data": "requestedBy",
+                            orderable: false,
+                            searchable: true
+
+                        },
+                        {
+                            "data": "contact",
+                            render: function (data, type, row, meta) {
+
+                                if ("@ViewBag.isAllowedToChangeTranslator" == "True") {
+                                    if (type === "display") {
+                                        return getTranslatorColDOMData(row);
+                                    }
+                                    return getTranslatorColDOMData(data);
+                                }
+                                else {
+                                    return data;
+                                }
+
+
+                            }
+                        },
+                        {
+                            "data": "jobItemId"
+                        },
+                        { "data": "jobName" },
+                        { "data" : "sourceLanguage" },
+                        { "data" : "targetLanguage" },
+                        {
+                            "data" : "priority",
+                            render: function (data, type, row, meta) {
+
+                                if (type === "display") {
+                                    if (data == 1) {
+                                        return `<span style="color: red;"><b>High</b></span>`;
+                                    }
+                                    if (data == 2) {
+                                        return `<span style="color: limegreen;"><b>Medium</b></span>`;
+                                    }
+                                    if (data == 3) {
+                                        return `<b>Low</b>`;
+                                    }
+
+                                }
+                                return "<span></span>";
+                            }
+                        },
+                        {
+                            "data": "dueDate",
+                            render: function (data, type, row, meta) {
+                                return getDateString(data);
+                            }
+                        },
+                        {
+                            "data" : "supplierWordCountTotal",
+                            orderable : false
+                        },
+                       {
+                            /* To take action against specific joborder Id */
+                            "data": "jobItemId",
+                            orderable : false,
+                            mRender: function (data, type, row, meta) {
+                                let url = `/JobManagement/OrderDetails/${data}`;
+                                return getActionDOMData(row, true);
+                            }
+                        }
+                    ],
+				dom:
+					"<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+					"<'row'<'col-sm-12'tr>>" +
+					"<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+				buttons: [
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-outline-default'
+                    }
+                    ]
+			});
+        }
+
+        function initializeInProgressTranslationsTable(){
+            var dataObjectId = @ViewBag.DataObjectID;
+            var dataTypeId = @ViewBag.DataObjectTypeId;
+			var inProgressTable = $('#dt-inprogress-translations').dataTable(
+                {
+                order: [[2, 'desc']],
+                destroy : true,
+                processing: true,
+                    serverSide: true,
+                    //orderable: false,
+                    //"ordering": false,
+                ajax: {
+                        contentType: "application/json; charset=utf-8",
+                        url: "/translateOnline/GetDocumentsInProgress",
+                        type: 'POST',
+                        data: function (d) {
+                            params = d;
+                            return JSON.stringify({ parameters: d, dataObjectId, dataTypeId, loadAssigned });
+                        }
+                },
+                lengthMenu: [10, 20, 50, 100, 200],
+				responsive: true,
+                columns: [
+                        {
+                            "data": "requestedBy",
+                            orderable : false
+                        },
+                        {
+                            "data": "contact",
+                            render: function (data, type, row, meta) {
+                                if ("@ViewBag.isAllowedToChangeTranslator" == "True") {
+
+                                    if (type === "display") {
+                                        //let url = `/JobManagement/OrderDetails/${data}`
+                                        return getTranslatorColDOMData(row);
+                                    }
+                                    return getTranslatorColDOMData(data);
+                                }
+                                else {
+                                    return data;
+                                }
+                            }
+                        },
+                        {
+                            "data": "jobItemId"
+                        },
+                        { "data": "jobName" },
+                        { "data" : "sourceLanguage" },
+                        { "data" : "targetLanguage" },
+                        {
+                            "data" : "priority",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == 1) {
+                                        return `<span style="color: red;"><b>High</b></span>`;
+                                    }
+                                    if (data == 2) {
+                                        return `<span style="color: limegreen;"><b>Medium</b></span>`;
+                                    }
+                                    if (data == 3) {
+                                        return `<span style="color: gray;"><b>Low</b></span>`;
+                                    }
+
+                                }
+                                return "<span></span>";
+                            }
+                        },
+                        {
+                            "data": "dueDate",
+                            render: function (data, type, row, meta) {
+                                return getDateString(data);
+                            }
+                        },
+                        {
+                            "data" : "supplierWordCountTotal",
+                            orderable : false
+                        },
+                        {
+                            "data" : "translationProgress",
+                            orderable : false,
+                            render: function (data, type, row, meta) {
+                                return getTranslationProgressDOM(row);
+                                //return data + '<div id="progress-bar" class="progress"><div class="progress-bar bg-warning" role="progressbar" style="width: ' + data + ';" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div></div>'
+                            }
+                        },
+                        {
+                            /* To take action against specific joborder Id */
+                            "data": "jobItemId",
+                            orderable : false,
+                            mRender: function (data, type, row, meta) {
+                                return getActionDOMData(row, false);
+                            }
+                        }
+                    ],
+				//dom:
+				//	"<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+				//	"<'row'<'col-sm-12'tr>>" +
+				//	"<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+				buttons: [
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-outline-default'
+                    }
+					//{
+					//	extend: 'colvis',
+					//	text: 'Column Visibility',
+					//	titleAttr: 'Col visibility',
+					//	className: 'btn-outline-default'
+					//},
+					//{
+					//	extend: 'csvHtml5',
+					//	text: 'CSV',
+					//	titleAttr: 'Generate CSV',
+					//	className: 'btn-outline-default'
+					//},
+					//{
+					//	extend: 'copyHtml5',
+					//	text: 'Copy',
+					//	titleAttr: 'Copy to clipboard',
+					//	className: 'btn-outline-default'
+					//},
+					//{
+					//	extend: 'print',
+					//	text: '<i class="@(Settings.Theme.IconPrefix) fa-print"></i>',
+					//	titleAttr: 'Print Table',
+					//	className: 'btn-outline-default'
+					//}
+                    ]
+                });
+
+            //inProgressTable.on('preDraw', function () { inProgressTable.clear(); });
+        }
+
+        function getTranslatorColDOMData(row) {
+            var dom = `<div class="row">
+                <div class="col">
+                ${row.contact} <a href="javascript:reassignTranslator(${row.jobItemId},'${row.requestedBy}','${row.contact}')" title="Reassign this request to another editor"><i class="ni ni-note"></i></a>
+                </div>
+            </div>`;
+
+            return dom;
+        }
+
+        function reassignTranslator(jobItemId, requestedBy, translator) {
+            document.getElementById('jobitem-label').innerText = jobItemId;
+            document.getElementById('requester-label').innerText = requestedBy;
+            document.getElementById('old-translator').value = translator;
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var allTranslators = $.parseJSON(response);
+                    var defaultOption = document.createElement("option");
+                    defaultOption.innerText = "(Please select)";
+                    var translatorSelect = document.getElementById('translator-select');
+                    translatorSelect.innerHTML = "";
+                    translatorSelect.appendChild(defaultOption);
+                    for (var i = 0; i < allTranslators.length; i++) {
+                        var translatorOption = document.createElement("option");
+                        translatorOption.setAttribute("value", allTranslators[i].id);
+                        translatorOption.innerText = allTranslators[i].name;
+                        translatorSelect.appendChild(translatorOption);
+                    }
+                }
+            }
+            xhr.open("POST", "translateOnline/GetAllContacts", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(jobItemId);
+
+            $('#changeTranslatorModal').modal('show');
+        }
+
+        function getTranslationProgressDOM(row) {
+            var dom = `${row.translationProgress}% <div id="progress-bar" class="progress"><div class="progress-bar bg-warning" role="progressbar" style="width:${row.translationProgress}%;" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div></div>`
+            return dom;
+        }
+
+        function changeTranslator() {
+
+            if ($('#translator-select').val() == '(Please select)') {
+                document.getElementById('translator-validity-label').hidden = false;
+            }
+            else {
+                var jobItemId = document.getElementById('jobitem-label').innerText;
+                var translatorId = $('#translator-select').val();
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+
+                    if (this.readyState == 4 && this.status == 200) {
+                        var response = xhr.responseText;
+
+                        if (response == "inProgress") {
+                            initializeInProgressTranslationsTable();
+
+                        }
+                        else if (response == "pending") {
+                            initializePendingTranslationsTable();
+                        }
+
+                        document.getElementById('jobitem-label-1').innerText = jobItemId;
+                        document.getElementById('requester-label-1').innerText = document.getElementById('requester-label').innerText;
+                        document.getElementById('old-translator-label').innerText = document.getElementById('old-translator').value;
+                        document.getElementById('new-translator-label').innerText = $('#translator-select option:selected').text();
+
+                        $('#changeTranslatorModal').modal('hide');
+
+                        $('#translatorChangedConfirmationModal').modal('show');
+                    }
+                }
+                xhr.open("POST", "translateOnline/ChangeTranslator", true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(jobItemId + "$" + translatorId);
+            }
+        }
+
+        function getDateString(date) {
+            var dateObj = new Date(date);
+            var dayofweek = dateObj.toLocaleString('default', { weekday: 'short' });
+            var month = dateObj.toLocaleString('default', { month: 'long' });
+            var day = dateObj.getDate();
+            var year = dateObj.getFullYear();
+            var hour = dateObj.getHours();
+            var minute = dateObj.getMinutes();
+            if (hour < 10) { hour = '0' + hour; }
+            if (minute < 10) { minute = '0' + minute; }
+
+            var dateString = dayofweek + " " + day + " " + month + " " + year + " " + hour + ":" + minute;
+            var today = new Date();
+
+            if (dateObj < today) {
+                dateString = `<span style="color: red;">` + dateString + `</span>`;
+            }
+            else {
+                dateString;
+            }
+            return dateString;
+        }
+
+        function getActionDOMData(row, pending) {
+            if (pending) {
+                return `<div class="row">
+                <div class="col">
+                <a href="javascript:startTranslation(${row.jobItemId})" title="Start the translation of this document"><i class="ni ni-arrow-right fa-2x"></i></a>
+                <a href="javascript:signOffJobItem(${row.jobItemId})" title="Approve translation of this document"><i class="ni ni-check fa-2x"></i></a>
+                </div>
+            </div>`
+            }
+            else {
+                return `<div class="row">
+                <div class="col">
+                <a href="javascript:startTranslation(${row.jobItemId})" title="Continue translation of this document"><i class="ni ni-arrow-right fa-2x"></i></a>
+                <a href="javascript:signOffJobItem(${row.jobItemId})" title="Approve translation of this document"><i class="ni ni-check fa-2x"></i></a>
+                </div>
+            </div>`
+            }
+            return dom1;
+        }
+
+        function startTranslation(jobItemId) {
+
+            window.location = `/translateOnline/translateOnlineEdit/${jobItemId}`;
+        }
+
+    </script>
+}
+
+<h3><img src="~/img/translate-logo.png" style="width:35px;height:32px;"> translate online: Status Overview</h3>
+<br />
+<div class="demo" hidden="@(!ViewBag.toShowToggleButtons)">
+    <br>
+    <button type="button" id="show-assigned-jobs-button" class="btn btn-primary" style="color:white;" onclick="javascript:loadAssignedTranslationItems()">Show only translation requests assigned to me</button>
+    <button type="button" id="show-permitted-jobs-button" class="btn btn-secondary" style="color:white;" onclick="javascript:loadAllPermittedTranslationItems()">Show all requests which I am permitted to view</button>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div id="panel-4" class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="frame-wrap">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div id="panel-4" class="panel">
+                                    <div class="panel-hdr">
+                                        <i class="fal fa-tools fa-2x color-black"></i> &nbsp; &nbsp;
+                                        <h2>
+                                            Pending: documents to be translated
+                                        </h2>
+                                        <div class="panel-toolbar">
+                                            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                                            <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                                        </div>
+                                    </div>
+                                    <div class="panel-container show">
+                                        <div class="panel-content">
+                                            <div class="panel-tag">
+                                                <span><i class="fal fa-info-circle fa-1x" style="color: #000000"></i></span> Any completion deadlines shown in <span style="color:red;">red</span> are overdue. If your access level permits it, you can re-route a request to a different translator by clicking on the relevant <span><i class="fal fa-edit fa-1x" style="color:#000000"></i> icon.</span>
+                                            </div>
+                                            <table id="dt-pending-translations" class="table table-bordered table-hover table-striped w-100">
+                                                <thead class="bg-warning-200">
+                                                    <tr>
+                                                        <th>Requested by</th>
+                                                        <th>Contact</th>
+                                                        <th>Job item number</th>
+                                                        <th>Project name/Your reference</th>
+                                                        <th>Source language</th>
+                                                        <th>Target language</th>
+                                                        <th>Priority</th>
+                                                        <th>Due by (@ViewBag.extranetUserTimeZone)</th>
+                                                        <th>Word count</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="changeTranslatorModal" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content border-0 shadow-3">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <strong><label id="modal_header1">Re-route a translation request</label> </strong>
+                                        </h5>
+                                        <button type="submit" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body bg-faded">
+                                        Job item ID <label id="jobitem-label" class="form-label text-success"></label> requested by <label id="requester-label" class="form-label text-success"></label>
+                                        <input type="hidden" id="old-translator" />
+                                        <br /><br />
+                                        Using the drop-down list, please select the translator you wish to re-route this request to and click <label class="form-label text-success">Confirm</label>.
+                                        <br /><br />
+                                        <div class="col-md-8">
+                                            <select class="select2 form-control" id="translator-select">
+                                            </select>
+                                            <label id="translator-validity-label" hidden style="color:red">You must select a translator</label>
+                                        </div>
+                                        <br /><br />
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a class="btn btn-success" style="color:white;" onclick="changeTranslator();">Confirm</a>
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="translatorChangedConfirmationModal" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content border-0 shadow-3">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <strong><label id="modal_header1">Success</label> </strong>
+                                        </h5>
+                                        <button type="submit" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body bg-faded">
+                                        Job item ID <label id="jobitem-label-1" class="form-label text-success"></label> requested by <label id="requester-label-1" class="form-label text-success"></label> has been assigned from <label id="old-translator-label" class="form-label text-success"></label> to <label id="new-translator-label" class="form-label text-success"></label>.
+                                    </div>
+                                    @*<div class="modal-footer">
+                                            <a class="btn btn-success" style="color:white;" onclick="changeTranslator();">Confirm</a>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>*@
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="jobitemSignedOffModal" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content border-0 shadow-3">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <strong><label id="modal_header1">Success</label> </strong>
+                                        </h5>
+                                        <button type="submit" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body bg-faded">
+                                        Job item ID <label id="jobitem-label-2" class="form-label text-success"></label> has been signed off successfully.
+                                    </div>
+                                    @*<div class="modal-footer">
+                                            <a class="btn btn-success" style="color:white;" onclick="changeTranslator();">Confirm</a>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </div>*@
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div id="panel-4" class="panel">
+                                    <div class="panel-hdr">
+                                        <i class="fal fa-tools fa-2x color-black"></i> &nbsp; &nbsp;
+                                        <h2>
+                                            In progress: documents currently being translated
+                                        </h2>
+                                        <div class="panel-toolbar">
+                                            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                                            <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                                        </div>
+                                    </div>
+                                    <div class="panel-container show">
+                                        <div class="panel-content">
+                                            <div class="panel-tag">
+                                                <span><i class="fal fa-info-circle fa-1x" style="color: #000000"></i></span> Any completion deadlines shown in <span style="color:red;">red</span> are overdue. If your access level permits it, you can re-route a request to a different translator by clicking on the relevant <span><i class="fal fa-edit fa-1x" style="color:#000000"></i> icon.</span>
+                                            </div>
+                                            <table id="dt-inprogress-translations" class="table table-bordered table-hover table-striped w-100">
+                                                <thead class="bg-warning-200">
+                                                    <tr>
+                                                        <th>Requested by</th>
+                                                        <th>Contact</th>
+                                                        <th>Job item number</th>
+                                                        <th>Project name/ Your reference</th>
+                                                        <th>Source language</th>
+                                                        <th>Target language</th>
+                                                        <th>Priority</th>
+                                                        <th>Due by (@ViewBag.extranetUserTimeZone)</th>
+                                                        <th>Word count</th>
+                                                        <th>Progress</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

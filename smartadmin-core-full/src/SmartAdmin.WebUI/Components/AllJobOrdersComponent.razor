@@ -1,0 +1,86 @@
+﻿@implements IAsyncDisposable
+@inject Microsoft.JSInterop.IJSRuntime jsRuntime
+
+@*<link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">*@
+
+@*<button @onclick="TriggerPrompt">Click me</button>
+
+<p>
+    @result
+</p>*@
+
+<table id="dt-all-orders-component" class="table-sm table table-bordered table-hover table-striped w-100">
+    <thead class="bg-warning-gradient">
+        <tr>
+            <th>Job ID</th>
+            <th>Enquiry ID</th>
+            <th>Job</th>
+            <th>Org name</th>
+            <th>Org group name</th>
+            <th>Contact</th>
+            <th>Source</th>
+            <th>Target</th>
+            <th>Status</th>
+            <th>Submission date</th>
+            <th>Delivery deadline</th>
+            <th>Margin</th>
+            <th>Client costs</th>
+        </tr>
+    </thead>
+    
+    @*<tfoot>
+        <tr>
+            <th>Job ID</th>
+            <th>Enquiry ID</th>
+            <th>Job</th>
+            <th>Org name</th>
+            <th>Org group name</th>
+            <th>Contact</th>
+            <th>Source</th>
+            <th>Target</th>
+            <th>Status</th>
+            <th>Submission date</th>
+            <th>Delivery deadline</th>
+            <th>Margin</th>
+            <th>Client costs</th>
+        </tr>
+    </tfoot>*@
+</table>
+
+@code {
+    [Parameter]
+    public int DataTypeId { get; set; }
+    [Parameter]
+    public int DataObjectId { get; set; }
+
+    private IJSObjectReference? module;
+    private string? result;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            //module = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "../Components/AllJobOrdersComponent.razor.js");
+            module = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/AllJobOrdersComponent.js");
+        }
+        await module.InvokeVoidAsync("initializeJobOrdersDataTable", DataObjectId, DataTypeId);
+    }
+
+    //Test code to check if the component is wokring
+    private async Task TriggerPrompt()
+    {
+        result = await Prompt("Provide some text");
+    }
+
+    public async ValueTask<string?> Prompt(string message) =>
+        module is not null ?
+            await module.InvokeAsync<string>("showPrompt") : null;
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        if (module is not null)
+        {
+            await module.DisposeAsync();
+        }
+    }
+}

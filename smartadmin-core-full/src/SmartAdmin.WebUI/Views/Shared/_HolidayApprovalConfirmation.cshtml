@@ -1,0 +1,39 @@
+﻿
+<div class="modal fade" id="holiday-approval-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+
+                <h4 class="modal-title text-success"><label id="holiday-approval-header-text"></label></h4>
+            </div>
+            <div class="modal-body">
+                <label id="holiday-approval-confirmation-string">Are you sure you want to approve </label>&nbsp;<label class="text-success md-header" id="approval-holiday-dates"></label><label id="approval-label-2">?</label>
+                <input type="hidden" id="holiday-request-id" />
+                <br /><br />
+                      <div id="teams-holiday-div" hidden="hidden">
+                          <label id="teams-holiday-label">Team holidays overlapping same date range:</label><br /><br />
+                          <table id="teams-holiday-table" class="table table-bordered table-hover table-sm table-striped w-80">
+                              <thead style="color:white; background-color:#E84133;">
+                                  <tr align="center">
+                                      <th width="250px">Employee</th>
+                                      <th width="200px">First day</th>
+                                      <th width="200px">Last day</th>
+                                      <th width="80px">Total days</th>
+                                      <th width="100px">Status</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  <tr align="center">
+                                  </tr>
+                              </tbody>
+                          </table>
+                      </div>
+            </div>
+
+            <div class="modal-footer">
+                <a class="btn btn-success" id="approve-button">Approve</a>
+                <button type="button" class="btn btn-secondary" id="cancel-button" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,113 @@
+﻿@{
+    @model ViewModels.TPEndClient.TPEndClientList;
+    
+}
+
+<form asp-controller="TPEndClient" asp-action="Insert">
+    <div id="newDiv">
+
+        <h1>Transcreation & Production Configuration page</h1>
+        <br /><br />
+        <table id="EndClientTable" style="width:50%">
+            <tr>
+                <td style="width:200px;">
+                    <div class="form-group">
+                        <label class="form-label" for="itemSelect">Item:</label>
+                        <select class="form-control" id="itemSelect" name="ItemType" style="width:200px;">
+                            <option value="1">(Please Select)</option>
+                            <option value="2">End Client</option>
+                            <option value="19">Brand</option>
+                            <option value="20">Category</option>
+                            <option value="18">Campaign</option>
+                        </select>
+                    </div>
+                </td>
+
+                <td id="EndClientDropDown">
+                    <div class="form-group" id="EndClientData">
+
+                        <label class="form-label" for="endclientID">End Client:</label>
+                        <select class="form-control" name="endclientID" style="width:auto" asp-for="EndClientListID" asp-items="Model.EndClientNames.Select(x => new SelectListItem(x.Name,x.Id.ToString()))">
+                            <option value="0">(Please Select)</option>
+
+                        </select>
+                    </div>
+
+                </td>
+            </tr>
+
+            <tr>
+
+                <td colspan="2">
+                    <br />
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="TextBoxValue" style="width:500px" />
+                    </div>
+                </td>
+
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td>
+                    <button type="submit" class="form-control"  style="background-color: #E84133; color: white; width: 100px;" asp-action="Insert" asp-controller="TPEndClient" > Save </button>
+                </td>
+            </tr>
+        </table>
+
+        <br /> <br />
+
+
+    </div>
+</form>
+@section ScriptsBlock
+{
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js">
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            var item = $($("#itemSelect"));
+            if ((item.val() == 19) || (item.val() == 20) || (item.val() == 18)) {
+                $("#EndClientDropDown").show();
+            }
+            else { $("#EndClientDropDown").hide(); }
+            @Model.JavascriptToRun;
+    });
+
+        $('#itemSelect').change(function () {
+            var item = $(this);
+            if ((item.val() == 19) || (item.val() == 20) || (item.val() == 18)) {
+                $("#EndClientDropDown").show();
+            }
+            else { $("#EndClientDropDown").hide(); }
+        });
+
+
+    </script>
+
+    <script type="text/javascript">
+          @*@Model.JavascriptToRun*@
+
+     function ShowErrorPopup() {
+          alert('Sorry, we could not process your request. This object exists already.');
+        }
+
+        function ShowNoItemPopup() {
+            alert('Please select an item to add.');
+        }
+
+        function ShowNoTextPopup() {
+            alert('Please provide a name for the item.');
+        }
+
+        function ShowNoEndClient() {
+            alert('Please provide an end client for the item.');
+        }
+
+        function ShowSuccessPopup() {
+            alert('The data was inserted succesfully.');
+        }
+    </script>
+}

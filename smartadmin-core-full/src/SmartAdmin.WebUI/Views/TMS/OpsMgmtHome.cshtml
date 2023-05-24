@@ -1,0 +1,1143 @@
+﻿@{
+    @using System.Text.Json;
+    @using ViewModels.TMS.Ops_mgmt;
+    @model OpsDashboardViewModel;
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/statistics/c3/c3.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+}
+
+@{
+    var depName = Model.teamBreakdowns.First().TeamName;
+    if (Model.teamBreakdowns.First().Id != 9 && Model.teamBreakdowns.First().Id != 10)
+    {
+        depName = Model.departmentName;
+    }
+}
+
+<style>
+    .table td {
+        white-space: nowrap;
+        overflow: hidden;
+    }
+</style>
+
+<div class="text-center">
+    <h1>Operations Management Dashboard</h1>
+    <h4><i>@Model.departmentName</i></h4>
+</div>
+
+<div id="ordersTableDiv" style="display: none;">
+    <div id="panel-4" class="panel">
+        <div class="panel-hdr">
+            <h2>
+                Job <span class="fw-300"><i>Orders</i></span>
+            </h2>
+            <div class="panel-toolbar">
+                <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+            </div>
+        </div>
+        <div class="panel-container show">
+            <div class="panel-content">
+                <table id="dt-basic-example" class="table table-bordered table-hover table-striped w-100">
+                    <thead class="bg-warning-200">
+                        <tr>
+                            <th>Team</th>
+                            <th>Job</th>
+                            <th>Job ID</th>
+                            <th>Project manager</th>
+                            <th>Delivery deadline</th>
+                            <th>Org name</th>
+                            <th>Org group name</th>
+                            <th>Status</th>
+                            <th>Enquiry ID</th>
+                            <th>Margin</th>
+                            <th>Client costs</th>
+                        </tr>
+                    </thead>
+
+                    <tfoot>
+                        <tr>
+                            <th>Team</th>
+                            <th>Job</th>
+                            <th>Job ID</th>
+                            <th>Project manager</th>
+                            <th>Delivery deadline</th>
+                            <th>Org name</th>
+                            <th>Org group name</th>
+                            <th>Status</th>
+                            <th>Enquiry ID</th>
+                            <th>Margin</th>
+                            <th>Client costs</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div id="panel-5" class="panel" style="width: 100%;">
+                <div class="panel-hdr">
+                    <h2>
+                        <span>Team</span>
+                    </h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                    </div>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+
+                        <div class="col-lg-12">
+                            <div id="panel-4" class="panel">
+                                <div class="panel-hdr">
+                                    <h2>
+                                        Status per <span class="fw-300"><i>Team</i></span>
+                                    </h2>
+                                    <div class="panel-toolbar">
+                                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                                    </div>
+                                </div>
+                                <div class="panel-container show">
+                                    <div class="panel-content">
+                                        <div class="frame-wrap">
+                                            <table class="table m-0 table-bordered table-sm table-hover table-striped">
+                                                <thead class="thead-themed">
+                                                    <tr>
+                                                        <th>Team</th>
+                                                        <th>Open jobs</th>
+                                                        <th>Open items</th>
+                                                        <th>Overdue jobs</th>
+                                                        <th>Overdue items</th>
+                                                        <th>Jobs due today</th>
+                                                        <th>Items due today</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var row in Model.teamBreakdowns)
+                                                    {
+                                                        if (Model.teamBreakdowns.First() == row)    /*Department*/
+                                                        {
+                                                            <tr>
+                                                                <td><a href="#" class="countLink">@depName</a></td>
+                                                                <td><a href="javascript:void()" class="countLink" onclick="showJobOrdersDataTable(@row.Id, 'departmentOpenJobs')">@row.OpenJobsCount</a></td>
+                                                                <td>@row.OpenItemsCount</td>
+                                                                <td><a href="javascript:void()" class="countLink" onclick="showJobOrdersDataTable(@row.Id, 'departmentOverdueJobs')">@row.OverdueJobsCount</a></td>
+                                                                <td>@row.OverdueItemsCount</td>
+                                                                <td><a href="javascript:void()" class="countLink" onclick="showJobOrdersDataTable(@row.Id, 'departmentDueTodayJobs')">@row.JobsDueToday</a></td>
+                                                                <td>@row.ItemsDueToday</td>
+                                                            </tr>
+                                                        }
+                                                        else if (row.Id == 435)     /*TBA Employee*/
+                                                        {
+                                                            <tr>
+                                                                <td><a href="#" class="countLink">@row.TeamName</a></td>
+                                                                @if (row.OpenJobsCount > 0)
+                                                                {
+                                                                    <td><a href="javascript:void()" class="countLink" onclick="showJobOrdersDataTable(@row.Id, 'TBAOpenJobs')">@row.OpenJobsCount</a></td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td>@row.OpenJobsCount</td>
+                                                                }
+                                                                <td>@row.OpenItemsCount</td>
+                                                                @*ADD/Modify this logic everywhere to reduce DB calls*@
+                                                                @if (row.OverdueJobsCount > 0)
+                                                                {
+                                                                    <td><a href="javascript:void()" class="countLink" onclick="showJobOrdersDataTable(@row.Id, 'TBAOverdueJobs')">@row.OverdueJobsCount</a></td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td>@row.OverdueJobsCount</td>
+                                                                }
+                                                                <td>@row.OverdueItemsCount</td>
+                                                                @if (row.JobsDueToday > 0)
+                                                                {
+                                                                    <td><a href="javascript:void()" class="countLink" onclick="showJobOrdersDataTable(@row.Id, 'TBADueTodayJobs')">@row.JobsDueToday</a></td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td>@row.JobsDueToday</td>
+                                                                }
+                                                                <td>@row.ItemsDueToday</td>
+                                                            </tr>
+                                                        }
+                                                        else
+                                                        {
+                                                            <tr>
+                                                                <td><a asp-action="TeamMgmtDashboard" asp-route-teamId="@row.Id">@row.TeamName</a></td>
+                                                                @if (row.OpenJobsCount > 0)
+                                                                {
+                                                                    <td><a href="javascript:void()" class="countLink" onclick="showJobOrdersDataTable(@row.Id, 'openJobs')">@row.OpenJobsCount</a></td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td>@row.OpenJobsCount</td>
+                                                                }
+                                                                <td>@row.OpenItemsCount</td>
+                                                                @if (row.OverdueItemsCount > 0)
+                                                                {
+                                                                    <td><a href="javascript:void()" class="countLink" onclick="showJobOrdersDataTable(@row.Id, 'overdueJobs')">@row.OverdueJobsCount</a></td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td>@row.OverdueItemsCount</td>
+                                                                }
+                                                                <td>@row.OverdueItemsCount</td>
+                                                                @if (row.JobsDueToday > 0)
+                                                                {
+                                                                    <td><a href="javascript:void()" class="countLink" onclick="showJobOrdersDataTable(@row.Id, 'dueTodayJobs')">@row.JobsDueToday</a></td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td>@row.JobsDueToday</td>
+                                                                }
+                                                                <td>@row.ItemsDueToday</td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div id="panel-4" class="panel">
+                                <div class="panel-hdr">
+                                    <h2>
+                                        Status per <span class="fw-300"><i>Item</i></span>
+                                    </h2>
+                                    <div class="panel-toolbar">
+                                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                                    </div>
+                                </div>
+                                <div class="panel-container show">
+                                    <div class="panel-content">
+                                        <div class="frame-wrap">
+                                            <table class="table m-0 table-bordered table-sm table-hover table-striped">
+                                                <thead class="thead-themed">
+                                                    <tr>
+                                                        <th>Team</th>
+                                                        <th>Items not sent to supplier</th>
+                                                        <th>Translation items</th>
+                                                        <th>Proofreading items</th>
+                                                        <th>ClientReview items</th>
+                                                        <th>Production items</th>
+                                                        <th>Overdue items</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var row in Model.teamItemsBreakdowns)
+                                                    {
+                                                        if (Model.teamItemsBreakdowns.First() == row)
+                                                        {
+                                                            <tr>
+                                                                <td><a href="#" class="countLink">@depName</a></td>
+                                                                <td>@row.ItemsNotSentToSupplier</td>
+                                                                <td>@row.ItemsInTranslation</td>
+                                                                <td>@row.ItemsInProofreading</td>
+                                                                <td>@row.ItemsInClientReview</td>
+                                                                <td>@row.ItemsInProduction</td>
+                                                                <td>@row.OverdueAndRejectedItems</td>
+                                                            </tr>
+                                                        }
+                                                        else
+                                                        {
+                                                            <tr>
+                                                                <td><a asp-action="TeamMgmtDashboard" asp-route-teamId="@row.Id">@row.TeamName</a></td>
+                                                                <td>@row.ItemsNotSentToSupplier</td>
+                                                                <td>@row.ItemsInTranslation</td>
+                                                                <td>@row.ItemsInProofreading</td>
+                                                                <td>@row.ItemsInClientReview</td>
+                                                                <td>@row.ItemsInProduction</td>
+                                                                <td>@row.OverdueAndRejectedItems</td>
+                                                            </tr>
+                                                        }
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-5" class="panel" style="width: 100%;">
+                <div class="panel-hdr">
+                    <h2>
+                        <span>Client</span>
+                    </h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                    </div>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+
+                        <div class="col-lg-12">
+                            <div id="panel-4" class="panel">
+                                <div class="panel-hdr">
+                                    <h2>
+                                        Status per <span class="fw-300"><i>Group</i></span>
+                                    </h2>
+                                    <div class="panel-toolbar">
+                                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                                    </div>
+                                </div>
+                                <div class="panel-container show">
+                                    <div class="panel-content">
+                                        <div class="frame-wrap">
+                                            <table id="dt-group-status-table" class="table m-0 table-bordered table-sm table-hover table-striped">
+                                                <thead class="thead-themed">
+                                                    <tr>
+                                                        <th>Group</th>
+                                                        <th>Open jobs</th>
+                                                        <th>Open items</th>
+                                                        <th>Overdue jobs</th>
+                                                        <th>Overdue items</th>
+                                                        <th>Jobs due today</th>
+                                                        <th>Items due today</th>
+                                                    </tr>
+                                                </thead>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th>Group</th>
+                                                        <th>Open jobs</th>
+                                                        <th>Open items</th>
+                                                        <th>Overdue jobs</th>
+                                                        <th>Overdue items</th>
+                                                        <th>Jobs due today</th>
+                                                        <th>Items due today</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div id="panel-4" class="panel">
+                                <div class="panel-hdr">
+                                    <h2>
+                                        Status per <span class="fw-300"><i>Item</i></span>
+                                    </h2>
+                                    <div class="panel-toolbar">
+                                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                                    </div>
+                                </div>
+                                <div class="panel-container show">
+                                    <div class="panel-content">
+                                        <div class="frame-wrap">
+                                            <table id="dt-group-items-status-table" class="table m-0 table-bordered table-sm table-hover table-striped">
+                                                <thead class="thead-themed">
+                                                    <tr>
+                                                        <th>Group</th>
+                                                        <th>Not sent to supplier</th>
+                                                        <th>Translation</th>
+                                                        <th>Proofreading</th>
+                                                        <th>Client Review</th>
+                                                        <th>Production</th>
+                                                        <th>Overdue</th>
+                                                    </tr>
+                                                </thead>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th>Group</th>
+                                                        <th>Not sent to supplier</th>
+                                                        <th>Translation</th>
+                                                        <th>Proofreading</th>
+                                                        <th>Client Review</th>
+                                                        <th>Production</th>
+                                                        <th>Overdue</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @if (Model.Employee.TeamId == 19 || Model.Employee.TeamId == 42 || Model.Employee.Id == 1218 || Model.Employee.Id == 41 || Model.Employee.Id == 475 || Model.Employee.JobTitle == "Assistant Team Manager" || Model.Employee.IsTeamManager == true)
+            {
+               <div id="panel-5" class="panel" style="width: 100%;">
+                <div class="panel-hdr">
+                    <h2>
+                        <span>Revenue</span>
+                    </h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                    </div>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div class="row">
+                            <div class="col">
+                                @*<div class="text-center"><h5>Revenue table</h5></div>*@
+                                <div id="revenueDiv">
+                                    <table id="revenueTable" class="table m-0 table-bordered table-responsive-md table-hover table-striped">
+                                        <thead class="thead-themed">
+                                            <tr>
+                                                <th>Team name</th>
+                                                <th>Total value of all open job orders</th>
+                                                <th>Closed job items current month</th>
+                                                <th>Closed job items FY</th>
+                                                <th>Closed job orders current month</th>
+                                                <th>Closed job orders FY</th>
+                                                <th>Recognized revenue current month</th>
+                                                <th>Recognized revenue FY</th>
+                                                <th>Pending revenue current month</th>
+                                                <th>Margin FY External</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>dummy</td>
+                                                <td>dummy</td>
+                                                <td>dummy</td>
+                                                <td>dummy</td>
+                                                <td>dummy</td>
+                                                <td>dummy</td>
+                                                <td>dummy</td>
+                                                <td>dummy</td>
+                                                <td>dummy</td>
+                                                <td>dummy</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <hr />
+                                <br />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="text-center"><h3>Revenue stats</h3></div>
+                                <div class="row">
+                                    <div class="col-lg-12 text-center">
+                                        Invoiced revenue current month: <span class="font-weight-bold" id="invoicedRev">£ @Model.invoicedRevenue.ToString("N2")</span>
+                                    </div>
+                                    <div class="col-lg-12 text-center">
+                                        Pending revenue current month: <span class="font-weight-bold" id="pendingRev">£ ...</span>
+                                    </div>
+                                    <div class="col-lg-12 text-center">
+                                        Recognised revenue current month: <span class="font-weight-bold" id="recognisedRev">£ ...</span>
+                                    </div>
+                                </div>
+                                <div id="pieChart" style="width:100%; height:300px;"></div>
+                                @*<div class="text-right">
+            <button id="pieChartUnload" onclick="pieChartUnload();" class="btn btn-sm btn-dark ml-auto">Unload Data</button>
+        </div>*@
+                            </div>
+                            <div class="col">
+                                <div class="text-center"><h4>Breakdown of items for @depName</h4></div>
+                                <div id="pieChart2" style="width:100%; height:300px;"></div>
+                                @*<div class="text-right">
+                                        <button id="pieChartUnload" onclick="pieChartUnload();" class="btn btn-sm btn-dark ml-auto">Unload Data</button>
+                                    </div>*@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-5" class="panel">
+                <div class="panel-hdr">
+                    <h2>
+                        <span>People Dashboard</span>
+                    </h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                    </div>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        @* ADD DROPDOWN TO CHOOSE THE DATE AND LOAD ONLY ONE TABLE AT A TIME (ON INTIAL REQUEST) IF TOO SLOW*@
+                        <div class="row">
+                            <div class="col">
+                                <div class="text-center"><h3 class="font-weight-bold">@Model.departmentName: @DateTime.Today.ToString("d MMMM yyyy")</h3></div>
+                                <table class="table m-0 table-bordered table-hover table-striped">
+                                    <tr class="thead-themed">
+                                        <td></td>
+                                        @foreach (var team in Model.peopleHeadcountBreakdownForToday)
+                                        {
+                                            <th scope="col">@(Model.peopleHeadcountBreakdownForToday.First() == team ? depName : team.TeamName)</th>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-primary">Team total headcount</th>
+                                        @foreach (var item in Model.peopleHeadcountBreakdownForToday)
+                                        {
+                                            <td class="text-center">@(item.TMsCount + item.PMsCount)</td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-info">Available</th>
+                                        @foreach (var item in Model.peopleHeadcountBreakdownForToday)
+                                        {
+                                            <td class="text-center">@item.Available</td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-success">Holidays</th>
+                                        @foreach (var item in Model.peopleHeadcountBreakdownForToday)
+                                        {
+                                            <td class="text-center">@item.Holiday</td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-danger">Sick leaves</th>
+                                        @foreach (var item in Model.peopleHeadcountBreakdownForToday)
+                                        {
+                                            <td class="text-center">@item.SickLeaves</td>
+                                        }
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <br />
+
+                        <div class="row">
+                            <div class="col">
+                                <div class="text-center"><h3 class="font-weight-bold">@Model.departmentName: Upcoming 2 weeks overview</h3></div>
+                                <table class="table m-0 table-bordered table-hover table-striped">
+                                    <tr class="thead-themed">
+                                        <td></td>
+                                        @foreach (var team in Model.peopleHeadcountBreakdownForTwoWeeks)
+                                        {
+                                            <th scope="col">@(Model.peopleHeadcountBreakdownForTwoWeeks.First() == team ? depName : team.TeamName)</th>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-primary">Team total headcount</th>
+                                        @foreach (var item in Model.peopleHeadcountBreakdownForTwoWeeks)
+                                        {
+                                            <td class="text-center">@(item.TMsCount + item.PMsCount)</td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-info">Available</th>
+                                        @foreach (var item in Model.peopleHeadcountBreakdownForTwoWeeks)
+                                        {
+                                            <td class="text-center">@item.Available</td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-success">Holidays</th>
+                                        @foreach (var item in Model.peopleHeadcountBreakdownForTwoWeeks)
+                                        {
+                                            <td class="text-center">@item.Holiday</td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-danger">Sick leaves</th>
+                                        @foreach (var item in Model.peopleHeadcountBreakdownForTwoWeeks)
+                                        {
+                                            <td class="text-center">@item.SickLeaves</td>
+                                        }
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+            <!--<div id="panel-5" class="panel">
+                <div class="panel-hdr">
+                    <h2>
+                        <span>Quick access links</span>
+                    </h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                    </div>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div class="row">
+                            <div class="col">
+                                <div class="row mb-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-dark dropdown-toggle" style="margin-right: 1rem;" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            Add Link
+                                        </button>
+                                        <div class="dropdown-menu dropdown-lg" style="background-image: url(/img/backgrounds/bg-3.png);">
+                                            <form class="p-4 needs-validation" novalidate>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="linkName">Link Name <span class="text-danger">*</span></label>
+                                                    <input type="text" id="linkName" class="form-control rounded-pill" placeholder="Test org 1" required>
+                                                    <div class="invalid-feedback">No, you missed this one.</div>
+                                                    <div class="valid-feedback">Looks good!</div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="link">Link <span class="text-danger">*</span></label>
+                                                    <input type="url" id="link" class="form-control rounded-pill" placeholder="http://myplus/Org.aspx?OrgID=83923" required>
+                                                    <div class="invalid-feedback">Sorry, you missed this one.</div>
+                                                    <div class="valid-feedback">Looks good!</div>
+                                                </div>
+                                                <div class="form-group text-left">
+                                                    <label class="form-label" for="color">Color</label>
+                                                    <select id="color" class="form-control rounded-pill">
+                                                        <option value="primary" selected="selected" class="bg-primary">Current theme color</option>
+                                                        <option value="danger" class="bg-danger">Red</option>
+                                                        <option value="success" class="bg-success">Green</option>
+                                                        <option value="warning" class="bg-warning">Yellow</option>
+                                                        <option value="light" class="bg-light">Light</option>
+                                                        <option value="dark" class="bg-dark text-white">Dark</option>
+                                                        <option value="info" class="bg-info">Blue</option>
+                                                        <option value="secondary" class="bg-secondary text-white">Grey</option>
+                                                    </select>
+                                                    <div class="invalid-feedback">Sorry, you missed this one.</div>
+                                                </div>
+                                                <button type="submit" class="btn btn-info btn-block rounded-pill">Create</button>
+                                            </form>-->
+                                            @*<div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">New around here? Sign up</a>
+                    <a class="dropdown-item" href="#">Forgot password?</a>*@
+                                        <!--</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="demo">
+                                        <a href="#" class="btn btn-success rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-danger rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-primary rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-secondary rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-success rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-danger rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-primary rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-secondary rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-success rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-danger rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-primary rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                        <a href="#" class="btn btn-secondary rounded-pill" data-toggle="tooltip" data-placement="top" title="" data-original-title="Actual link on top">
+                                            Link name example
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>--><!-- End of Quick access section -->
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock
+{
+    @*<script type="text/javascript">
+            /* Activate smart panels */
+            $('#js-page-content').smartPanel();
+        </script>*@
+
+    @*<script src="~/js/datagrid/datatables/momentDataTables.js"></script>*@
+
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    @*<script src="~/js/jquery.twbsPagination.min.js"></script>*@
+
+    <script src="~/js/statistics/d3/d3.js"></script>
+    <script src="~/js/statistics/c3/c3.js"></script>
+    <script src="~/js/statistics/demo-data/demo-c3.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            inititalizeGroupTable();
+            inititalizeGroupItemsTable();
+
+            revenueChart();
+            GLSRevenuePie();
+        });
+
+        var colors = [color.success._100, color.success._900, color.danger._100, color.danger._900, color.info._100, color.info._900, color.primary._100, color.primary._900, color.warning._100, color.warning._900, color.fusion._100, color.fusion._900];
+
+        var revenueChart;
+
+        function revenueChart() {
+            /*https://stackoverflow.com/questions/8053424/label-outside-arc-pie-chart-d3-js*/
+            var jsonData = [
+                { name: 'Pending revenue current month', revenue: 1 },
+                { name: 'Recognised revenue current month', revenue: 1 }
+            ]
+
+            var data = {};
+            var sites = [];
+            jsonData.forEach(function (e) {
+                sites.push(e.name);
+                data[e.name] = e.revenue;
+            })
+
+            revenueChart = c3.generate({
+                bindto: "#pieChart",
+                transition: {
+                    duration: 100
+                },
+                data: {
+                    json: [data],
+                    keys: {
+                        value: sites,
+                    },
+                    type: 'pie'//,
+                    /*onclick: function (d, i) { console.log("onclick", d, i); },
+                    onmouseover: function (d, i) { console.log("onmouseover", d, i); },
+                    onmouseout: function (d, i) { console.log("onmouseout", d, i); }*/
+                },
+                //pie: {
+                //    threshold: 0.1,
+                //    label: {
+                //        //format: function (value, ratio, id) {
+                //        //    return Number(value.toFixed(2)).toLocaleString(); //d3.format('$,')(value);  // $ - gets the locale format (en-us in most cases)
+                //        //}
+                //        format: function (value, ratio, id) {
+                //            locale = d3.formatLocale({
+                //                decimal: ".",
+                //                thousands: ",",
+                //                grouping: [3],
+                //                currency: ["£\u00a0", ""],
+                //                //currency: ["£", ""],
+                //                minus: "\u2212",
+                //                percent: "\u202f%"
+                //            });
+                //            fformat = locale.format("$,");
+                //            return fformat(value);
+                //        }
+                //    }
+                //},
+                color: {
+                    pattern: colors
+                }
+            });
+        };
+
+        function GLSRevenuePie() {
+            var jsonData = [
+                { name: 'not sent to supplier', count: @Model.teamItemsBreakdowns.ElementAt(0).ItemsNotSentToSupplier },
+                { name: 'in translation', count: @Model.teamItemsBreakdowns.ElementAt(0).ItemsInTranslation },
+                { name: "in proofreading", count: @Model.teamItemsBreakdowns.ElementAt(0).ItemsInProofreading },
+                { name: "in client review", count: @Model.teamItemsBreakdowns.ElementAt(0).ItemsInClientReview },
+                { name: "in production", count: @Model.teamItemsBreakdowns.ElementAt(0).ItemsInProduction },
+                { name: "overdue", count: @Model.teamItemsBreakdowns.ElementAt(0).OverdueAndRejectedItems }
+            ]
+
+            var data = {};
+            var items = [];
+            jsonData.forEach(function (e) {
+                items.push(e.name);
+                data[e.name] = e.count;
+            })
+
+            var pieChart = c3.generate({
+                bindto: "#pieChart2",
+                data: {
+                    json: [data],
+                    keys: {
+                        value: items,
+                    },
+                    type: 'pie'
+                },
+                pie: {
+                    threshold: 0.1,
+                    label: {
+                        format: function (value, ratio, id) {
+                            return d3.format('#')(value);
+                        }
+                    }
+                },
+                color: {
+                    pattern: colors
+                }
+            });
+        };
+
+        // Show spinner on revenue table once its visible and get the data
+        var observer = new IntersectionObserver(function (entries) {
+            // isIntersecting is true when element and viewport are overlapping
+            // isIntersecting is false when element and viewport don't overlap
+            for (let i = 0; i < entries.length; i++) {
+                // entries[i]['intersectionRatio']
+                // entries[i]['isIntersecting']
+                // entries[i]['target']
+                if (entries[i].intersectionRatio > 0.25) {
+                    console.log('Element has just become visible in screen');
+
+                    getRevenueTableData();
+                    observer.disconnect();
+                }
+            }
+        }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+
+        observer.observe(document.querySelector("#revenueDiv"));
+
+        function getRevenueTableData() {
+            $.ajax({
+                // ADD SPINNER
+                beforeSend: function () {
+                    $('#revenueTable tbody').html('')
+                    $('#revenueDiv').append(`<div id="revenueSpinner" class="d-flex justify-content-center" style="margin: 1rem;">
+                                            <div class="spinner-border text-dark" role="status">
+						                    	<span class="sr-only">Loading...</span>
+						                    </div>
+						                 </div>`)
+                },
+                url: "api/TMSHome/GetOpsRevenueTable",
+                method: 'GET',
+                data: { departmentId: @Model.departmentId },
+                dataType: 'json',
+                success: function (data) {
+                    generateRevenuetable(data);
+
+                    revenueChart.load({
+                        columns: [
+                            ['Pending revenue current month', data[0].pendingRevenueCurrentMonthInGBP],
+                            ['Recognised revenue current month', data[0].recognisedRevenueCurrentMonthInGBP]
+                        ]
+                    });
+                    $('#pendingRev').text('£ ' + data[0].pendingRevenueCurrentMonthInGBP.toLocaleString());
+                    $('#recognisedRev').text('£ ' + data[0].recognisedRevenueCurrentMonthInGBP.toLocaleString());
+                },
+                error: function (err) {
+                    console.log(err);
+                },
+                complete: function () {
+                    $('#revenueSpinner').remove();
+                }
+            });
+
+            function generateRevenuetable(data) {
+                var tr;
+                $('#revenueTable tbody').html('');
+                for (var i = 0; i < data.length; i++) {
+                    tr = $('<tr/>');
+                    tr.append("<td><a href='#'>" + data[i].teamName + "</a></td>");
+                    tr.append("<td>£ " + data[i].totalValueOfAllOpenJobOrders.toLocaleString(['en-uk', 'bg-bg']) + "</td>");
+                    tr.append("<td>" + data[i].closedItemsCurrentMonth + "</td>");
+                    tr.append("<td>" + data[i].closedItemsCurrentYear + "</td>");
+                    tr.append("<td>" + data[i].closedOrdersCurrentMonth + "</td>");
+                    tr.append("<td>" + data[i].closedOrdersCurrentYear + "</td>");
+                    tr.append("<td>£ " + data[i].recognisedRevenueCurrentMonthInGBP.toLocaleString(['en-uk', 'bg-bg']) + "</td>");
+                    tr.append("<td>£ " + data[i].recognisedRevenueCurrentYearInGBP.toLocaleString(['en-uk', 'bg-bg']) + "</td>");
+                    tr.append("<td>£ " + data[i].pendingRevenueCurrentMonthInGBP.toLocaleString(['en-uk', 'bg-bg']) + "</td>");
+                    tr.append("<td>" + data[i].marginCurrentYear.toFixed(2) + " %</td>");
+                    $('#revenueTable tbody').append(tr.css('display', 'none'));
+                    tr.show(800);
+                }
+            };
+        }
+
+        function initializeDatatable(teamId, jobType) {
+            /* init datatable */
+            //$.fn.dataTable.moment('dddd, MMMM Do, YYYY');
+                $('#dt-basic-example').dataTable(
+                    {
+                        ajax: {
+                            url: "tmshome/GetJobOrdersDataTableData",
+                            data: { teamId, jobType },
+                            dataSrc: 'data'
+                        },
+                        columns: [
+                            { "data": "teamName" },
+                            { "data": "jobOrderName",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        let link = `https://myplusbeta.publicisgroupe.net/tmsjoborder/joborder?joborderid=${row.jobOrderId}`;
+
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                    return data;
+                                } },
+                            { "data": "jobOrderId" },
+                            { "data": "projectManagerName",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        //let link = `http://myplus/Order.aspx?OrderID=${row.jobOrderId}`;
+                                        let link = `TMSHome/PMDashboard?pmId=${row.pmId}`;
+
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                    return data;
+                                } },
+                            { "data": "deliveryDeadline" },
+                            { "data": "orgName",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.orgId}`;
+
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                    return data;
+                                } },
+                            { "data": "orgGroupName",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        let link = `https://myplusbeta.publicisgroupe.net/OrgGroup?groupid=${row.orgGroupId}`;
+
+                                        return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                    }
+                                    return data;
+                                } },
+                            { "data": "orderStatus" },
+                            { "data": "originatedFromEnquiryId",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        if (data == 0) {
+                                            return 'N/A';
+                                        }
+                                        else {
+                                            let link = `https://myplusbeta.publicisgroupe.net/enquiry?ID=${row.originatedFromEnquiryId}`;
+                                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                        }
+                                    }
+                                    return data;
+                                } },
+                            { "data": "marginPercentage",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        return `${data.toFixed(2)} %`;
+                                    }
+                                    return data;
+                                } },
+                            { "data": "overallChargeToClient",
+                                render: function (data, type, row, meta) {
+                                    if (type === "display") {
+                                        return `<i>${row.currency}</i>  ${Number(data.toFixed(2)).toLocaleString()}`;
+                                    }
+                                    return data;
+                                } }
+                        ],
+                        fixedHeader: true,
+                        colReorder: true,
+                        responsive: true,
+                        dom:
+                            "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                            "<'row'<'col-sm-12'tr>>" +
+                            "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                        buttons: [
+                            {
+                                extend: 'pageLength',
+                                className: 'btn-outline-default'
+                            },
+                            {
+                                extend: 'colvis',
+                                text: 'Column Visibility',
+                                titleAttr: 'Col visibility',
+                                className: 'btn-outline-default'
+                            }
+                        ],
+
+                        initComplete: function () {
+                            this.api().columns().every(function () {
+                                var column = this;
+                                var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                    .appendTo($(column.footer()).empty())
+                                    .on('change', function () {
+                                        var val = $.fn.dataTable.util.escapeRegex(
+                                            $(this).val()
+                                        );
+
+                                        column
+                                            .search(val ? '^' + val + '$' : '', true, false)
+                                            .draw();
+                                    });
+
+                                column.data().unique().sort().each(function (d, j) {
+                                    select.append('<option value="' + d + '">' + d + '</option>')
+                                });
+                            });
+                        }
+                    });
+        };
+
+        function showJobOrdersDataTable(teamId, jobType) {
+            var div = $('#ordersTableDiv');
+
+            if ($.fn.DataTable.isDataTable('#dt-basic-example')) {
+                $('#dt-basic-example').DataTable().destroy();
+            }
+
+            if (jobType == "openJobs" || jobType == 'departmentOpenJobs') {
+                $('#ordersTableDiv h2').html('Open Jobs');
+            }
+            else if (jobType == "overdueJobs" || jobType == 'departmentOverdueJobs') {
+                $('#ordersTableDiv h2').html('Overdue Jobs');
+            }
+            else if (jobType == "dueTodayJobs" || jobType == 'departmentDueTodayJobs') {
+                $('#ordersTableDiv h2').html('Due Today Jobs');
+            }
+
+            initializeDatatable(teamId, jobType);
+
+            $('html, body').animate({
+                scrollTop: div.offset().top
+            }, 1000);
+            div.show(800);
+        };
+
+        $(document).on('click', '.countLink', function (e) {
+            e.preventDefault();
+        });
+
+        function inititalizeGroupTable() {
+            var dataSet = @(Html.Raw(JsonSerializer.Serialize( Model.groupBreakdowns )));
+
+            $('#dt-group-status-table').dataTable(
+                {
+                    responsive: true,
+                    "bLengthChange": false,
+                    "bAutoWidth": false,
+                    buttons: [],
+                    data: dataSet,
+                    dataSrc: "",
+                    columns: [
+                        {
+                            "data": "OrgGroupName",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/OrgGroup?groupid=${row.Id}`;
+
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        { "data": "OpenJobsCount" },
+                        { "data": "OpenItemsCount" },
+                        { "data": "OverdueJobsCount" },
+                        { "data": "OverdueItemsCount" },
+                        { "data": "JobsDueToday" },
+                        { "data": "ItemsDueToday" },
+                    ],
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+                    initComplete: function () {
+                        this.api().columns().every(function () {
+                            var column = this;
+                            var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function () {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function (d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            });
+                        });
+                    }
+                });
+        }
+
+        function inititalizeGroupItemsTable() {
+            var dataSet = @(Html.Raw(JsonSerializer.Serialize( Model.groupItemsBreakdowns )));
+
+            $('#dt-group-items-status-table').dataTable(
+                {
+                    responsive: true,
+                    buttons: [],
+                    "bLengthChange": false,
+                    "bAutoWidth": false,
+                    data: dataSet,
+                    dataSrc: "",
+                    columns: [
+                        {
+                            "data": "GroupName",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let link = `https://myplusbeta.publicisgroupe.net/OrgGroup?groupid=${row.Id}`;
+
+                                    return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        {"data": "ItemsNotSentToSupplier"},
+                        {"data": "ItemsInTranslation"},
+                        {"data": "ItemsInProofreading"},
+                        {"data": "ItemsInClientReview"},
+                        {"data": "ItemsInProduction"},
+                        {"data": "OverdueItems"},
+                    ],
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+
+                    initComplete: function () {
+                        this.api().columns().every(function () {
+                            var column = this;
+                            var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                .appendTo($(column.footer()).empty())
+                                .on('change', function () {
+                                    var val = $.fn.dataTable.util.escapeRegex(
+                                        $(this).val()
+                                    );
+
+                                    column
+                                        .search(val ? '^' + val + '$' : '', true, false)
+                                        .draw();
+                                });
+
+                            column.data().unique().sort().each(function (d, j) {
+                                select.append('<option value="' + d + '">' + d + '</option>')
+                            });
+                        });
+                    }
+                });
+    }
+
+    </script>
+}

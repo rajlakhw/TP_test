@@ -1,0 +1,679 @@
+﻿@{
+    ViewData["Title"] = "Job item";
+    ViewData["PageName"] = "job item";
+    ViewData["Category1"] = "flow plus";
+
+    @using System.Text.Json;
+    @model ViewModels.JobItem.JobItemCreationViewModel
+
+}
+
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-daterangepicker/bootstrap-daterangepicker.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/notifications/sweetalert2/sweetalert2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/dropzone/dropzone.css">
+}
+
+    <style>
+        .select2-container {
+            width: 58% !important;
+        }
+
+        .form-group {
+            margin-bottom: 0.8rem;
+        }
+
+        .bg-tp-red {
+            /*background-image: linear-gradient(250deg, #E84133, #bd3e29);*/
+            background-color: #E84133;
+        }
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .custom-control-input:checked ~ .custom-control-label::before {
+            color: #ffffff;
+            border-color: #717e86;
+            background-color: lightgreen;
+        }
+
+        .custom-control-label::before {
+            background-color: #d5d5d5;
+        }
+    </style>
+
+    <div id="js-page-content">
+        <div class="row justify-content-between px-5">
+            <div class="col-lg-6 mb-3 text-center">
+                <div class="row">
+                    <label class="form-label col-lg-3 d-flex align-items-center px-0">Group</label>
+                    <div class="col text-left">
+                        <a target="_blank" style="text-decoration: none !important; color: #BA9765;" asp-controller="OrgGroup" asp-action="Index" asp-route-GroupID="@Model.OrgGroupId">
+                            @(Model.OrgGroupId + " - " + Model.OrgGroupName)
+                        </a>
+                        @*@if (Model.AdditionalDetails.IsOrgGroupDeleted)
+                    {<span class="font-italic" style="color: red;"> (Deleted)</span>}*@
+                    </div>
+                </div>
+                <div class="row">
+                    <label class="form-label col-lg-3 d-flex align-items-center px-0">Organisation</label>
+                    <div class="col text-left">
+                        <a target="_blank" style="text-decoration: none !important;" asp-controller="Organisation" asp-action="Index" asp-route-Id="@Model.OrgId">
+                            @(Model.OrgId +" - "+ Model.OrgName)
+                        </a>
+                    </div>
+                </div>
+                <div class="row">
+                    <label class="form-label col-lg-3 d-flex align-items-center px-0">Contact</label>
+                    <div class="col text-left">
+                        <a target="_blank" style="text-decoration: none !important;" asp-controller="Contact" asp-action="Index" asp-route-ContactID="@Model.ContactId">
+                            @(Model.ContactId +" - "+ Model.ContactName)
+                        </a>
+                    </div>
+                </div>
+                <div class="row">
+                    <label class="form-label col-lg-3 d-flex align-items-center px-0">Job Order</label>
+                    <div class="col text-left">
+                        <a target="_blank" style="text-decoration: none !important;" asp-controller="TMSJobOrder" asp-action="JobOrder" asp-route-JobOrderId="@Model.JobOrderId">
+                            @(Model.JobOrderId.ToString() + " - " + Model.JobOrderName)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                @*Key information*@
+                <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                    <div class="panel-hdr">
+                        <i class="fal fa-info-circle fa-2x color-black color-black"></i> &nbsp; &nbsp;
+                        <h2>Create Job Item(s)</h2>
+                    </div>
+                    <div class="panel-container">
+                        <div class="panel-content">
+                            <div class="container col-lg-11">
+                                <form id="job-item-submission-form">
+                                    <div class="form-group row">
+                                        <label class="form-label col-sm-2 d-flex align-items-center px-0">Visible to client</label>
+                                        <div class="custom-control custom-switch col-3" id="visible-client-row">
+                                            <input type="checkbox" class="custom-control-input" id="visible-client" checked>
+                                            <label class="custom-control-label" for="visible-client"><i class="fal fa-info-circle" style="font-size: 1.2rem;" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-html="true" data-content="This should be enabled unless there's a special reason why we don't want something to be visible to clients in i plus or in reporting."></i></label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="form-label col-sm-2 d-flex align-items-center px-0">Language service category</label>
+                                        <select name="" id="language-service-category-input" class="select2 form-control w-100" onchange="onCategorySelect(this);">
+                                            <option value="">Select</option>
+                                            @for (var i = 0; i < Model.LanguageServiceCategory.Count(); i++)
+                                        {
+                                            <option value="@Model.LanguageServiceCategory.ElementAt(i).Id">@Model.LanguageServiceCategory.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Language service</label>
+                                    <select name="" id="language-service-input" class="select2 form-control w-100" onchange="onSelect();" disabled>
+                                        <option value="">Select</option>
+                                        @for (var i = 0; i < Model.LanguageServices.Count(); i++)
+                                        {
+                                            <option value="@Model.LanguageServices.ElementAt(i).Id">@Model.LanguageServices.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="languageServicesRequired" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Source language</label>
+                                    <select name="" class="select2 form-control w-100" id="source-language-input" onchange="onChange();">
+                                        <option value="">Select</option>
+                                        @for (var i = 0; i < Model.Languages.Count(); i++)
+                                        {
+                                            <option value="@Model.Languages.ElementAt(i).StringValue">@Model.Languages.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="sourceLanguagesRequired" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Target language(s)</label>
+                                    <select name="" class="select2-placeholder-multiple custom-select" multiple="multiple" id="target-language-input" onchange="onSelect();">
+                                        @for (var i = 0; i < Model.Languages.Count(); i++)
+                                        {
+                                            <option value="@Model.Languages.ElementAt(i).StringValue">@Model.Languages.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="targetLanguagesRequired" class="text-danger" hidden>This field is mandatory.</label>
+                                    <a onclick="showAvailableTargetLanguages(this);" class="btn btn-icon align-middle" id="select-div" href="#" data-toggle="modal"
+                                       data-target="#selectExistingLanguages" style="display:contents;" hidden>
+                                        <u>Select already existing languages</u>
+                                    </a>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0" id="completion-deadline-label">Our Completion deadline</label>
+                                    <div class="col-7">
+                                        <input type="datetime-local" asp-for="@Model.CompletionDeadline" id="completion-deadline-datepicker" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="Select date" onchange="onSelect();">
+                                    </div>&nbsp;
+                                    <label id="completionDeadlineRequired" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                                <br />
+                                <br />
+                                <div class="form-group row" style="padding: 38px; border: 3px solid red; text-align:center;display:block;">
+                                    <p><b><u>Optional Details</u></b></p>
+                                    <p><b><u>Fill in only if all items you create need the same supplier brief/deadline/word count/work hours.</u></b></p>
+
+                                    <br />
+                                    <br />
+                                    <br />
+                                    <div class="form-group row">
+
+                                        <label class="form-label col-sm-2 d-flex text-left px-0">Use TP Internal Linguist</label>
+                                        <div class="custom-control custom-switch col-sm-4 text-left px-6" id="internal-linguist-row">
+                                            <input type="checkbox" class="custom-control-input" id="internal-linguist">
+                                            <label class="custom-control-label" for="internal-linguist"><i class="fal fa-info-circle" style="font-size: 1.2rem;" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-html="true" data-content=""></i></label>
+                                        </div>
+
+                                        <label class="form-label col-sm-3 d-flex d-flex text-right px-4" id="completion-deadline-label">Supplier Deadline for created items</label>
+                                        <div class="col-3">
+                                            <input type="text" id="supplier-deadline-datepicker" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div class="form-group row">
+                                        <label class="form-label col-sm-2 d-flex align-items-center px-0">Brief:</label>
+                                        <textarea id="brief-textbox-input" style="width:82%; height: 100px;"></textarea>
+                                    </div>
+                                    <br />
+                                    <div class="form-group row">
+
+                                        <label class="form-label col-lg-2 d-flex align-items-center text-left px-1">Supplier Word counts</label>
+                                        <span class="help-block col-1 m-0 px-0 d-flex align-items-center">New</span><div class="col-0"></div>
+                                        <input type="number" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="word-count-new" />
+                                        <div class="col-3"></div>
+                                        <div class="col-4">
+                                            <div class="form-group row">
+
+                                                <label class="form-label col-sm-3 d-flex align-items-center px-0">Work time</label>
+                                                <input type="number" class="col-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" min="0" max="999" onkeyup="enforceMinMax(this);" id="work-time-hours" />
+                                                <div class="col-0"></div>
+                                                <input type="number" class="col-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" min="0" max="59" onkeyup="enforceMinMax(this);" id="work-time-minutes" />
+
+                                                <div class="col-6"></div>
+                                                <div class="col-3"></div>
+                                                <span class="help-block col-1 m-0 px-0">Hours</span>
+                                                <div class="col-0"></div>
+                                                <span class="help-block col-lg-1 m-0 px-0">Minutes</span>
+                                            </div>
+                                        </div>
+                                        <label class="form-label col-lg-2 d-flex align-items-center px-0"></label>
+                                        <span class="help-block col-1 m-0 px-0 d-flex align-items-center">Fuzzy</span><div class="col-0"></div>
+                                        <input type="number" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="word-count-fuzzy-band1" />
+                                        <span class="help-block col-2 m-0 px-0 d-flex align-items-center">&nbsp;&nbsp;Band 1 (50 - 74%)</span>
+                                        <div class="col-5"></div>
+                                        <label class="form-label col-lg-2 d-flex align-items-center px-0"></label><div class="col-0"></div>
+
+
+                                        <span class="help-block col-1 m-0 px-0 d-flex align-items-center"></span>
+                                        <input type="number" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="word-count-fuzzy-band2" />
+                                        <span class="help-block col-2 m-0 px-0 d-flex align-items-center">&nbsp;&nbsp;Band 2 (75 - 84%)</span>
+                                        <div class="col-5"></div>
+                                        <label class="form-label col-lg-2 d-flex align-items-center px-0"></label><div class="col-0"></div>
+
+                                        <span class="help-block col-1 m-0 px-0 d-flex align-items-center"></span>
+                                        <input type="number" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="word-count-fuzzy-band3" />
+                                        <span class="help-block col-2 m-0 px-0 d-flex align-items-center">&nbsp;&nbsp;Band 3 (85 - 94%)</span>
+                                        <div class="col-5"></div>
+                                        <label class="form-label col-lg-2 d-flex align-items-center px-0"></label><div class="col-0"></div>
+
+
+                                        <span class="help-block col-1 m-0 px-0 d-flex align-items-center"></span>
+                                        <input type="number" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="word-count-fuzzy-band4" />
+                                        <span class="help-block col-2 m-0 px-0 d-flex align-items-center">&nbsp;&nbsp;Band 4 (95 - 99%)</span>
+                                        <div class="col-5"></div>
+                                        <label class="form-label col-lg-2 d-flex align-items-center px-0"></label>
+
+                                        <span class="help-block col-1 m-0 px-0 d-flex align-items-center">Exact</span><div class="col-0"></div>
+                                        <input type="number" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="word-count-exact" />
+                                        <div class="col-7"></div>
+                                        <label class="form-label col-lg-2 d-flex align-items-center px-0"></label>
+                                        <span class="help-block col-lg-1 m-0 px-0 d-flex align-items-center">Repetitions</span><div class="col-0"></div>
+                                        <input type="number" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="word-count-repitition" />
+                                        <div class="col-7"></div>
+                                        <label class="form-label col-lg-2 d-flex align-items-center px-0"></label>
+                                        <span class="help-block col-lg-1 m-0 px-0 d-flex align-items-center text-left">Perfect matches</span><div class="col-0"></div>
+                                        <input type="number" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="word-count-perfect" />
+
+                                    </div>
+
+
+                                </div>
+                                <br /><br />
+                                <div class="form-group row" style="float:right;">
+                                    <button type="button" class="btn btn-success" id="create-job-item-button" onclick="createJobItem();">Create</button>&nbsp;&nbsp;
+                                    <button type="button" class="btn btn-default" onclick="returnPage();">Cancel</button>
+                                </div>
+                                <br /><br />
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+    </div>
+</div>
+<div class="modal modal-alert fade" id="job-item-creation-result-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><label id="header-text"></label></h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>*@
+            </div>
+            <div class="modal-body">
+                <label id="job-item-creation-success-string"></label>&nbsp;<label class="text-success md-header" id="job-item-creation-success-dates"></label>
+                <label class="text-warning md-header" id="job-item-creation-warning-string"></label>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="samePage()">Add more Job Items</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="returnPage()">Go to Job Order</button>
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+<div id="selectExistingLanguages" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="timeLogEditHeader">
+                    <strong><label id="nonStatusHeader">Select Already Existing Language</label></strong>
+                </h5>
+                <a onclick="" data-dismiss="modal" class="close" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </a>
+            </div>
+            <div class="modal-body bg-faded">
+                <ul id="selectall">
+                    <li>
+                        <input type="checkbox" id="select-all" /><label>&nbsp;&nbsp;Select All</label>
+                    </li>
+                </ul>
+                <ul id="languageList"></ul>
+                <div style="position:relative;left:365px;">
+                    <button type="button" class="btn btn-success" data-toggle="modal" data-dismiss="modal" onclick="showSelectedItems();">OK</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+@section ScriptsBlock {
+
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="~/js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-daterangepicker/bootstrap-daterangepicker.js"></script>
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/dropzone/dropzone.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+
+    <script>
+
+
+        $('#js-page-content').smartPanel();
+
+        function enforceMinMax(el) {
+            if (el.value != "") {
+                if (parseInt(el.value) < parseInt(el.min)) {
+                    el.value = el.min;
+                }
+                if (parseInt(el.value) > parseInt(el.max)) {
+                    el.value = el.max;
+                }
+            }
+        }
+
+        function createJobItem() {
+
+            var count = 0;
+
+            if ($('#language-service-input').val() == '') {
+                document.getElementById('languageServicesRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('#source-language-input').val() == '') {
+                document.getElementById('sourceLanguagesRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('#target-language-input').val() == '' && $('.select-language-checkbox:checked').length <= 0) {
+                document.getElementById('targetLanguagesRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+            if ($('#completion-deadline-datepicker').val() == '') {
+                document.getElementById('completionDeadlineRequired').hidden = false;
+                $(window).scrollTop(0);
+                count++;
+            }
+
+            if (count == 0) {
+                 document.getElementById('create-job-item-button').disabled = true;
+                var jobOrderId = @Html.Raw(JsonSerializer.Serialize(Model.JobOrderId));
+                var clientVisible = $('#visible-client').is(':checked');
+                var languageService = document.getElementById('language-service-input').value;
+                var sourceLanguage = document.getElementById('source-language-input').value;
+                var targetLanguage = document.getElementById('target-language-input');
+
+                var existingLanguage = document.getElementsByClassName('select-language-checkbox');
+                var allTargetLanguage = '';
+                if (targetLanguage != null) {
+                    for (var i = 0; i < targetLanguage.options.length; i++) {
+                        if (targetLanguage.options[i].selected == true) {
+                            allTargetLanguage += targetLanguage.options[i].value + ',';
+                        }
+                    }
+                }
+
+                var allExistingLanguage = '';
+                if (existingLanguage != null) {
+                    for (var i = 0; i < existingLanguage.length; i++) {
+                        if (existingLanguage[i].checked == true) {
+                            allExistingLanguage += existingLanguage[i].name + ',';
+
+                        }
+                    }
+                    allTargetLanguage = allTargetLanguage + allExistingLanguage;
+                }
+                //debugger;
+                var completionDeadline = document.getElementById('completion-deadline-datepicker').value;
+                var internalLinguist = $('#internal-linguist').is(':checked');
+                var brief = document.getElementById('brief-textbox-input').value;
+                var supplierDeadline = document.getElementById('supplier-deadline-datepicker').value;
+                var wordCountNew = document.getElementById('word-count-new').value;
+                var wordCountFuzzyBand1 = document.getElementById('word-count-fuzzy-band1').value;
+                var wordCountFuzzyBand2 = document.getElementById('word-count-fuzzy-band2').value;
+                var wordCountFuzzyBand3 = document.getElementById('word-count-fuzzy-band3').value;
+                var wordCountFuzzyBand4 = document.getElementById('word-count-fuzzy-band4').value;
+                var wordCountExact = document.getElementById('word-count-exact').value;
+                var wordCountRepitition = document.getElementById('word-count-repitition').value;
+                var wordCountPerfect = document.getElementById('word-count-perfect').value;
+                var wordTimeHours = document.getElementById('work-time-hours').value;
+                var wordTimeMinutes = document.getElementById('work-time-minutes').value;
+                var languageServiceCategory = document.getElementById('language-service-category-input').value;
+                var stringToSend = clientVisible + '$' + languageService + '$' + sourceLanguage + '$' + allTargetLanguage + '$' + completionDeadline + '$' + internalLinguist + '$' + brief + '$' + supplierDeadline + '$' + wordCountNew + '$' + wordCountFuzzyBand1 + '$' + wordCountFuzzyBand2 + '$' + wordCountFuzzyBand3 + '$' + wordCountFuzzyBand4 + '$' + wordCountExact + '$' + wordCountRepitition + '$' + wordCountPerfect + '$' + wordTimeHours + '$' + wordTimeMinutes + '$' + jobOrderId + '$' +languageServiceCategory;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "JobItem/CreateJobItem", true);
+                xhr.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+
+                        //debugger;
+
+
+                        //show job item creation successful modal
+                        var response = xhr.responseText;
+                        var headerText = response.split("$")[0];
+                        document.getElementById('header-text').innerText = headerText;
+                        if (headerText == "Success") {
+                            var dataToSend = response.split("$")[2];
+                            $.ajax({
+                                url: 'JobItem/ConfigureNetworkFolders',
+                                type: 'POST',
+                                data: dataToSend,
+                                contentType: 'application/x-www-form-urlencoded',
+                                success: function(data) {
+                                    console.log("ajax is executed");
+
+                                }
+                            });
+                            document.getElementById('job-item-creation-success-string').hidden = false;
+                            document.getElementById('job-item-creation-success-string').textContent = "";
+                            document.getElementById('job-item-creation-success-dates').innerText = response.split("$")[1];
+                            document.getElementById('job-item-creation-warning-string').innerText = "";
+                        }
+                        else {
+                            document.getElementById('sickjob-itemness-creation-success-string').hidden = true;
+                            document.getElementById('job-item-creation-success-dates').innerText = "";
+                            document.getElementById('job-item-creation-warning-string').innerText = response.split("$")[1];
+                        }
+                        $('#job-item-creation-result-modal').modal("show");
+
+
+                    }
+                    else {
+                        //if the holiday could not be added ok, then notify the user
+                    }
+                };
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(stringToSend);
+            }
+        }
+        function showSelectedItems() {
+            //debugger;
+
+            $('#target-language-input').val(null).trigger('change');
+            var existingLanguage = document.getElementsByClassName('select-language-checkbox');
+            var targetLanguage = document.getElementById('target-language-input');
+            var allExistingLanguage = '';
+            if (existingLanguage != null) {
+                for (var i = 0; i < existingLanguage.length; i++) {
+                    if (existingLanguage[i].checked == true) {
+                        allExistingLanguage += existingLanguage[i].name + ',';
+
+                    }
+                }
+
+            }
+            //debugger;
+            var splitValues = allExistingLanguage.split(',');
+            for (var j = 0; j < splitValues.length; j++) {
+                for (var i = 0; i < targetLanguage.options.length; i++) {
+
+                    if (splitValues[j] == targetLanguage.options[i].value) {
+                        //debugger;
+                        targetLanguage.options[i].selected = true;
+                        $('#target-language-input').select2();
+
+                    }
+                }
+
+            }
+        }
+        function onSelect() {
+
+            if ($('#language-service-input').val() != '') {
+                document.getElementById('languageServicesRequired').hidden = true;
+            }
+            if ($('#source-language-input').val() != '') {
+                document.getElementById('sourceLanguagesRequired').hidden = true;
+            }
+            if ($('#target-language-input').val() != '' || $('.select-language-checkbox:checked').length > 0) {
+                document.getElementById('targetLanguagesRequired').hidden = true;
+            }
+            if ($('#completion-deadline-datepicker').val() != '') {
+                document.getElementById('completionDeadlineRequired').hidden = true;
+            }
+        }
+        function showAvailableTargetLanguages() {
+            var languageServiceInput = document.getElementById('source-language-input').value;
+            var jobOrderId = @Html.Raw(JsonSerializer.Serialize(Model.JobOrderId));
+            var check = "display";
+            $("#select-all").prop('checked', false);
+            $("#languageList").empty();
+            var stringToSend = languageServiceInput + '$' + check + '$' + jobOrderId;
+            $.ajax({
+
+                url: 'JobItem/AvailableTargetLanguages',
+                type: 'POST',
+                data: stringToSend,
+                contentType: 'application/x-www-form-urlencoded',
+                success: function(response) {
+
+                    console.log("ajax is executed");
+
+                    $.each(response, function(key, value) {
+
+                        var li = $('<li><input type="checkbox" class="select-language-checkbox" name="' + value.stringValue + '" id="' + value.stringValue + '"/>' + "   " +
+                            '<label for="' + value.stringValue + '"></label></li>');
+                        li.find('label').text(value.name);
+                        $('#languageList').append(li);
+                        /*$('#languageList').append($("<input type='checkbox' name=" + value.name + "").text(value.stringValue) + "<br>");*/
+                    });
+
+                }
+            });
+        }
+        function onChange() {
+            onSelect();
+            document.getElementById('select-div').hidden = true;
+            var sourceLanguageInput = document.getElementById('source-language-input').value;
+            var jobOrderId = @Html.Raw(JsonSerializer.Serialize(Model.JobOrderId));
+            var check = "check";
+            var stringToSend = sourceLanguageInput + '$' + check + '$' + jobOrderId;;
+            $.ajax({
+
+                url: 'JobItem/AvailableTargetLanguages',
+                type: 'POST',
+                data: stringToSend,
+                contentType: 'application/x-www-form-urlencoded',
+                success: function(data) {
+
+                    console.log("ajax is executed");
+                    if (data == "true") {
+
+                        document.getElementById('select-div').hidden = false;
+                    }
+                }
+            });
+        }
+        function samePage() {
+            $("#language-service-input").val('').trigger('change');
+            $('#internal-linguist').prop("checked", false);
+            document.getElementById('brief-textbox-input').value = '';
+            document.getElementById('supplier-deadline-datepicker').value = '';
+             document.getElementById('create-job-item-button').disabled = false;
+        }
+        function returnPage() {
+            var jobOrderId = @Html.Raw(JsonSerializer.Serialize(Model.JobOrderId));
+            window.location.href = `tmsjoborder/joborder?joborderid=${jobOrderId}`;
+        }
+        function onCategorySelect(selectObject) {
+            var selectId = selectObject.id;
+            var values = $('#' + selectId).val();
+            var hiddenId = "hidden" + selectId;
+            $('#' + hiddenId + 'Values').val(values);
+            document.getElementById('language-service-input').disabled = false;
+            $.ajax({
+                beforeSend: function() {
+                    // add loading spinner
+                },
+                url: "api/GetServices",
+                method: 'POST',
+                dataType: 'json',
+                data: { 'SelectedField': values },
+                success: function(data) {
+                    //confirm update was successfull
+
+                    var select = $("#language-service-input");
+                    select.empty();
+                    select.append("<option value=''>(Please select)</option>"); // add "Please select" option
+                    for (let index = 0; index < data.length; ++index) {
+                        const element = data[index];
+                        var opt = document.createElement('option');
+
+                        opt.value = element.id;
+                        opt.innerHTML = element.name;
+                        select.append(opt);
+                        // ...use `element`...
+                    }
+                    select.val(null); 
+                    
+                },
+                error: function(err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function() {
+                    // remove the spinner
+                }
+            });
+        }
+        $(document).ready(function() {
+
+            $("#supplier-deadline-datepicker").focus(function() {
+                $(this).attr({ type: 'datetime-local' });
+            });
+            $('#select-all').click(function(event) {
+                if (this.checked) {
+                    // Iterate each checkbox
+                    $('.select-language-checkbox').each(function() {
+                        this.checked = true;
+                    });
+                }
+                else {
+                    $(':checkbox').each(function() {
+                        this.checked = false;
+                    });
+                }
+            });
+            $(function() {
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "Select Target Language(s)"
+                });
+                $("#language-service-input").select2({
+                    placeholder: "Select Language Service"
+                });
+                $("#language-service-category-input").select2({
+                    placeholder: "Select Category"
+                });
+                $("#source-language-input").select2({
+                    placeholder: "Select Source Language"
+                });
+                $('#cls-markets-select').select2({
+                    placeholder: "Select Market"
+                });
+
+
+
+
+
+                $("input, textarea, select").on("input", function() {
+                    $(this).parents('form').children('div.flex-row-reverse').children('button.btn-outline-default').css({ background: 'red' });
+                });
+
+                $('#usesupplierid').change(function() {
+                    if ($('#usesupplierid').is(":checked")) {
+                        $('#linguist-or-contact-div').hide();
+                        $('#linguistid-div').show();
+                    }
+                    else {
+                        $('#linguist-or-contact-div').show();
+                        $('#linguistid-div').hide();
+                    }
+                });
+
+            });
+        });
+
+
+
+    </script>
+}

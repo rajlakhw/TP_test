@@ -1,0 +1,785 @@
+﻿@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+
+@{ ViewData["Title"] = "Project status";
+    //ViewData["PageName"] = "datatables_basic";
+    ViewData["Category1"] = "Job management";
+    //ViewData["Heading"] = "Project status";
+    //ViewData["PageDescription"] = "Create headache free searching, sorting and pagination tables without any complex configuration";
+}
+@{
+    @using ViewModels.JobOrder;
+    @model JobOrderDataTableViewModel;
+    @using Global_Settings;
+}
+
+<style>
+    .list {
+        display:inline;
+        list-style-type:none;
+    }
+    .select2-container {
+        z-index: 5000;
+    }
+
+    body.modal-open {
+        overflow: visible;
+    }
+
+    .was-validated .custom-select:invalid + .select2 .select2-selection {
+        border-color: #fd3995;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23fd3995' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23fd3995' stroke='none'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:invalid:focus + .select2 .select2-selection:invalid:focus {
+        border-color: #fd3995;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+    }
+
+
+    .was-validated .custom-select:valid + .select2 .select2-selection {
+        border-color: #1dc9b7 !important;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%231dc9b7' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:valid:focus + .select2 .select2-selection:valid:focus {
+        border-color: #1dc9b7;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+    }
+
+    /*   .was-validated .select2:valid:focus {
+            border-color: #1dc9b7;
+            -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        }*/
+
+    /*  *:focus {
+        outline: 0px;
+    }*/
+</style>
+@section ScriptsBlock {
+    <script src="~/js/statistics/peity/peity.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+
+
+    <script>
+
+        var eDate = new Date();
+        var sDate = new Date()
+        sDate = sDate.setMonth(sDate.getMonth() - 3);
+        var endDate = moment(eDate).format('DD/MM/yyyy');
+        var startDate = moment(sDate).format('DD/MM/yyyy');
+        document.getElementById("start-date").value = startDate;
+        document.getElementById("end-date").value = endDate;
+
+
+        $(document).ready(function () {
+
+            initializeJobOrdersDataTable();
+
+            var controls = {
+                leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+                rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+            }
+
+        $(document).ready(function () {
+            //document.getElementById('bank-holiday-add-update-control').hidden = "hidden";
+            $('#datepicker-4-3').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $('#datepicker-4-3-edit').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $(function () {
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "(Select office)"
+                });
+                $(".js-hide-search").select2({
+                    minimumResultsForSearch: 1 / 0
+                });
+                $(".js-max-length").select2({
+                    maximumSelectionLength: 2,
+                    placeholder: "Select maximum 2 items"
+                });
+                //$(".select2-placeholder").select2({
+                //    placeholder: "Select a state",
+                //    allowClear: true
+                //});
+                $(".js-select2-icons").select2({
+                    minimumResultsForSearch: 1 / 0,
+                    templateResult: icon,
+                    templateSelection: icon,
+                    escapeMarkup: function (elm) {
+                        return elm
+                    }
+                });
+                function icon(elm) {
+                    elm.element;
+                    return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+                }
+                $(".js-data-example-ajax").select2({
+                    ajax: {
+                        url: "https://api.github.com/search/repositories",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page
+                            };
+                        },
+                        processResults: function (data, params) {
+                            // parse the results into the format expected by Select2
+                            // since we are using custom formatting functions we do not need to
+                            // alter the remote JSON data, except to indicate that infinite
+                            // scrolling can be used
+                            params.page = params.page || 1;
+                            return {
+                                results: data.items,
+                                pagination: {
+                                    more: (params.page * 30) < data.total_count
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Search for a repository',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 1,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+                        "<div class='select2-result-repository__avatar mr-2'><img src='" + repo.owner.avatar_url + "' class='width-2 height-2 mt-1 rounded' /></div>" +
+                        "<div class='select2-result-repository__meta'>" +
+                        "<div class='select2-result-repository__title fs-lg fw-500'>" + repo.full_name + "</div>";
+                    if (repo.description) {
+                        markup += "<div class='select2-result-repository__description fs-xs opacity-80 mb-1'>" + repo.description + "</div>";
+                    }
+                    markup += "<div class='select2-result-repository__statistics d-flex fs-sm'>" +
+                        "<div class='select2-result-repository__forks mr-2'><i class='@(Settings.Theme.IconPrefix) fa-lightbulb'></i> " + repo.forks_count + " Forks</div>" +
+                        "<div class='select2-result-repository__stargazers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+                        "<div class='select2-result-repository__watchers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+                        "</div>" +
+                        "</div></div>";
+                    return markup;
+                }
+                function formatRepoSelection(repo) {
+                    return repo.full_name || repo.text;
+                }
+            });
+
+            $(function() {
+
+                $('#datepicker-4-3').datepicker({
+                    orientation: "bottom left",
+                    todayHighlight: true,
+                    templates: controls,
+                    format: 'dd/mm/yyyy'
+                });
+
+                $('#datepicker-4-3-edit').datepicker({
+                    orientation: "bottom left",
+                    todayHighlight: true,
+                    templates: controls,
+                    format: 'dd/mm/yyyy'
+                });
+
+            });
+
+
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+
+		});
+        });
+
+        $("#dt-basic-example").on('click', 'button', function () {
+            var id = $(this).data('id');
+            alert(id);
+        });
+
+        $("#dt-priority").on('click', 'button', function () {
+            var row = $(this).data('id');
+            console.log(row);
+            //alert("Priority requested by " + row.contactName + "is set to " + row.priority);
+        });
+
+       function validateDate(dateControl) {
+            var dateSelected = Date.parse(dateControl.value);
+            var exportButton = document.getElementById('export-button');
+            //
+            if (dateControl.value == '') {
+                dateControl.setAttribute("class", "form-control is-invalid");
+                return false;
+            }
+            else {
+
+                //refreshGroupList();
+                //refreshOrgList();
+
+                dateControl.setAttribute("class", "form-control is-valid");
+                return true;
+            }
+
+        }
+
+        function ShowEditPriorityPopup(row) {
+
+            console.log(row);
+            document.getElementById("p-joborder-id").value = row;
+            $.ajax({
+                url: `jobmanagement/GetJobOrderData/${row}`,
+                type : 'GET',
+                success: function (data) {
+                    let priorityName = "(none selected)";
+                    console.log(data);
+                    let priority = data.priority === "" ? "(none selected)" : data.priority;
+                    var prioritySelect =
+                    `<select class="select2 form-control w-100" id="priority-select">
+                        <option id="p-default" value="0" selected>None selected</option>
+                        <option value="1" id="p-high">High</option>
+                        <option value="2" id="p-med">Medium</option>
+                        <option value="3" id="p-low">Low</option>
+                    </select>`;
+                    switch (priority) {
+                        case "1":
+                            priorityName = "High";
+                            document.getElementById('priority-select').value = "1";
+                            prioritySelect =
+                            `<select class="select2 form-control w-100" id="priority-select">
+                                <option id="p-default" value="0">None selected</option>
+                                <option value="1" id="p-high" selected>High</option>
+                                <option value="2" id="p-med">Medium</option>
+                                <option value="3" id="p-low">Low</option>
+                             </select>`;
+                            $("#priority-select").html(prioritySelect);
+                            break;
+                        case "2":
+                            priorityName = "Medium";
+                            document.getElementById('priority-select').value = "2";
+                            prioritySelect =
+                            `<select class="select2 form-control w-100" id="priority-select">
+                                <option id="p-default" value="0">None selected</option>
+                                <option value="1" id="p-high">High</option>
+                                <option value="2" id="p-med" selected>Medium</option>
+                                <option value="3" id="p-low">Low</option>
+                             </select>`;
+                            $("#priority-select").html(prioritySelect);
+                            break;
+                        case "3":
+                            priorityName = "Low";
+                            document.getElementById('priority-select').value = "3";
+                            prioritySelect =
+                            `<select class="select2 form-control w-100" id="priority-select">
+                                <option id="p-default" value="0">None selected</option>
+                                <option value="1" id="p-high">High</option>
+                                <option value="2" id="p-med">Medium</option>
+                                <option value="3" id="p-low" selected>Low</option>
+                             </select>`;
+                            $("#priority-select").html(prioritySelect);
+                            break;
+                        default:
+                            $("#priority-select").html(prioritySelect);
+                            break;
+                    }
+                    let priorityDesc = `<p id="priority-desc">The priority for job order ID <strong> ${data.jobOrderId} </strong> is currently set to <strong> ${priorityName} </strong>. Please select priority from dropdown and click on <strong>Save</strong>.</p>`
+                    $("#priority-desc").html(priorityDesc);
+                    document.getElementById("joborder-requester").value = data.contactName;
+                }
+            })
+            $("#edit-priority-modal").modal("show");
+        }
+
+        function getDateString(date) {
+            var dataObj = new Date(date);
+            var dayofweek = dataObj.toLocaleString('default', { weekday: 'short' });
+            var month = dataObj.toLocaleString('default', { month: 'long' });
+            var day = dataObj.getUTCDate();
+            var year = dataObj.getUTCFullYear();
+            return dayofweek + " " + day + " " + month + " " + year;
+
+        }
+
+        function updateJobOrderPriority(event) {
+
+            var jobOrderId = document.getElementById("p-joborder-id").value;
+            var priority = document.getElementById("priority-select").value;
+            var stringToSend = jobOrderId + '$' + priority;
+            $.ajax({
+                url: `jobmanagement/updatejoborderpriority`,
+                type: 'POST',
+                data: stringToSend,
+                success: function (data) {
+                    $("#priority-success-modal").modal("show");
+                }
+            });
+            $("#edit-priority-modal").modal("hide");
+            event.preventDefault();
+        }
+
+        function applyDateRange(event){
+            var dataObjectId = @ViewBag.DataObjectID;
+            var dataTypeId = @ViewBag.DataObjectTypeId;
+            startDate = document.getElementById("start-date").value;
+            endDate = document.getElementById("end-date").value;
+            initializeJobOrdersDataTable();
+            event.preventDefault();
+            $("#daterange-modal").modal("hide");
+
+        }
+
+        function getPriorityDOMData(row) {
+            var dom = row.priorityName!= "None" ? `<ul class="list" style="list-style-type: none; padding:0; margin:0; vertical-align: top;">
+                           <li>${row.priorityName} <a type="button" class="btn btn-icon align-middle" title="Edit" onClick="ShowEditPriorityPopup(${row.jobOrderId})"><i class="ni ni-note fa-1x" style="color:green; text-align:center;"></i></a></li>
+                       </ul>` : `<ul class="list" style="list-style-type: none; padding:0; margin:0; vertical-align: top;">
+                           <li><a type="button" class="btn btn-icon align-middle" title="Edit" onClick="ShowEditPriorityPopup(${row.jobOrderId})"><i class="ni ni-note fa-1x" style="color:green; text-align:center;"></i></a></li>
+                       </ul>`
+            return dom;
+        }
+
+        function initializeJobOrdersDataTable(){
+
+            var dataObjectId = @ViewBag.DataObjectID;
+            var dataTypeId = @ViewBag.DataObjectTypeId;
+            console.log(startDate);
+            console.log(endDate);
+            /* init datatables */
+            //startDate = document.getElementById('start-date').value;
+            //endDate = document.getElementById('end-date').value;
+			$('#dt-basic-example').dataTable(
+			{
+                destroy : true,
+                processing: true,
+                serverSide: true,
+                ajax: {
+                        contentType: "application/json; charset=utf-8",
+                        url: "/JobManagement/GetAllJobOrdersDataTableComponentData",
+                        type: 'POST',
+                    data: function (d) {
+
+                            params = d;
+                            startDate = document.getElementById('start-date').value;
+                            endDate = document.getElementById('end-date').value;
+                            return JSON.stringify({ parameters: d, dataObjectId, dataTypeId, startDate, endDate });
+                        }
+                },
+                lengthMenu: [10, 20, 50, 100, 200],
+				responsive: true,
+                columns: [
+                    {
+                        "data": "contactName"
+                    },
+                        {
+                            "data": "jobOrderId",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    let url = `/JobManagement/OrderDetails/${data}`
+                                    return '<a href="' + url + '">' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "submittedDate",
+                            render: function (data, type, row, meta) {
+                                return getDateString(data);
+                            }
+                        },
+                        { "data": "jobOrderName" },
+                        { "data" : "poNumber" },
+                        { "data" : "sourceLang" },
+                        { "data" : "targetLang" },
+                        {
+                            "data": "deliveryDeadline",
+                            render: function (data, type, row, meta) {
+                                return getDateString(data);
+                            }
+                        },
+                        { "data" : "cost" },
+                        {
+                            "data": "priority",
+                            orderable: false,
+                            render: function (data, type, row, meta) {
+                                return getPriorityDOMData(row);
+                                //return row.priorityName + '<div id="priority-col"><a type="button" class="btn btn-icon align-middle" title="Edit" onClick="ShowEditPriorityPopup('+ row.jobOrderId + ')"><i class="ni ni-note fa-1x" style="color:green; text-align:center;"></i></a></div>'
+                                //return '<a><button id="dt-priority" class="btn btn-icon align-middle" title="Edit priority" data-id=' + data + '><i class="ni ni-note fa-2x" style="color:green"></i></button></a>'
+                            }
+                        },
+                        {
+                            "data": "status",
+                            render: function (data, type, row, meta) {
+                                if (type === "display") {
+                                    if (data == '') {
+                                        return 'N/A';
+                                    }
+                                    else {
+                                        if (data == 'One or more items/languages complete') {
+                                            return `<span style="color: darkorange;">${data}</span>`;
+                                        }
+                                        else if (data == 'Fully complete') {
+                                            return `<span style="color: limegreen;">${data}</span>`;
+                                        }
+                                        else {
+                                            //return `<span style="color: darkorange;">${data}</span>`;
+                                            return data;
+                                        }
+                                    }
+                                }
+                                return data;
+                            }
+                        },
+                        {
+                            "data": "progress",
+                            orderable: false,
+                            render: function (data, type, row, meta) {
+                                return data + '<div id="progress-bar" class="progress"><div class="progress-bar bg-warning" role="progressbar" style="width: ' + data + ';" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div></div>'
+                            }
+                        },
+                        {
+                            /* To take action against specific joborder Id */
+                            "data": "jobOrderId",
+                            orderable : false,
+                            mRender: function (data, type, row, meta) {
+                                let url = `/JobManagement/OrderDetails/${data}`;
+                                return '<div id="action-col"><a type="button" /*class="btn btn-sm btn-icon btn-outline-danger rounded-circle mr-1"*/ title="Cancel this order" href="'+ url +'"><i class="ni ni-close fa-2x danger"></i></a></div>'
+                                //return '<div id="action-col"><a type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle mr-1" title="Cancel this order" onClick="CancelJobOrder(' + row.jobOrderId + ')"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></a></div>'
+                                //return '<a><button class="btn btn-sm btn-icon btn-outline-danger rounded-circle mr-1" title="Cancel this order" data-id=' + data + '><i class="@(Settings.Theme.IconPrefix) fa-times"></i></button></a>'
+                            }
+                        }
+                    ],
+				dom:
+					"<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+					"<'row'<'col-sm-12'tr>>" +
+					"<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+				buttons: [
+                    {
+                        text: 'Date Range',
+                        action: function ( e, dt, node, config ) {
+                            $('#daterange-modal').modal("show");
+                        },
+                        className: 'btn-outline-default'
+                    },
+                    {
+                        extend: 'pageLength',
+                        className: 'btn-outline-default'
+                    },
+					{
+						extend: 'colvis',
+						text: 'Column Visibility',
+						titleAttr: 'Col visibility',
+						className: 'btn-outline-default'
+					},
+					//{
+					//	extend: 'csvHtml5',
+					//	text: 'CSV',
+					//	titleAttr: 'Generate CSV',
+					//	className: 'btn-outline-default'
+					//},
+					{
+						extend: 'copyHtml5',
+						text: 'Copy',
+						titleAttr: 'Copy to clipboard',
+						className: 'btn-outline-default'
+					},
+					{
+						extend: 'print',
+						text: '<i class="@(Settings.Theme.IconPrefix) fa-print"></i>',
+						titleAttr: 'Print Table',
+						className: 'btn-outline-default'
+					}
+                    ],
+                    columnDefs: [
+                        { className: 'text-center', targets: [9, 12] }
+                    ],
+                    order: [[1, 'desc']]
+			});
+        }
+    </script>
+    	<script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+	<script>
+		// Class definition
+		var controls = {
+			leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+			rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+		}
+		var runDatePicker = function () {
+			// minimum setup
+			$('#datepicker-1').datepicker({
+				todayHighlight: true,
+				orientation: "bottom left",
+				templates: controls
+			});
+			// input group layout 
+			$('#datepicker-2').datepicker({
+				todayHighlight: true,
+				orientation: "bottom left",
+				templates: controls
+			});
+			// input group layout for modal demo
+			$('#datepicker-modal-2').datepicker({
+				todayHighlight: true,
+				orientation: "bottom left",
+				templates: controls
+			});
+			// enable clear button 
+			$('#datepicker-3').datepicker({
+				todayBtn: "linked",
+				clearBtn: true,
+				todayHighlight: true,
+				templates: controls
+			});
+			// enable clear button for modal demo
+			$('#datepicker-modal-3').datepicker({
+				todayBtn: "linked",
+				clearBtn: true,
+				todayHighlight: true,
+				templates: controls
+			});
+			// orientation 
+			$('#datepicker-4-1').datepicker({
+				orientation: "top left",
+				todayHighlight: true,
+				templates: controls
+			});
+			$('#datepicker-4-2').datepicker({
+				orientation: "top right",
+				todayHighlight: true,
+				templates: controls
+			});
+			$('#datepicker-4-3').datepicker({
+				orientation: "bottom left",
+				todayHighlight: true,
+				templates: controls
+			});
+			$('#datepicker-4-4').datepicker({
+				orientation: "bottom right",
+				todayHighlight: true,
+				templates: controls
+			});
+			// range picker
+			$('#datepicker-5').datepicker({
+				todayHighlight: true,
+				templates: controls,
+                format: 'dd/mm/yyyy'
+			});
+			 // inline picker
+			$('#datepicker-6').datepicker({
+				todayHighlight: true,
+				templates: controls
+			});
+		}
+		$(document).ready(function () {
+			runDatePicker();
+		});
+	</script>
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div id="panel-4" class="panel">
+            <div class="panel-hdr">
+                <i class="fal fa-file-search fa-2x color-black"></i> &nbsp; &nbsp;
+                <h2>
+                    Project Status
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+@*                    <table class="table table-striped m-0">
+                        <tbody>
+                            <tr>
+                                <td class = "btn btn-outline-primary">Select Date Range</td>
+                            </tr>
+                        </tbody>
+                    </table>*@
+                    <table id="dt-basic-example" class="table table-bordered table-hover table-striped w-100">
+                        <thead class="bg-warning-200">
+                            <tr>
+                                <th>Contact</th>
+                                <th>Order number</th>
+                                <th>Submitted</th>
+                                <th>Project name</th>
+                                <th>Purchase order number</th>
+                                <th>Source</th>
+                                <th>Target</th>
+                                <th>Delivery deadline</th>
+                                <th>Cost</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                                <th>Action</th>
+                            </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="edit-priority-modal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            @{
+                {
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="joborder-priority">
+                                Update job order priority
+                            </h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                            </button>
+                        </div>
+                        <form class="needs-validation" id="edit-priority-form" novalidate>
+                            <div class="modal-body bg-faded">
+                                <table class="table table-borderless" style="table-layout:fixed;">
+                                    <tr>
+                                        <td colspan="2">
+                                            <p id="priority-desc">The job order ID {} is currently set to (none selected). Please select priority from dropdown and click on Save.</p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="form-label md-header">Requester:</label>
+                                            <input type="text" class="form-control" value="" id="joborder-requester" disabled>
+                                            <input type="hidden" class="form-control" value="" id="p-joborder-id">
+                                        </td>
+                                        <td>
+                                            <label class="form-label md-header">Priority:</label>
+                                            <select class="select2 form-control w-100" id="priority-select">
+                                                <option id="p-default" value="0" selected>None selected</option>
+                                                <option value="1" id="p-high">High</option>
+                                                <option value="2" id="p-med">Medium</option>
+                                                <option value="3" id="p-low">Low</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+                            <div class="modal-footer">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <button type="submit" class="btn btn-success" onclick="updateJobOrderPriority(event);">Save</button>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                        </form>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+    <div class="modal fade" id="priority-success-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">
+                        Success
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Successfully updated priority for Job Order<strong><label class="form-label" id="updated-joborder-id"></label></strong>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div class="modal fade" id="daterange-modal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            @{
+                {
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="order-daterange">
+                                Select date range
+                            </h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                            </button>
+                        </div>
+                        <form class="needs-validation" id="edit-daterange-form" novalidate>
+                            <div class="modal-body bg-faded">
+                                <table class="table table-borderless" style="table-layout:fixed;">
+                                    <tr>
+                                        <td colspan="2">
+                                            <div class="input-daterange input-group" id="datepicker-5">
+                                                <input type="text" name="startDate" id="start-date" class="form-control" required onchange="validateDate(this)" onclick="validateDate(this)" onload="validateDate(this)">
+                                                <div class="input-group-append input-group-prepend">
+                                                    <span class="input-group-text fs-xl"><i class="@(Settings.Theme.IconPrefix) fa-ellipsis-h"></i></span>
+                                                </div>
+                                                <input type="text" class="form-control" name="endDate" id="end-date" required onchange="validateDate(this)" onclick="validateDate(this)" onload="validateDate(this)">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+                            <div class="modal-footer">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <button type="submit" class="btn btn-success" onclick="applyDateRange(event);">Apply</button>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                        </form>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+

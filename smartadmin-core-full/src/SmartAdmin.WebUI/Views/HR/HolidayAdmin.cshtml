@@ -1,0 +1,493 @@
+﻿@{
+    ViewData["Title"] = "Holiday Admin";
+    ViewData["Category1"] = "HR";
+
+    @using ViewModels.HR;
+    @model HolidayAdminModel;
+
+}
+
+@section HeadBlock {
+<link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+<link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+<link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+
+}
+
+<div class="row">
+    <div class="col-xl-12">
+
+        <div id="panel-2" class="panel">
+            <div class="panel-hdr">
+                <h2>Holiday Admin</h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="form-group">
+                        <table class="table table-borderless" style="width:750px;">
+                            <tr>
+                                <td style="width:200px;">
+                                    <label class="form-label md-header" for="office-select">Office:</label>
+                                    <select class="select2 form-control w-100" id="office-select" onchange="getEmployeeHolidayTable();">
+                                        @for (var i = 0; i < Model.AllOffices.Count(); i++)
+                                        {
+                                            <option value="@Model.AllOffices.ElementAt(i).Id" selected="@(Convert.ToInt32(Url.ActionContext.RouteData.Values["officeId"]) == Model.AllOffices.ElementAt(i).Id)">@Model.AllOffices.ElementAt(i).Name</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td style="width:150px;">
+                                    <label class="form-label md-header" for="year-select">Year:</label>
+                                    <select class="select2 form-control w-100" id="year-select" onchange="getEmployeeHolidayTable();">
+                                        @for (var i = 0; i < Model.AllHolidayYears.Count(); i++)
+                                        {
+                                            var currentYear = DateTime.Now.Year;
+                                            @if (Convert.ToInt32(@Url.ActionContext.RouteData.Values["year"]) == 0)
+                                            {
+                                                (@Url.ActionContext.RouteData.Values["year"]) = Convert.ToString(currentYear);
+                                            }
+                                            <option value="@Model.AllHolidayYears.ElementAt(i)" selected="@(Convert.ToInt32(Url.ActionContext.RouteData.Values["year"]) == @Model.AllHolidayYears.ElementAt(i))">@Model.AllHolidayYears.ElementAt(i)</option>
+                                        }
+                                    </select>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <input type="hidden" value="@Url.ActionContext.RouteData.Values["officeId"]" id="officeId-field" />
+                    <input type="hidden" value="@Url.ActionContext.RouteData.Values["year"]" id="holidayYear-field" />
+                    <br />
+                    <div id="emp-holiday-table">
+                    <table id="dt-basic-example" class="table table-bordered table-hover table-sm table-striped w-100" width="500" style="width:500px;">
+                        <thead style="color:white; background-color:#E84133">
+                            <tr style="text-align:center">
+                                <th>Employee</th>
+                                <th>Number of entitled holidays</th>
+                                <th>Loyalty holidays</th>
+                                <th>Misc days</th>
+                                <th>Previously worked days</th>
+                                <th>Holidays requested</th>
+                                <th>Holidays remaining</th>
+                                <th>Holiday notes</th>
+                                <th @(Model.AllowAddingAndEditingOfEmployeeHoliday == false ? "hidden" : "")>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.AllEmployeeHolidays.Count(); i++)
+                            {
+                                <tr>
+                                    <td>@Model.AllEmployeeHolidays.ElementAt(i).FirstName @Model.AllEmployeeHolidays.ElementAt(i).Surname</td>
+                                    <td>@Model.AllEmployeeHolidays.ElementAt(i).TotalBaseAnnualHolidays</td>
+                                    <td>@Model.AllEmployeeHolidays.ElementAt(i).LoyaltyDays</td>
+                                    <td>@Model.AllEmployeeHolidays.ElementAt(i).MiscDays</td>
+                                    <td>@Model.AllEmployeeHolidays.ElementAt(i).PreviouslyWorkedDays</td>
+                                    <td>@Model.AllEmployeeHolidays.ElementAt(i).HolidaysRequested</td>
+                                    <td>@Model.AllEmployeeHolidays.ElementAt(i).HolidaysRemaining</td>
+                                    <td>@Model.AllEmployeeHolidays.ElementAt(i).HolidayNotes</td>
+                                    <td style="border-spacing:0px;padding:0px;width:90px;" @(Model.AllowAddingAndEditingOfEmployeeHoliday == false ? "hidden" : "") align="center">
+                                        @*<button type="button" class="btn btn-icon align-middle" onclick="openEditPopup(@i);" title="Edit"><i class="ni ni-note" style="color:green"></i></button>*@
+                                        <a type="button" class="btn btn-icon align-middle" asp-controller="HR" asp-action="holidayadmin"
+                                       asp-route-officeId="@Url.ActionContext.RouteData.Values["officeId"]"
+                                       asp-route-year="@Url.ActionContext.RouteData.Values["year"]"
+                                       asp-route-employeeHolidayIdToEdit="@i"
+                                       title="Edit"><i class="ni ni-note" style="color:green"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+
+                    </table>
+                    </div>
+
+
+                    <input type="hidden" value="@ViewBag.currentIndex" id="current-Index" />
+                    <div class="modal fade" id="edit-public-holiday-modal" role="dialog" aria-hidden="true">
+
+
+                        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                            @{
+                                if (ViewBag.currentIndex != null)
+                                {
+                                    int j = ViewBag.currentIndex;
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">
+                                                Edit holiday for @Model.AllEmployeeHolidays.ElementAt(j).FirstName @Model.AllEmployeeHolidays.ElementAt(j).Surname
+                                            </h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                                            </button>
+                                        </div>
+                                        <form class="needs-validation" id="edit-bank-holiday-form" novalidate>
+                                            <div class="modal-body bg-faded">
+
+
+                                                <table class="table table-borderless">
+                                                    <tr>
+                                                        <td>
+                                                            <label class="form-label md-header">Number of entitled holidays:</label>
+                                                            <input type="number" required class="form-control" value="@Model.AllEmployeeHolidays.ElementAt(j).TotalBaseAnnualHolidays" id="emp-baseannualhoiday-box-edit">
+                                                        </td>
+                                                        <td>
+                                                            <label class="form-label md-header">Loyalty holidays:</label>
+                                                            <input type="number" required class="form-control" value="@Model.AllEmployeeHolidays.ElementAt(j).LoyaltyDays" id="emp-loyaltyholiday-box-edit" disabled>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <label class="form-label md-header">Misc days:</label>
+                                                            <input type="number" required class="form-control" value="@Model.AllEmployeeHolidays.ElementAt(j).MiscDays" id="emp-mischoliday-box-edit">
+                                                        </td>
+                                                        <td>
+                                                            <label class="form-label md-header">Previously worked days:</label>
+                                                            <input type="number" required class="form-control" value="@Model.AllEmployeeHolidays.ElementAt(j).PreviouslyWorkedDays" id="emp-prevworked-box-edit">
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <label class="form-label md-header">Holidays requested:</label>
+                                                            <input type="number" required class="form-control" value="@Model.AllEmployeeHolidays.ElementAt(j).HolidaysRequested" id="emp-holidayreq-box-edit" disabled>
+                                                        </td>
+                                                        <td>
+                                                            <label class="form-label md-header">Holidays remaining:</label>
+                                                            <input type="number" required class="form-control" value="@Model.AllEmployeeHolidays.ElementAt(j).HolidaysRemaining" id="emp-holidayrem-box-edit" disabled>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colspan="2">
+                                                            <label class="form-label md-header">Holiday notes:</label>
+                                                            <textarea required class="form-control" value="@Model.AllEmployeeHolidays.ElementAt(j).HolidayNotes" id="emp-holidaynotes-box-edit">@Model.AllEmployeeHolidays.ElementAt(j).HolidayNotes</textarea>
+
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                            </div>
+                                            <div class="modal-footer">
+                                                <input type="hidden" id="emp-id" value="@Model.AllEmployeeHolidays.ElementAt(j).EmployeeId" />
+                                                <input type="hidden" id="emp-name" value="@Model.AllEmployeeHolidays.ElementAt(j).FirstName @Model.AllEmployeeHolidays.ElementAt(j).Surname"></input>
+                                                <tr>
+                                                    <td>
+                                                        <button type="submit" class="btn btn-success" onclick="UpdateEmployeeHoliday(event);">Save</button>
+                                                    </td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                    </td>
+                                                </tr>
+                                            </div>
+
+                                        </form>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                    </div>
+                    <div class="modal fade" id="editing-success-modal" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">
+                                        Success
+                                    </h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="updateEmployeeHolidayTable()">
+                                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    Successfully updated holiday for <strong><label class="form-label" id="updated-employee-holiday-name"></label></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .select2-container {
+        z-index: 1051;
+    }
+
+    body.modal-open {
+        overflow: visible;
+    }
+
+    .was-validated .custom-select:invalid + .select2 .select2-selection {
+        border-color: #fd3995;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23fd3995' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23fd3995' stroke='none'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:invalid:focus + .select2 .select2-selection:invalid:focus {
+        border-color: #fd3995;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+    }
+
+
+    .was-validated .custom-select:valid + .select2 .select2-selection {
+        border-color: #1dc9b7 !important;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%231dc9b7' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:valid:focus + .select2 .select2-selection:valid:focus {
+        border-color: #1dc9b7;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+    }
+
+    /*   .was-validated .select2:valid:focus {
+            border-color: #1dc9b7;
+            -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        }*/
+
+    /*  *:focus {
+        outline: 0px;
+    }*/
+</style>
+@section ScriptsBlock {
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script>
+        var controls = {
+			leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+			rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+		}
+
+        $(document).ready(function () {
+            //document.getElementById('bank-holiday-add-update-control').hidden = "hidden";
+            $('#datepicker-4-3').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $('#datepicker-4-3-edit').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $(function () {
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "(Select office)"
+                });
+                $(".js-hide-search").select2({
+                    minimumResultsForSearch: 1 / 0
+                });
+                $(".js-max-length").select2({
+                    maximumSelectionLength: 2,
+                    placeholder: "Select maximum 2 items"
+                });
+                //$(".select2-placeholder").select2({
+                //    placeholder: "Select a state",
+                //    allowClear: true
+                //});
+                $(".js-select2-icons").select2({
+                    minimumResultsForSearch: 1 / 0,
+                    templateResult: icon,
+                    templateSelection: icon,
+                    escapeMarkup: function (elm) {
+                        return elm
+                    }
+                });
+                function icon(elm) {
+                    elm.element;
+                    return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+                }
+                $(".js-data-example-ajax").select2({
+                    ajax: {
+                        url: "https://api.github.com/search/repositories",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page
+                            };
+                        },
+                        processResults: function (data, params) {
+                            // parse the results into the format expected by Select2
+                            // since we are using custom formatting functions we do not need to
+                            // alter the remote JSON data, except to indicate that infinite
+                            // scrolling can be used
+                            params.page = params.page || 1;
+                            return {
+                                results: data.items,
+                                pagination: {
+                                    more: (params.page * 30) < data.total_count
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Search for a repository',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 1,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+                        "<div class='select2-result-repository__avatar mr-2'><img src='" + repo.owner.avatar_url + "' class='width-2 height-2 mt-1 rounded' /></div>" +
+                        "<div class='select2-result-repository__meta'>" +
+                        "<div class='select2-result-repository__title fs-lg fw-500'>" + repo.full_name + "</div>";
+                    if (repo.description) {
+                        markup += "<div class='select2-result-repository__description fs-xs opacity-80 mb-1'>" + repo.description + "</div>";
+                    }
+                    markup += "<div class='select2-result-repository__statistics d-flex fs-sm'>" +
+                        "<div class='select2-result-repository__forks mr-2'><i class='@(Settings.Theme.IconPrefix) fa-lightbulb'></i> " + repo.forks_count + " Forks</div>" +
+                        "<div class='select2-result-repository__stargazers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+                        "<div class='select2-result-repository__watchers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+                        "</div>" +
+                        "</div></div>";
+                    return markup;
+                }
+                function formatRepoSelection(repo) {
+                    return repo.full_name || repo.text;
+                }
+            });
+
+            $(function() {
+
+                $('#datepicker-4-3').datepicker({
+                    orientation: "bottom left",
+                    todayHighlight: true,
+                    templates: controls
+                });
+
+                $('#datepicker-4-3-edit').datepicker({
+                    orientation: "bottom left",
+                    todayHighlight: true,
+                    templates: controls
+                });
+
+            });
+
+
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+
+            var currentIndex = document.getElementById('current-Index').value;
+
+            if (currentIndex != '') {
+                $('#edit-public-holiday-modal').modal("show");
+            }
+            
+		});
+
+        //Method used in dropdown to change Employee Holiday Table data.
+		function getEmployeeHolidayTable() {
+            var officeId = document.getElementById("office-select").value;
+            var year = document.getElementById('year-select').value;
+            window.location.href = `hr/holidayadmin/${officeId}/${year}`;
+        }
+
+        // Refreshes employee holiday table data without reloading page.
+        function updateEmployeeHolidayTable() {
+            var officeId = document.getElementById("office-select").value;
+            var year = document.getElementById('year-select').value;
+
+            $.ajax({
+                url: `hr/holidayadmin/${officeId}/${year}`,
+                type: 'GET',
+                success: function (data) {
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(data, 'text/html');                
+                    console.log(doc.getElementById("emp-holiday-table"));
+                    $("#emp-holiday-table").html(doc.getElementById("emp-holiday-table"));
+                }
+            });
+        }
+
+        // Updates employee holiday when user clicks on Save.
+        function UpdateEmployeeHoliday(e) {
+            var isValid = $("#edit-bank-holiday-form").valid();
+            if (isValid == true) {
+                var year = @Url.ActionContext.RouteData.Values["year"];
+                var officeId = @Url.ActionContext.RouteData.Values["officeId"];
+                var employeeId = document.getElementById('emp-id').value;
+                var totalBaseAnnualHolidays = document.getElementById('emp-baseannualhoiday-box-edit').value;
+                var miscDays = document.getElementById('emp-mischoliday-box-edit').value;
+                var previouslyWorkedDays = document.getElementById('emp-prevworked-box-edit').value;
+                var holidayNotes = document.getElementById('emp-holidaynotes-box-edit').value;
+
+                var stringToSend = employeeId + '$' + totalBaseAnnualHolidays + '$' + miscDays + '$' + previouslyWorkedDays + '$' + holidayNotes+ '$' + year + '$' + officeId;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "HR/UpdateEmployeeHoliday", false);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(stringToSend);
+                $('#edit-public-holiday-modal').modal("hide");
+                $('#editing-success-modal').modal("show");
+                document.getElementById('updated-employee-holiday-name').textContent = document.getElementById('emp-name').value;
+                e.preventDefault();
+
+            }
+        }
+
+        //Update Employee Holiday which uses Ajax call. Currently not in use. Keeping it for tweaking purpose later on.
+        function UpdateEmployeeHolidayAjax(e) {
+            var isValid = $("#edit-bank-holiday-form").valid();
+            if (isValid == true) {
+                var year = @Url.ActionContext.RouteData.Values["year"];
+                var employeeId = document.getElementById('emp-id').value;
+                //decimal totalBaseAnnualHolidays, decimal? miscDays, int? previouslyWorkedDays, string holidayNotes
+                var totalBaseAnnualHolidays = document.getElementById('emp-baseannualhoiday-box-edit').value;
+                var miscDays = document.getElementById('emp-mischoliday-box-edit').value;
+                var previouslyWorkedDays = document.getElementById('emp-prevworked-box-edit').value;
+                var holidayNotes = document.getElementById('emp-holidaynotes-box-edit').value;
+
+                var stringToSend = employeeId + '$' + totalBaseAnnualHolidays + '$' + miscDays + '$' + previouslyWorkedDays + '$' + holidayNotes+ '$' + year + '$' + officeId;
+
+            $.ajax({
+                url: 'hr/updateemployeeholiday',
+                type: 'POST',
+                data: stringToSend,
+                contentType: 'application/x-www-form-urlencoded',
+                success: function (data) {
+                    console.log("ajax is executed");
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(data, 'text/html');
+                    console.log("element is parsed");
+                    $("#emp-holiday-table").html(doc.getElementById("emp-holiday-table"));
+                    console.log("emp=holiday table dom is manipulated");
+                    //var htmlData = $.parseHTML(data);
+                    //$("#office-select").html(doc.getElementById("office-select"));
+                    //$("#year-select").html(doc.getElementById("year-select"));
+                    //$("#emp-holiday-table").html(doc.getElementById("emp-holiday-table"));
+                }
+            });
+
+            $('#edit-public-holiday-modal').modal("hide");
+            console.log("save is executed");
+            $('#editing-success-modal').modal("show");
+            document.getElementById('updated-employee-holiday-name').textContent = document.getElementById('emp-name').value;
+            e.preventDefault();
+
+            }
+        }
+
+    </script>
+}

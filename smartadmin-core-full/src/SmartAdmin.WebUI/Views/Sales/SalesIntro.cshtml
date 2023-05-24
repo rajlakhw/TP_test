@@ -1,0 +1,330 @@
+﻿@{
+    ViewData["Title"] = "Sales Intro";
+    ViewData["PageName"] = "sales_intro";
+    ViewData["Heading"] = "<i class='fal fa-th-list text-primary'></i>  Sales Intro";
+    ViewData["Category1"] = "Sales";
+    ViewData["PageDescription"] = "";
+}
+@section HeadBlock {}
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card mb-g">
+            <h5 class="card-header">
+                This week, compared to recent weeks
+            </h5>
+            <div class="card-body">
+                @*<h5 class="frame-heading">
+            Select styles
+        </h5>
+        <div class="frame-wrap bg-faded mb-5">
+            <div class="custom-control custom-checkbox d-inline-flex mr-3">
+                <input type="checkbox" checked="checked" class="custom-control-input" id="bordered" data-class="table-bordered">
+                <label class="custom-control-label" for="bordered">Bordered Table</label>
+            </div>
+            <div class="custom-control custom-checkbox d-inline-flex mr-3">
+                <input type="checkbox" class="custom-control-input" id="smaller" data-class="table-sm">
+                <label class="custom-control-label" for="smaller">Smaller Table</label>
+            </div>
+            <div class="custom-control custom-checkbox d-inline-flex mr-3">
+                <input type="checkbox" class="custom-control-input" id="dark" data-class="table-dark">
+                <label class="custom-control-label" for="dark">Table Dark</label>
+            </div>
+            <div class="custom-control custom-checkbox d-inline-flex mr-3">
+                <input type="checkbox" class="custom-control-input" id="light" data-class="table-light">
+                <label class="custom-control-label" for="light">Table light</label>
+            </div>
+            <div class="custom-control custom-checkbox d-inline-flex mr-3">
+                <input type="checkbox" class="custom-control-input" id="hover" data-class="table-hover">
+                <label class="custom-control-label" for="hover">Table Hover</label>
+            </div>
+            <div class="custom-control custom-checkbox d-inline-flex mr-3">
+                <input type="checkbox" class="custom-control-input" id="stripe" data-class="table-striped">
+                <label class="custom-control-label" for="stripe">Table Stripped</label>
+            </div>
+        </div>*@
+
+                <table style="white-space: nowrap;">
+                    <tbody>
+                        <tr>
+                            <td>
+                                Report on the following orgs:
+                            </td>
+                            <td colspan="4">
+                               
+                                    <select class="select2 form-control w-100" name="ReportTypeDropdownlist" id="ReportTypeDropdownlist">
+                                        @if (@ViewBag.Type == -1)
+                                        {
+                                            <option value="-1" selected="selected">All</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="-1">All</option>
+                                        }
+
+                                        @if (@ViewBag.Type == 0)
+                                        {
+                                            <option value="0" selected="selected">Internal</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="0">Internal</option>
+                                        }
+
+                                        @if (@ViewBag.Type == 1)
+                                        {
+                                            <option value="1" selected="selected">External</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="1">External</option>
+                                        }
+
+                                    </select>
+                                    @*<a id="submitbtn" class="btn btn-outline-default" href="#">Go</a>*@
+                              
+                            </td>
+                            <td>
+                                <input id="submitbtn" name="submitbtn" type="submit" class="btn btn-outline-success" style="margin: 5px;" value="Go" onclick="createlink();">
+                                @*<input id="Gobtn" name="Calculatebtn" type="submit" class="btn btn-outline-success" style="margin: 5px;" value="Go">*@
+                                @*<a onclick="submit();" class="btn btn-success" asp-action="SalesIntro">Go</a>*@
+                                @*<a class="btn btn-outline-default" asp-controller="Sales" asp-action="SalesIntro" asp-route-typeToShow="3">Go</a>*@
+                            </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="frame-wrap p-0 border-0 m-0">
+            <table class="table m-0 table-bordered table-striped" id="table-example">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Monday</th>
+                        <th>Tuesday</th>
+                        <th>Wednesday</th>
+                        <th>Thursday</th>
+                        <th>Friday</th>
+                        <th>Saturday</th>
+                        <th>Sunday</th>
+                        <th>Total</th>
+                        <th style="background-color: grey;">Last year's total</th>
+                        <th style="background-color: grey;">@ViewBag.EndColumnHeaderLabel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>This week</b><br />@Html.Raw(ViewBag.ThisWeekDatesLabel)</td>
+                        <td>@Html.Raw(ViewData["Row0Cell0Label"])</td>
+                        <td>@Html.Raw(ViewData["Row0Cell1Label"])</td>
+                        <td>@Html.Raw(ViewData["Row0Cell2Label"])</td>
+                        <td>@Html.Raw(ViewData["Row0Cell3Label"])</td>
+                        <td>@Html.Raw(ViewData["Row0Cell4Label"])</td>
+                        <td>@Html.Raw(ViewData["Row0Cell5Label"])</td>
+                        <td>@Html.Raw(ViewData["Row0Cell6Label"])</td>
+                        <td>@Html.Raw(ViewData["Row0Cell7Label"])</td>
+                        <td style="background-color: grey;">@Html.Raw(ViewData["Row0Cell8Label"])</td>
+                        <td style="background-color: grey;">@Html.Raw(ViewData["Row0Cell9Label"])</td>
+                    </tr>
+                    <tr>
+                        <td><b>Last week</b><br />@Html.Raw(ViewBag.LastWeekDatesLabel)</td>
+                        <td>@Html.Raw(ViewData["Row1Cell0Label"])</td>
+                        <td>@Html.Raw(ViewData["Row1Cell1Label"])</td>
+                        <td>@Html.Raw(ViewData["Row1Cell2Label"])</td>
+                        <td>@Html.Raw(ViewData["Row1Cell3Label"])</td>
+                        <td>@Html.Raw(ViewData["Row1Cell4Label"])</td>
+                        <td>@Html.Raw(ViewData["Row1Cell5Label"])</td>
+                        <td>@Html.Raw(ViewData["Row1Cell6Label"])</td>
+                        <td>@Html.Raw(ViewData["Row1Cell7Label"])</td>
+                        <td style="background-color: grey;">@Html.Raw(ViewData["Row1Cell8Label"])</td>
+                        <td style="background-color: grey;">@Html.Raw(ViewData["Row1Cell9Label"])</td>
+                    </tr>
+                    <tr>
+                        <td><b>Previous week 1</b><br />@Html.Raw(ViewBag.PreviousWeek1kDatesLabel)</td>
+                        <td>@Html.Raw(ViewData["Row2Cell0Label"])</td>
+                        <td>@Html.Raw(ViewData["Row2Cell1Label"])</td>
+                        <td>@Html.Raw(ViewData["Row2Cell2Label"])</td>
+                        <td>@Html.Raw(ViewData["Row2Cell3Label"])</td>
+                        <td>@Html.Raw(ViewData["Row2Cell4Label"])</td>
+                        <td>@Html.Raw(ViewData["Row2Cell5Label"])</td>
+                        <td>@Html.Raw(ViewData["Row2Cell6Label"])</td>
+                        <td>@Html.Raw(ViewData["Row2Cell7Label"])</td>
+                        <td style="background-color: grey;">@Html.Raw(ViewData["Row2Cell8Label"])</td>
+                        <td style="background-color: grey;">@Html.Raw(ViewData["Row2Cell9Label"])</td>
+                    </tr>
+                    <tr>
+                        <td><b>Previous week 2</b><br />@Html.Raw(ViewBag.PreviousWeek2kDatesLabel)</td>
+                        <td>@Html.Raw(ViewData["Row3Cell0Label"])</td>
+                        <td>@Html.Raw(ViewData["Row3Cell1Label"])</td>
+                        <td>@Html.Raw(ViewData["Row3Cell2Label"])</td>
+                        <td>@Html.Raw(ViewData["Row3Cell3Label"])</td>
+                        <td>@Html.Raw(ViewData["Row3Cell4Label"])</td>
+                        <td>@Html.Raw(ViewData["Row3Cell5Label"])</td>
+                        <td>@Html.Raw(ViewData["Row3Cell6Label"])</td>
+                        <td>@Html.Raw(ViewData["Row3Cell7Label"])</td>
+                        <td style="background-color: grey;">@Html.Raw(ViewData["Row3Cell8Label"])</td>
+                        <td style="background-color: grey;">@Html.Raw(ViewData["Row3Cell9Label"])</td>
+                    </tr>
+                </tbody>
+            </table>
+            @*<button class="btn btn-primary mt-3 float-right">Get Table Style</button>*@
+</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="d-flex flex-fill">
+    <div class="flex-fill">
+        <span class="h5">Sales over a specific time period</span>
+        <br>
+        <p>
+            Please select the necessary date range; the default is set to the last whole calendar
+            month. As noted above, the more recent the date range you choose, the more likely
+            the figures are to change as figures for live jobs are adjusted.
+        </p>
+        <p>
+            All figures on this page use today’s exchange rates, which is a reliable measure for
+            the last 4 weeks, and when comparing figures across different date ranges to assess like-for-like
+            selling performance. For fully accurate revenue figures, see the
+            <a href="http://myplus/RevenueAndMarginHistoricallyAdjusted.aspx">Historically adjusted revenue and margin report</a>.
+        </p>
+        @*@using (Html.BeginForm("Calculate", "sales", FormMethod.Post))
+        {*@
+            <table style="white-space: nowrap;">
+                <tbody>
+                    <tr>
+                        <td>
+                            Report on the following orgs:
+                        </td>
+                        <td colspan="4">
+                            <select class="select2 form-control w-100" name="TypeDropdownlist" id="TypeDropdownlist">
+                                <option value="-1">All</option>
+                                <option value="0">Internal</option>
+                                <option value="1">External</option>
+                            </select>
+
+                            @*<asp:DropDownList ID="GroupTypeDropdown" runat="server">
+                                    <asp:ListItem Selected="True">All</asp:ListItem>
+                                    <asp:ListItem>Internal</asp:ListItem>
+                                    <asp:ListItem>External</asp:ListItem>
+                                </asp:DropDownList>*@
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Report on orders gone ahead between&nbsp;
+                        </td>
+                        <td>
+                            <input class="form-control" type="date" name="startdate" id="startdate" value="@ViewBag.StartDateSelected" style="width: 200px;">
+                        </td>
+                        <td>&nbsp;and&nbsp;</td>
+                        <td>
+                            <input class="form-control" type="date" name="enddate" id="enddate" value="@ViewBag.EndDateSelected" style="width: 200px;">
+                        </td>
+                        <td>
+                            <input id="Calculatebtn" name="Calculatebtn" type="submit" class="btn btn-outline-success" style="margin: 5px;" value="Go">
+                            @*<a asp-action="Calculate" class="btn btn-outline-success" style="margin: 25px;">Go</a>*@
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        @*}*@
+        <p id="SalesFigure">
+            @*@Html.Raw(ViewBag.SalesFigure) <br />
+            @Html.Raw(ViewBag.SalesFigureHistoricallyAdjusted)*@
+        </p>
+    </div>
+</div>
+<div class="alert alert-primary">
+    <div class="d-flex flex-start w-100">
+        <div class="mr-2">
+            <span class="icon-stack icon-stack-lg">
+                <i class="base-2 icon-stack-3x color-primary-400"></i>
+                <i class="base-3 icon-stack-2x color-primary-600 opacity-70"></i>
+                <i class="@(Settings.Theme.IconPrefix) fa-lightbulb icon-stack-1x text-white opacity-90"></i>
+            </span>
+        </div>
+        <div class="d-flex flex-fill">
+            <div class="flex-fill">
+                <span class="h5">Helpful tip</span>
+                <br>
+                <p>
+                    Be aware that the figures below relate to the value of go-aheads (including any discount/surcharge) currently on the
+                    system, which means that recent figures (especially for orders entered in the past
+                    few days) are subject to change as details are finalised/updated.
+                </p>
+                <p>
+                    These figures exclude any orders against <a href="Org.aspx?OrgID=83923">Test Org 1</a> and <a href="Org.aspx?OrgID=83997">translate plus internal client</a>.
+                </p>
+                <p>
+                    Where necessary, order values are converted to sterling using the currently active
+                    <a href="ExchangeRates.aspx">exchange rates</a>.
+                </p>
+                <p>
+                    For the turnover of work <b>invoiced</b> (which does represent 100% final figures)
+                    please refer to the
+                    <a href="Cashflow.aspx">cashflow report</a>.
+                </p>
+                <p>
+                    Last year’s total figures are historically adjusted with the previous exchange rates.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+@section ScriptsBlock {
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <script>
+        //$('input:checkbox').change(function () {
+        //    if ($(this).is(":checked")) {
+        //        $('#table-example').addClass($(this).attr("data-class"));
+        //    } else {
+        //        $('#table-example').removeClass($(this).attr("data-class"));
+        //    }
+        //});
+
+
+        $("#Calculatebtn").on('click', function () {
+            $.ajax({
+                url: "api/SalesAPI/",
+                dataType: 'text',
+                method: 'GET',
+                data: { startdate: $('#startdate').val(), enddate: $('#enddate').val(), type: $('#TypeDropdownlist').val() },
+                success: function (data) {
+                    $('#SalesFigure').html(data);
+                },
+                error: function (req, status, err) {
+                    console.log(status, err);
+                }
+            });
+        })
+
+
+        @*$('#submitbtn').on('click', (function () {
+            $.ajax({
+                //alert('here');
+                //alert($('#ReportTypeDropdownlist').val());
+                var baseUrl = '@Url.Action("Sales", "SalesIntro")';
+                location.href = baseUrl + '/' + $('#ReportTypeDropdownlist').val();
+            });
+        })*@
+
+            function createlink() {
+                //alert('here');
+                var stringToSend = document.getElementById('ReportTypeDropdownlist').value;
+                //var baseUrl = '@Url.Action("salesintro", "sales")';
+                location.href = 'sales/salesintro/' + stringToSend;
+            }
+
+       //function submit() {
+       //    var stringToSend = document.getElementById('ReportTypeDropdownlist').value;
+       //    alert(stringToSend);
+       //     var xhr = new XMLHttpRequest();
+       //    xhr.open("POST", "Sales/GetSalesReport", true);
+       //     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+       //     xhr.send(stringToSend);
+       //    window.reload(false);
+       //     window.location.reload(false);
+       // }
+    </script>
+}

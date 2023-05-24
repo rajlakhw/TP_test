@@ -1,0 +1,24 @@
+﻿<div class="modal modal-alert fade" id="holiday-approval-result-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><label id="approval-header-text"></label></h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                    </button>*@
+            </div>
+            <div class="modal-body">
+                <div id="approval-success-div">
+                    <label id="holiday-approval-success-string">Holiday request from&nbsp;</label><label class="text-success md-header" id="holiday-approval-success-dates"></label>&nbsp;has been successfully approved.
+                </div>
+                <div id="approval-error-div">
+                    <label class="text-warning md-header" id="holiday-approval-warning-string">Error occured when attempting to approve holiday request.</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="refreshPage()">Close</button>
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+            </div>
+        </div>
+    </div>
+</div>

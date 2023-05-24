@@ -1,0 +1,682 @@
+﻿@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+
+    @{
+    ViewData["Title"] = "Quote";
+    //ViewData["PageName"] = "datatables_basic";
+    ViewData["Category1"] = "Job management";
+    //ViewData["Heading"] = "Project status";
+    //ViewData["PageDescription"] = "Create headache free searching, sorting and pagination tables without any complex configuration";
+}
+@{
+    @using ViewModels.Quote;
+    @model QuoteViewModel;
+    @using Global_Settings;
+    @using System.Text.Json;
+}
+<style>
+    .list {
+        display: inline;
+        list-style-type: none;
+    }
+
+    .select2-container {
+        z-index: 5000;
+    }
+
+    body.modal-open {
+        overflow: visible;
+    }
+
+    .was-validated .custom-select:invalid + .select2 .select2-selection {
+        border-color: #fd3995;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23fd3995' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23fd3995' stroke='none'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:invalid:focus + .select2 .select2-selection:invalid:focus {
+        border-color: #fd3995;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+    }
+
+
+    .was-validated .custom-select:valid + .select2 .select2-selection {
+        border-color: #1dc9b7 !important;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%231dc9b7' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:valid:focus + .select2 .select2-selection:valid:focus {
+        border-color: #1dc9b7;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+    }
+
+    .ajax-loader {
+        visibility: hidden;
+        background-color: rgba(255,255,255,0.7);
+        position: absolute;
+        z-index: +100 !important;
+        width: 100%;
+        height: 100%;
+    }
+
+        .ajax-loader img {
+            position: relative;
+            top: 60%;
+            left: 47%;
+        }
+
+    /*   .was-validated .select2:valid:focus {
+                        border-color: #1dc9b7;
+                        -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+                        box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+                    }*/
+
+    /*  *:focus {
+                    outline: 0px;
+                }*/
+</style>
+@section ScriptsBlock {
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script>
+        $(document).ready(function() {
+
+            $(function() {
+                $('.select2').select2();
+
+            });
+        });
+
+        function approveQuote() {
+
+
+            var enquiryId = @Html.Raw(JsonSerializer.Serialize( Model.EnquiryId));
+            var quoteID = @Html.Raw(JsonSerializer.Serialize( Model.Id));
+
+            var approveReject = 1;
+            var poNumber = document.getElementById('po-number').value;
+            var reason = document.getElementById('approve-quote-reason').value;
+            if (reason == 0) {
+                document.getElementById('approve-quote-validation').hidden = false;
+                return;
+            }
+            document.getElementById('approve-quote-button').disabled = true;
+            var comment = document.getElementById('approve-quote-comment').value;
+            var stringToSend = quoteID + '$' + enquiryId + '$' + approveReject + '$' + reason + '$' + comment + '$' + poNumber;
+            $('.ajax-loader').css("visibility", "visible");
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "JobManagement/ApproveOrRejectQuote", true);
+            xhr.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+
+                    //debugger;
+
+
+                    //show job item creation successful modal
+                    var response = xhr.responseText;
+                    var headerText = response.split("$")[0];
+                    //document.getElementById('header-text').innerText = headerText;
+
+                    if (headerText == "Success") {
+                        $('.ajax-loader').css("visibility", "hidden");
+                        //$('#quote-result-modal').modal("show");
+                        window.location.href = `jobmanagement/QuoteDetails/${quoteID}`;
+                    }
+
+
+
+
+                }
+                else {
+                    //if the holiday could not be added ok, then notify the user
+                }
+            };
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(stringToSend);
+        }
+        function rejectQuote() {
+
+            var enquiryId = @Html.Raw(JsonSerializer.Serialize( Model.EnquiryId));
+            var quoteID = @Html.Raw(JsonSerializer.Serialize( Model.Id));
+            var approveReject = 0;
+
+            var reason = document.getElementById('reject-quote-reason').value;
+            if (reason == 0) {
+                document.getElementById('reject-quote-validation').hidden = false;
+                return;
+            }
+            document.getElementById('reject-quote-button').disabled = true;
+            var comment = document.getElementById('reject-quote-comment').value;
+            var stringToSend = quoteID + '$' + enquiryId + '$' + approveReject + '$' + reason + '$' + comment;
+            $('.ajax-loader').css("visibility", "visible");
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "JobManagement/ApproveOrRejectQuote", true);
+            xhr.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+
+                    //debugger;
+
+
+                    //show job item creation successful modal
+                    var response = xhr.responseText;
+                    var headerText = response.split("$")[0];
+                    //document.getElementById('header-text').innerText = headerText;
+
+                    if (headerText == "Rejected") {
+                        $('.ajax-loader').css("visibility", "hidden");
+                        //$('#quote-rejected-result-modal').modal("show");
+                        window.location.href = `jobmanagement/QuoteDetails/${quoteID}`;
+                    }
+
+
+
+                }
+                else {
+                    //if the holiday could not be added ok, then notify the user
+                }
+            };
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(stringToSend);
+        }
+    </script>
+}
+    <div class="ajax-loader">
+        <img src="@Href("~/img/loading.gif")" class="img-responsive" />
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div id="panel-4" class="panel">
+                <div class="panel-hdr">
+                    <i class="fal fa-file-search fa-2x color-black"></i> &nbsp; &nbsp;
+                    <h2>
+                        Quote Details
+                    </h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                    </div>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        @*                    <table class="table table-striped m-0">
+                    <tbody>
+                    <tr>
+                    <td class = "btn btn-outline-primary">Select Date Range</td>
+                    </tr>
+                    </tbody>
+                    </table>*@
+                        <table id="" class="table m-0">
+                            <thead class="">
+                                @if (Model.EnquiryStatus == 3)
+                            {
+                                <tr>
+                                    <td align="left">
+                                        <hr />
+                                        <h1 style="color:green;">QUOTE APPROVED</h1><br />
+                                        <label class="form-label md-header">This quote was approved by @ViewBag.DecisionMadeByContactName at @ViewBag.DecisionMadeTime on @ViewBag.DecisionMadeDate and went ahead as order number <a asp-controller="JobManagement" asp-action="OrderDetails" asp-route-jobOrderId="@ViewBag.WentAheadAsJobOrderID">@ViewBag.WentAheadAsJobOrderID</a></label>
+                                    </td>
+                                </tr>
+                            }
+                            @if (Model.EnquiryStatus == 2)
+                            {
+                                <tr>
+                                    <td align="left">
+                                        <hr />
+                                        <h1 style="color:red;">QUOTE REJECTED</h1><br />
+                                        <label class="form-label md-header">This quote was rejected by @ViewBag.DecisionMadeByContactName at @ViewBag.DecisionMadeTime on @ViewBag.DecisionMadeDate.</label>
+                                    </td>
+                                </tr>
+                            }
+                            @if (Model.EnquiryStatus == 1)
+                            {
+                                <tr>
+                                    <td align="left">
+                                        <button type="button" class="btn btn-success" data-toggle="modal" data-dismiss="modal" data-target="#approveQuote">@ViewBag.ApproveQuote</button>&nbsp;&nbsp;
+                                        <button type="button" class="btn btn-dark" data-toggle="modal" data-dismiss="modal" data-target="#rejectQuote">@ViewBag.RejectQuote</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        @if (ViewBag.ViewPDF != "")
+                                        {
+
+                                            <a asp-controller="JobManagement" asp-action="GetFile" asp-route-filePath="@ViewBag.ViewPDF"><img src="~/img/PDFDocIcon.gif" width="20">@ViewBag.ViewSavePDF</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+
+                            <tr>
+                                <td align="left">
+                                    <label class="form-label md-header" style="float:right;">@Model.QuoteDate.ToString("dd MMMM yyyy")</label><br />
+                                    <label class="form-label">@ViewBag.ContactName</label><br />
+                                    <label class="form-label">@Model.QuoteFileName</label><br />
+                                    @if (Model.QuoteAddress1 != "")
+                                    {
+                                        <label class="form-label">@Model.QuoteAddress1</label>
+
+                                        <br />
+                                    }
+                                    @if (Model.QuoteAddress2 != "")
+                                    {
+                                        <label class="form-label">@Model.QuoteAddress2</label>
+
+                                        <br />
+                                    }
+                                    @if (Model.QuoteAddress3 != "")
+                                    {
+                                        <label class="form-label">@Model.QuoteAddress3</label>
+
+                                        <br />
+                                    }
+                                    @if (Model.QuoteAddress4 != "")
+                                    {
+                                        <label class="form-label">@Model.QuoteAddress4</label>
+
+                                        <br />
+                                    }
+                                    @if (Model.QuoteCountyOrState != "")
+                                    {
+                                        <label class="form-label">@Model.QuoteCountyOrState</label>
+
+                                        <br />
+                                    }
+                                    @if (Model.QuotePostcodeOrZip != "")
+                                    {
+                                        <label class="form-label">@(Model.QuotePostcodeOrZip == "" ? null : Model.QuotePostcodeOrZip)</label>
+
+                                        <br />
+                                    }
+                                    <label class="form-label">@ViewBag.CountryName</label><br />
+                                </td>
+
+                            </tr>
+                            @if (Model.EnquiryStatus != 3 && Model.EnquiryStatus != 2)
+                            {
+                                <tr>
+                                    <td align="center">
+                                        <label class="form-label" style="font-family: Arial;font-size: medium;font-weight: bold;color: Orange;">@Html.Raw(Model.Title.ToString().Replace("#", "<br/>"))</label><br />
+                                        @if (Model.ClientPonumber != null && Model.ClientPonumber != "")
+                                        {
+                                            <label class="form-label" style="font-family: Arial;font-size: medium;font-weight: bold;color: Orange;">@Html.Raw(Model.ClientPonumber.ToString())</label>
+                                            <br />
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            <tr>
+                                <td>
+                                    <label class="form-label">@Html.Raw(Model.OpeningSectionText)</label><br />
+                                </td>
+                            </tr>
+                    </table>
+                    <table id="" class="table table-bordered table-hover table-striped w-100">
+                        <tr style="background: #e7e7e7;">
+                            <th>
+                                <label class="form-label">ID</label><br />
+                            </th>
+                            <th>
+                                <label class="form-label">@ViewBag.ServiceHeading.ToString().ToUpper()</label><br />
+                            </th>
+                            <th>
+                                <label class="form-label">@ViewBag.SourceLangHeading.ToString().ToUpper()</label><br />
+                            </th>
+                            <th>
+                                <label class="form-label">@ViewBag.TargetLangHeading.ToString().ToUpper()</label><br />
+                            </th>
+                            @if (Model.WordCountPresentationOption != 1 && Model.WordCountPresentationOption != 0)
+                            {
+                                <th>
+                                    <label class="form-label">@ViewBag.NewWordsHeading.ToString().ToUpper()</label><br />
+                                </th>
+
+
+                                @if (Model.FuzzyBand1 != null)
+                                {
+                                    <th>
+                                        <label class="form-label">@Model.FuzzyBand1.ToString().ToUpper()</label><br />
+                                    </th>
+
+                                }
+                                @if (Model.FuzzyBand2 != null)
+                                {
+
+                                    <th>
+                                        <label class="form-label">@Model.FuzzyBand2.ToString().ToUpper()</label><br />
+                                    </th>
+
+                                }
+                                @if (Model.FuzzyBand3 != null)
+                                {
+
+                                    <th>
+                                        <label class="form-label">@Model.FuzzyBand3.ToString().ToUpper()</label><br />
+                                    </th>
+
+                                }
+                                @if (Model.FuzzyBand4 != null)
+                                {
+
+                                    <th>
+                                        <label class="form-label">@Model.FuzzyBand4.ToString().ToUpper()</label><br />
+                                    </th>
+
+                                }
+
+                                <th>
+                                    <label class="form-label">@ViewBag.ExactWordsHeading.ToString().ToUpper()</label><br />
+                                </th>
+
+                                <th>
+                                    <label class="form-label">@ViewBag.RepetitionWordsHeading.ToString().ToUpper()</label><br />
+                                </th>
+                                @if (Model.WordCountPresentationOption != 2)
+                                {
+                                    <th>
+                                        <label class="form-label">@ViewBag.PerfectMatchWordsHeading</label><br />
+                                    </th>
+                                    @if (Model.QuoteItems.Any(o => o.WordCountClientSpecific != 0) && Model.QuoteItems.Any(o => o.WordCountClientSpecific != null))
+                                    {
+                                        <th>
+                                            <label class="form-label">@ViewBag.WackerNeusonWordCountHeader.ToString().ToUpper()</label><br />
+                                        </th>
+                                    }
+                                }
+                            }
+                            @if (Model.WordCountPresentationOption != 0)
+                            {
+                                <th>
+                                    <label class="form-label">@ViewBag.TotalWordsHeading.ToString().ToUpper()</label><br />
+                                </th>
+                            }
+                            @if (Model.ShowInterpretingDurationInBreakdown == true)
+                            {
+                                <th>
+                                    <label class="form-label">@ViewBag.InterpretingDurationHeading.ToString().ToUpper()</label><br />
+                                </th>
+                            }
+                            @if (Model.ShowWorkDurationInBreakdown == true)
+                            {
+                                <th>
+                                    <label class="form-label">@ViewBag.WorkTimeHeading.ToString().ToUpper()</label><br />
+                                </th>
+                            }
+                            @if (Model.ShowPagesOrSlidesInBreakdown == true)
+                            {
+                                <th>
+                                    <label class="form-label">@ViewBag.PagesOrSlidesHeading.ToString().ToUpper()</label><br />
+                                </th>
+                            }
+                            @if (Model.ShowNumberOfCharactersInBreakdown == true)
+                            {
+                                <th>
+                                    <label class="form-label">@ViewBag.CharactersHeader.ToString().ToUpper()</label><br />
+                                </th>
+                            }
+                            @if (Model.ShowNumberOfDocumentsInBreakdown == true)
+                            {
+                                <th>
+                                    <label class="form-label">@ViewBag.DocumentsHeader.ToString().ToUpper()</label><br />
+                                </th>
+                            }
+                            <th style="text-align:center;">
+                                <label class="form-label">@ViewBag.TPCostHeading.ToString().ToUpper()</label><br />
+                            </th>
+                        </tr>
+                        @foreach (var item in Model.QuoteItems)
+                        {
+                            <tr>
+
+                                <td><label class="form-label">@item.Id</label></td>
+                                <td><label class="form-label">@Model.LanguageService.Where(o => o.Id == item.LanguageServiceId).Select(o => o.Name).FirstOrDefault().ToString()</label></td>
+                                <td><label class="form-label">@Model.LocalLanguages.Where(o => o.LanguageIanacodeBeingDescribed == item.SourceLanguageIanacode && o.LanguageIanacode == Model.Ianacode).Select(o => o.Name).FirstOrDefault().ToString()</label></td>
+                                <td><label class="form-label">@Model.LocalLanguages.Where(o => o.LanguageIanacodeBeingDescribed == item.TargetLanguageIanacode && o.LanguageIanacode == Model.Ianacode).Select(o => o.Name).FirstOrDefault().ToString()</label></td>
+                                @if (Model.WordCountPresentationOption != 1 && Model.WordCountPresentationOption != 0)
+                                {
+                                    <td><label class="form-label">@item.WordCountNew.GetValueOrDefault(0).ToString("##,##;##,##;0")</label></td>
+
+                                    @if (Model.FuzzyBand1 != null)
+                                    {
+
+                                        <td>
+                                            <label class="form-label">@item.WordCountFuzzyBand1.GetValueOrDefault(0).ToString("##,##;##,##;0")</label>
+                                        </td>
+
+                                    }
+                                    @if (Model.FuzzyBand2 != null)
+                                    {
+
+                                        <td>
+                                            <label class="form-label">@item.WordCountFuzzyBand2.GetValueOrDefault(0).ToString("##,##;##,##;0")</label>
+                                        </td>
+
+                                    }
+                                    @if (Model.FuzzyBand3 != null)
+                                    {
+
+                                        <td>
+                                            <label class="form-label">@item.WordCountFuzzyBand3.GetValueOrDefault(0).ToString("##,##;##,##;0")</label>
+                                        </td>
+
+                                    }
+                                    @if (Model.FuzzyBand4 != null)
+                                    {
+
+                                        <td>
+                                            <label class="form-label">@item.WordCountFuzzyBand4.GetValueOrDefault(0).ToString("##,##;##,##;0")</label>
+                                        </td>
+
+                                    }
+
+                                    <td><label class="form-label">@item.WordCountExact.GetValueOrDefault(0).ToString("##,##;##,##;0")</label></td>
+
+
+                                    <td><label class="form-label">@item.WordCountRepetitions.GetValueOrDefault(0).ToString("##,##;##,##;0")</label></td>
+                                    @if (Model.WordCountPresentationOption != 2)
+                                    {
+
+                                        <td><label class="form-label">@item.WordCountPerfectMatches.GetValueOrDefault(0).ToString("##,##;##,##;0")</label></td>
+                                        @if (Model.QuoteItems.Any(o => o.WordCountClientSpecific != 0) && Model.QuoteItems.Any(o => o.WordCountClientSpecific != null))
+                                        {
+                                            <td><label class="form-label">@item.WordCountClientSpecific.GetValueOrDefault(0).ToString("##,##;##,##;0")</label></td>
+                                        }
+                                    }
+                                }
+                                @if (Model.WordCountPresentationOption != 0)
+                                {
+                                    <td>@((item.WordCountNew + item.WordCountFuzzyBand1 + item.WordCountFuzzyBand2 + item.WordCountFuzzyBand3 + item.WordCountFuzzyBand4 + item.WordCountRepetitions + item.WordCountExact + item.WordCountPerfectMatches + item.WordCountClientSpecific).GetValueOrDefault(0).ToString("##,##;##,##;0"))</td>
+                                }
+                                @if (Model.ShowNumberOfCharactersInBreakdown == true)
+                                {
+
+                                    <td><label class="form-label">@item.Characters.GetValueOrDefault(0).ToString("##,##;##,##;0")</label></td>
+
+                                }
+                                @if (Model.ShowNumberOfDocumentsInBreakdown == true)
+                                {
+
+                                    <td><label class="form-label">@item.Documents.GetValueOrDefault(0).ToString("##,##;##,##;0")</label></td>
+
+                                }
+                                @if (Model.ShowWorkDurationInBreakdown == true)
+                                {
+                                    <td><label class="form-label">@TimeSpan.FromMinutes((double)item.WorkMinutes).ToString(@"hh\:mm")</label></td>
+                                }
+                                @if (Model.ShowInterpretingDurationInBreakdown == true)
+                                {
+                                    <td><label class="form-label">@TimeSpan.FromMinutes((double)item.InterpretingExpectedDurationMinutes).ToString(@"hh\:mm")</label></td>
+                                }
+                                @if (Model.ShowPagesOrSlidesInBreakdown == true)
+                                {
+                                    <td><label class="form-label">@item.Pages.GetValueOrDefault(0).ToString("##,##;##,##;0")</label></td>
+                                }
+                                <td><label class="form-label" style="float:right;">@Model.Currency.Where(o => o.Id == Model.QuoteCurrencyId).Select(o => o.Prefix).FirstOrDefault().ToString() @item.ChargeToClient.GetValueOrDefault(0).ToString("##,#0.00;##,#0.00;0.00")</label></td>
+
+                            </tr>
+                        }
+                    </table>
+                    @if (Model.EnquiryStatus != 3 && Model.EnquiryStatus != 2)
+                    {
+                        <table id="" class="table m-0">
+                            <tr>
+                                <td>
+                                    <label class="form-label"><b>Total</b></label><br />
+                                </td>
+                                <td align="right"><label class="form-label"><b>@Model.Currency.Where(o => o.Id == Model.QuoteCurrencyId).Select(o => o.Prefix).FirstOrDefault().ToString() @Model.QuoteItems.Sum(o => o.ChargeToClient).GetValueOrDefault().ToString("##,#0.00;##,#0.00;0.00")</b></label></td>
+
+                            </tr>
+                        </table>
+                    }
+
+                    <table id="" class="table m-0">
+
+                        <tr>
+                            <td>
+                                @if (Model.EnquiryStatus == 1)
+                                {
+                                    <label class="form-label" style="float:right;">@ViewBag.VatLabel</label>
+
+                                    <br />
+
+                                    <br />
+                                }
+                                <label class="form-label">@Html.Raw(Model.ClosingSectionText)</label><br />
+                                @if (ViewBag.ClosingSectionText != "")
+                                {
+                                    <label class="form-label">
+                                        @Html.Raw(ViewBag.ClosingSectionText)
+                                    </label>
+
+                                    <br />
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left">
+                                <label class="form-label">@ViewBag.SalesContactEmployeeFullName</label><br />
+                                <label class="form-label"><a href=mailto:@ViewBag.SalesContactEmployeeEmailAddress>@ViewBag.SalesContactEmployeeEmailAddress</a></label><br />
+                                <label class="form-label">@ViewBag.SalesContactEmployeeLandlineNumber</label><br />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="approveQuote" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="timeLogEditHeader">
+                    <strong><label id="nonStatusHeader">@ViewBag.ApproveQuote.ToString().ToUpper()</label></strong>
+
+                </h5>
+                <a onclick="" data-dismiss="modal" class="close" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </a>
+            </div>
+            <div class="modal-body bg-faded">
+                @ViewBag.PONumberOptionalHeader<br />
+
+                <input type="text" class="form-control d-flex align-items-center col-4" id="po-number"><br />
+
+                @Html.Raw(ViewBag.ApproveQuoteText)<br />
+                <select class="select2 form-control" id="approve-quote-reason">
+                    <option value="0">(Please Select)</option>
+                    @foreach (var reason in Model.ClientDecisionReason.Where(o => o.Type == 1 && o.Ianacode == Model.Ianacode).OrderBy(o => o.Reason))
+                    {
+                        <option value="@reason.DecisionReasonId">@reason.Reason.ToString()</option>
+                    }
+                </select><label class="text-danger" id="approve-quote-validation" hidden>Please select an option from the list</label><br /><br />
+                @ViewBag.AdditionalDetailsHeader<br />
+                <textarea class="form-control" id="approve-quote-comment" rows="3" style="width:100%;"></textarea><br /><br />
+                <button type="button" style="float:right;" id="approve-quote-button" class="btn btn-success" onclick="approveQuote();">@ViewBag.ConfirmButton</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="rejectQuote" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="timeLogEditHeader">
+                    <strong><label id="nonStatusHeader">@ViewBag.RejectQuote.ToString().ToUpper()</label></strong>
+
+                </h5>
+                <a onclick="" data-dismiss="modal" class="close" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </a>
+            </div>
+            <div class="modal-body bg-faded">
+
+                @Html.Raw(ViewBag.RejectQuoteText)<br />
+                <select class="select2 form-control" id="reject-quote-reason">
+                    <option value="0">(Please Select)</option>
+                    @foreach (var reason in Model.ClientDecisionReason.Where(o => o.Type == 0 && o.Ianacode == Model.Ianacode).OrderBy(o => o.Reason))
+                    {
+                        <option value="@reason.DecisionReasonId">@reason.Reason.ToString()</option>
+                    }
+                </select><label class="text-danger" id="reject-quote-validation" hidden>Please select an option from the list</label><br /><br />
+                @ViewBag.AdditionalDetailsHeader<br />
+                <textarea class="form-control" id="reject-quote-comment" rows="3" style="width:100%;"></textarea><br /><br />
+                <button type="button" style="float:right;" id="reject-quote-button" class="btn btn-success" onclick="rejectQuote();">@ViewBag.ConfirmButton</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal modal-alert fade" id="quote-result-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Html.Raw(ViewBag.QuoteApprovedHeader)<label id="header-text"></label></h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>*@<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label class="text-success md-header" id="quote-success-dates">@Html.Raw(ViewBag.QuoteApprovedText)</label>
+                <label class="text-warning md-header" id="quote-warning-string"></label>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal modal-alert fade" id="quote-rejected-result-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Html.Raw(ViewBag.QuoteRejectedHeader)<label id="header-text"></label></h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>*@<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button><button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label class="text-success md-header" id="quote-success-dates">@Html.Raw(ViewBag.QuoteRejectedText)</label>
+                <label class="text-warning md-header" id="quote-warning-string"></label>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+            </div>
+        </div>
+    </div>
+</div>

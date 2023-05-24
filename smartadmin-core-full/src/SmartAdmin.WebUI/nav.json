@@ -1,0 +1,232 @@
+{
+  "version": "4.5",
+  "lists": [
+    {
+      "title": "Information",
+      "text": "Information",
+      "icon": "fal fa-info-circle",
+      "roles": [],
+      "href": "javascript:void(0);",
+      "items": [
+        {
+          "title": "share plus",
+          "href": "articles_index.html",
+          "roles": []
+        },
+        {
+          "title": "Template files",
+          "href": "template_templatefiles.html",
+          "roles": []
+        }
+      ]
+    },
+
+    {
+      "title": "Timesheets",
+      "text": "Timesheets",
+      "icon": "fal fa-clock",
+      "roles": [],
+      "items": [
+        {
+          "title": "My Timesheet",
+          "href": "timesheet_mytimesheet.html",
+          "roles": []
+        },
+        {
+          "title": "My Team's Timesheet",
+          "href": "timesheet/myteamstimesheet/default/0",
+          "roles": []
+        },
+        {
+          "title": "Timesheet Reporting",
+          "href": "timesheet_timesheetreporting.html",
+          "roles": []
+        }
+      ]
+    },
+
+    {
+      "title": "flow plus",
+      "text": "flow plus",
+      "icon": "fal fa-edit",
+      "href": "javascript:void(0);",
+      "roles": [],
+      "items": [
+        {
+          "title": "Home",
+          "href": "tmshome_index.html",
+          "roles": []
+        },
+        {
+          "title": "Enquiries",
+          "href": "EnquiriesDashboard_index.html",
+          "roles": []
+        },
+        {
+          "title": "Groups",
+          "roles": [],
+          "href": "javascript:void(0);",
+          "items": [
+            {
+              "title": "Search",
+              "href": "tmsclientsearch_GroupSearch.html",
+              "roles": []
+            }
+          ]
+
+        },
+        {
+          "title": "Organisations",
+          "roles": [],
+          "href": "javascript:void(0);",
+          "items": [
+            {
+              "title": "Search",
+              "href": "tmsclientsearch_OrgSearch.html",
+              "roles": []
+            }
+          ]
+        },
+        {
+          "title": "Contacts",
+          "roles": [],
+          "href": "javascript:void(0);",
+          "items": [
+            {
+              "title": "Search",
+              "href": "tmsclientsearch_ContactSearch.html",
+              "roles": []
+            }
+          ]
+        },
+        {
+          "title": "Linguists",
+          "roles": [],
+          "href": "javascript:void(0);",
+          "items": [
+            {
+              "title": "Search",
+              "href": "LinguistSearch_index.html",
+              "roles": []
+            },
+            {
+              "title": "Add",
+              "href": "Linguist_Add.html",
+              "roles": []
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "title": "Sales",
+      "text": "Sales",
+      "icon": "fal fa-chart-line",
+      "href": "javascript:void(0);",
+      "roles": [],
+      "items": [
+        {
+          "title": "Sales Intro",
+          "href": "sales_salesintro.html",
+          "roles": []
+        }
+      ]
+    },
+
+    {
+      "title": "HR",
+      "text": "HR",
+      "icon": "fal fa-child",
+      "href": "javascript:void(0);",
+      "roles": [],
+      "items": [
+        {
+          "title": "Employees",
+          "href": "hr_employees.html",
+          "roles": []
+        },
+        {
+          "title": "Company policies",
+          "href": "hr_companypolicies.html",
+          "roles": []
+        },
+        {
+          "title": "Public holiday",
+          "href": "hr/publicholidays/4/0",
+          "roles": []
+        },
+        {
+          "title": "Holiday Admin",
+          "href": "hr/holidayadmin/4/0",
+          "roles": []
+        },
+        {
+          "title": "Career Conversations",
+          "href": "https://fidello.publicisgroupe.net/mpc/home",
+          "roles": []
+        }
+      ]
+    },
+
+    {
+      "title": "T&P Config page",
+      "text": "T&P Config page",
+      "icon": "fal fa-cog",
+      "roles": [],
+      "href": "tpendclient_tpconfig.html",
+      "items": []
+    },
+
+    {
+      "title": "Publicis Groupe",
+      "text": "Publicis Groupe",
+      "icon": "fal fa-cat-space",
+      "href": "javascript:void(0);;",
+      "roles": [],
+      "items": [
+        {
+          "title": "Marcel",
+          "href": "https://marcel.ai/app",
+          "roles": []
+        },
+        {
+          "title": "Workspace",
+          "href": "https://workspace.marcel.ai/new-booking",
+          "roles": []
+        }
+      ]
+    },
+
+    {
+      "title": "IT",
+      "text": "IT",
+      "icon": "fal fa-computer-classic",
+      "href": "javascript:void(0);",
+      "roles": [],
+      "items": [
+        {
+          "title": "Access Matrix",
+          "href": "employeeaccessmatrix_index.html",
+          "roles": []
+        }
+      ]
+    },
+
+    {
+      "title": "Reports",
+      "text": "Reports",
+      "icon": "ni ni-bar-chart",
+      "href": "javascript:void(0);",
+      "roles": [],
+      "items": [
+        {
+          "title": "Reporting tool",
+          "href": "reports_reportingtool.html",
+          "roles": []
+        }
+      ]
+    }
+  ]
+}
+  

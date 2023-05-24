@@ -1,0 +1,69 @@
+﻿@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+<div class="modal fade" id="edit-task-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit task<label id="header-text"></label></h5>
+            </div>
+            <form class="needs-validation" id="task-form" novalidate>
+                <div class="modal-body bg-faded">
+                    <table class="table table-borderless" width="600px">
+                        <tr>
+                            <td colspan="2">
+                                <label id="task-action-string"></label>&nbsp;<a id="employee-link" target="_blank" href="#"></a>&nbsp;on&nbsp;<label id="due-date-string"></label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="250">
+                                <strong><label class="text-success md-header">Task for:</label></strong>
+                                <select required class="select2 form-control w-100" id="employee-select"></select>
+                            </td>
+                            <td width="250">
+                                <strong><label class="text-success md-header">Due date:</label></strong>
+                                <div class="input-group">
+                                    <input type="text" required class="form-control" id="datepicker-due-date">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text fs-xl">
+                                            <i class="@(Settings.Theme.IconPrefix) fa-calendar-exclamation"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                @*<div class="custom-control custom-switch" style="align-items:end">
+                                    <input type="checkbox" class="custom-control-input" id="specific-time-checkbox">
+                                    <label class="custom-control-label" id="specific-time-toggle-label" for="specific-time-checkbox">Specific time</label>
+                                </div>*@
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <strong><label class="text-success md-header">Your notes: (e.g. meeting minutes, call notes):</label></strong>
+                                <textarea class="form-control" id="notes-textarea" aria-label="With textarea"></textarea>
+                                <input type="hidden" id="task-id" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="custom-control custom-switch" style="align-items:end">
+                                    <input type="checkbox" class="custom-control-input" id="hot-task-checkbox">
+                                    <label class="custom-control-label" id="hot-task-toggle-label" for="hot-task-checkbox"></label>
+                                </div>
+                                <br />
+                                <div class="custom-control custom-switch" style="align-items:end">
+                                    <input type="checkbox" class="custom-control-input" id="complete-checkbox">
+                                    <label class="custom-control-label" id="complete-toggle-label" for="complete-checkbox"></label>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-success" onclick="saveTask()">Save</a>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

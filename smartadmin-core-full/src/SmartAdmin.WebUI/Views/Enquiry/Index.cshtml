@@ -1,0 +1,2071 @@
+﻿@{
+    ViewData["Title"] = "Enquiry";
+    ViewData["PageName"] = "enquiry";
+    ViewData["Category1"] = "TMS";
+    ViewData["Heading"] = "";
+    @using ViewModels.Enquiries;
+    @model EnquiriesViewModel;
+    @using Data;
+    @using System.Text.Json;
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/reactions/reactions.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/jqvmap/jqvmap.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/notifications/sweetalert2/sweetalert2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+    <style>
+
+        .select2-container {
+            z-index: 5000;
+        }
+
+        .custom-control-input:checked ~ .custom-control-label::before {
+            color: #fff;
+            border-color: #8a9a5a;
+            background-color: #67B4AC;
+        }
+
+        .custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
+            border-color: #adb987;
+        }
+
+
+
+        .custom-control-label::before {
+            background-color: #fff;
+            border: #adb5bd solid 2px;
+        }
+
+        .ajax-loader {
+            visibility: hidden;
+            background-color: rgba(255,255,255,0.7);
+            position: absolute;
+            z-index: +100 !important;
+            width: 100%;
+            height: 100%;
+        }
+
+            .ajax-loader img {
+                position: relative;
+                top: 75%;
+                left: 47%;
+            }
+
+        .bg-primary-50 {
+            background-color: #bcdedb;
+            color: rgba(0, 0, 0, 0.8);
+        }
+
+    </style>
+
+    @section ScriptsBlock {
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script src="~/js/formplugins/dropzone/dropzone.js"></script>
+    <script>
+        $("input, textarea, select").on("input", function() {
+            try {
+                $(this).parents('form').children('div.flex-row-reverse').children('button.btn-outline-default').css({ background: 'red' });
+            }
+            catch (e) {
+                alert("error");
+            }
+        });
+
+        var controls = {
+            leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+            rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+        }
+        var runDatePicker = function() {
+            // orientation
+            $('.delivery-datepicker').datepicker({
+                orientation: "top left",
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+                startDate: new Date()
+            });
+        }
+        function onChange() {
+
+            if (document.getElementById('OrderChannelinput').value > "0") {
+                document.getElementById('OrderChannelRequired').hidden = true;
+            }
+            if (document.getElementById('job-name-input').value != "") {
+                document.getElementById('jobNameRequired').hidden = true;
+            }
+            //if (document.getElementById('project-manager-select').value > "0") {
+            //    document.getElementById('projectManagerRequired').hidden = true;
+            //}
+            //if (document.getElementById('enquirydeadline-input').value != "") {
+            //    document.getElementById('enquirydeadlineRequired').hidden = true;
+            //}
+            //if (document.getElementById('deadline-input').value != "") {
+            //    document.getElementById('deadlineRequired').hidden = true;
+            //}
+        }
+        function returnPage() {
+            var contactId = @Html.Raw(JsonSerializer.Serialize(Model.ContactId));
+            window.location.href = `Contact/?contactid=${contactId}`;
+        }
+        function viewPage() {
+            var enquiryId = document.getElementById('created-enquiry-id').value
+            window.location.href = `Enquiry/?enquiryid=${enquiryId}`;
+        }
+
+        function updatekeyinformation(enquiryid) {
+
+            try {
+                event.preventDefault();
+            } catch (er) {
+                alert("er");
+                alert(er);
+            }
+            var count = 0;
+            var channelID = document.getElementById('OrderChannelinput').value;
+            var jobName = document.getElementById('job-name-input').value;
+            //var projectManager = document.getElementById('project-manager-select').value;
+            var enquiryDeadline = document.getElementById('enquirydeadline-input').value;
+            var overallDeadline = document.getElementById('deadline-input').value;
+
+            if (channelID < "1") {
+                document.getElementById('OrderChannelRequired').hidden = false;
+                count++;
+            }
+            if (jobName == "") {
+                document.getElementById('jobNameRequired').hidden = false;
+                count++;
+            }
+            //if (projectManager == "0") {
+            //    document.getElementById('projectManagerRequired').hidden = false;
+            //    count++;
+            //}
+            //if (enquiryDeadline == "") {
+            //    document.getElementById('enquirydeadlineRequired').hidden = false;
+            //    count++;
+            //}
+            //if (overallDeadline == "") {
+            //    document.getElementById('deadlineRequired').hidden = false;
+            //    count++;
+            //}
+            if (count > 0) {
+                $(window).scrollTop(0);
+                return;
+            }
+            else {
+
+
+                //var stringToSend = enquiryid + '$' + channelID + '$' + jobName + '$' + projectManager + '$' + overallDeadline + '$' + enquiryDeadline;
+                var stringToSend = enquiryid + '$' + channelID + '$' + jobName + '$' + overallDeadline + '$' + enquiryDeadline;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "Enquiry/UpdateKeyInformation", false);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                //xhr.ResponseType = 'text'
+                xhr.send(stringToSend);
+
+                var button = document.getElementById('updatekeyinfobutton');
+                button.style.backgroundColor = "lightgreen";
+                setTimeout(() => button.style.backgroundColor = 'white', 3000);
+                location.reload();
+
+
+            }
+        }
+
+        function updateoptionalinformation(enquiryid) {
+
+            var clientNote = document.getElementById('client-notes-textarea').value;
+            var internalNote = document.getElementById('internal-notes-textarea').value;
+            var additionalDetails = document.getElementById('additional-details-textarea').value;
+            var isPrinting = document.getElementById('printing-checkbox').checked;
+
+
+
+            var stringToSend = enquiryid + '$' + clientNote + '$' + internalNote + '$' + additionalDetails + '$' + isPrinting;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Enquiry/UpdateOptionalInformation", false);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(stringToSend);
+
+            var button = document.getElementById('updateoptionalinfobutton');
+            button.style.backgroundColor = "lightgreen";
+            setTimeout(() => button.style.backgroundColor = 'white', 3000);
+
+            try {
+                event.preventDefault();
+            } catch (er) {
+                alert("er");
+                alert(er);
+            }
+        }
+        function updatelogicalinformation(enquiryid) {
+
+            var winChance = document.getElementById('win-chance-input').value;
+            var clientDecisionDate = document.getElementById('client-decision-date-input').value;
+
+
+            var stringToSend = enquiryid + '$' + winChance + '$' + clientDecisionDate;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Enquiry/UpdateLogicalInformation", false);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(stringToSend);
+
+            var button = document.getElementById('updatelogicalinfobutton');
+            button.style.backgroundColor = "lightgreen";
+            setTimeout(() => button.style.backgroundColor = 'white', 3000);
+
+            try {
+                event.preventDefault();
+            } catch (er) {
+                alert("er");
+                alert(er);
+            }
+        }
+
+        function markcurrentversion(id) {
+
+            var Currentversioncheckbox = document.getElementById(id.split("$")[0] + '$Currentversioncheckbox');
+
+            if (Currentversioncheckbox.checked == true) {
+
+                var stringToSend = id;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "Enquiry/UpdateCurrentVersion", false);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(stringToSend);
+
+                try {
+                    event.preventDefault();
+                } catch (er) {
+                    alert("er");
+                    alert(er);
+                }
+                location.reload();
+            }
+        }
+
+        function addquoteitems(sourcepath) {
+            try {
+                event.preventDefault();
+            } catch (er) {
+                alert(er);
+            }
+            //alert("here");
+            //quoteitemstablerows = "<tr><td>1</td><td>2</td><td>3</td><td>4</td></tr>";
+            //document.getElementById('quoteitemstable').hidden = false;
+            //var quoteitemstable = document.getElementById("quoteitemstable");
+            //quoteitemstable.style.visibility = "visible";
+
+            var categoryinput = document.getElementById('language-service-category-input');
+            var languageserviceinput = document.getElementById('language-service-input');
+            var sourcelanguageinput = document.getElementById('source-language-input');
+            var targetlanguageinput = document.getElementById('target-language-input');
+
+
+            // Find a <table> element with id="myTable":
+            var table = document.getElementById("existingquoteitemstable");
+            table.style.visibility = "visible";
+
+            for (var lscoption of categoryinput.options) {
+                if (lscoption.selected) {
+
+                    for (var lsoption of languageserviceinput.options) {
+                        if (lsoption.selected) {
+
+                            for (var sloption of sourcelanguageinput.options) {
+                                if (sloption.selected) {
+
+                                    for (var tloption of targetlanguageinput.options) {
+                                        if (tloption.selected) {
+                                            // Create an empty <tr> element and add it to the 1st position of the table:
+                                            var row = table.insertRow();
+
+                                            // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+                                            var cell1 = row.insertCell(0);
+                                            cell1.style = "text-align:center;background-color: lightgreen;"
+                                            var cell2 = row.insertCell(1);
+                                            cell2.style = "text-align:center;background-color: lightgreen;"
+                                            var cell3 = row.insertCell(2);
+                                            cell3.style = "text-align:center;background-color: lightgreen;"
+                                            var cell4 = row.insertCell(3);
+                                            cell4.style = "text-align:center;"
+
+                                            // Add some text to the new cells:
+                                            cell1.innerHTML = lsoption.innerText;
+                                            cell2.innerHTML = sloption.innerText;
+                                            cell3.innerHTML = tloption.innerText;
+                                            cell4.innerHTML = "<img id='row" + row.rowIndex + "' src='/img/close.png' title='Remove' alt='Remove' onclick=(removeRow(" + row.rowIndex + "))><font style='opacity:0;font-size:1px;'>$" + lsoption.value + "," + sloption.value + "," + tloption.value + "," + lscoption.value + "$</font>";
+                                            /*cell4.innerHTML = lsoption.value + "," + sloption.value + "," + tloption.value + "$<img id='row" + row.rowIndex + " src='/img/close.png' title='Remove' alt='Remove' onclick=(document.getElementById('quoteitemstable').deleteRow(" + row.rowIndex + "))>";*/
+                                            //var img = document.createElement("img");
+                                            //img.src = "http://www.google.com/intl/en_com/images/logo_plain.png";
+                                            //cell4.
+                                            //row.delete
+                                            //table.deleteRow(row.rowIndex)
+
+                                            document.getElementById('quoteitemsRequired').hidden = true;
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+            var addquoteitembutton = document.getElementById("addquoteitembutton");
+            addquoteitembutton.blur();
+            var currentQuoteID = @ViewBag.CurrentQuoteID;
+            if (currentQuoteID != 0) {
+                var addnewquoteitemsbutton = document.getElementById('addnewquoteitemsbutton');
+                addnewquoteitemsbutton.style.backgroundColor = "red";
+                addnewquoteitemsbutton.style.color = "white";
+                addnewquoteitemsbutton.style.fontSize = "16px";
+                addnewquoteitemsbutton.style.visibility = "visible";
+            }
+            var createnewquoteitemsbutton = document.getElementById('createnewquoteitemsbutton');
+            createnewquoteitemsbutton.style.backgroundColor = "red";
+            createnewquoteitemsbutton.style.color = "white";
+            createnewquoteitemsbutton.style.fontSize = "16px";
+            createnewquoteitemsbutton.style.visibility = "visible";
+
+        }
+
+        function addnewquoteitems(enquiryid) {
+            try {
+                event.preventDefault();
+            } catch (er) {
+                alert(er);
+            }
+            var currentQuoteID = @ViewBag.CurrentQuoteID;
+            var table = document.getElementById("existingquoteitemstable");
+            var quoteitems = "";
+            //debugger;
+            for (var i = 0, row; row = table.rows[i]; i++) {
+                if (quoteitems == "") {
+                    quoteitems += row.childNodes[3].innerHTML.split('$')[1];
+                }
+                else {
+                    if (row.cells[0].style.backgroundColor == "red") { quoteitems += "$" + row.cells[3].innerHTML.split('$')[1] + "delete"; }
+                    else {
+                        quoteitems += "$" + row.cells[3].innerHTML.split('$')[1];
+                    }
+                }
+            }
+
+            //var dataToSend = currentQuoteID + "$" + quoteitems;
+            var dataToSend = enquiryid + "$" + currentQuoteID + "$" + quoteitems;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Enquiry/CreateEnquiryQuoteItems", false);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.ResponseType = 'text'
+            xhr.send(dataToSend);
+
+            //var existingtable = document.getElementById("existingquoteitemstable");
+            //for (var i = 1, row; row = table.rows[i]; i++) {
+
+            //    var tablerow = existingtable.insertRow();
+
+            //    // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
+            //    var cell1 = tablerow.insertCell(0);
+            //    cell1.style = "text-align:center"
+            //    var cell2 = tablerow.insertCell(1);
+            //    cell2.style = "text-align:center"
+            //    var cell3 = tablerow.insertCell(2);
+            //    cell3.style = "text-align:center"
+            //    var cell4 = tablerow.insertCell(3);
+            //    cell4.style = "text-align:center"
+
+            //    // Add some text to the new cells:
+            //    cell1.innerHTML = row.cells[0].innerHTML;
+            //    cell2.innerHTML = row.cells[1].innerHTML;
+            //    cell3.innerHTML = row.cells[2].innerHTML;
+
+            //    cell4.innerHTML = "<img id='row" + tablerow.rowIndex + "' src='/img/close.png' title='Remove' alt='Remove' onclick=(removeexistingRow(" + tablerow.rowIndex + "$" + xhr.responseText.split(",")[(i - 1)] + "))>";
+            //}
+            //var rowCount = table.rows.length;
+            //for (var x = rowCount - 1; x > 0; x--) {
+            //    table.deleteRow(x);
+            //}
+
+            //var button = document.getElementById('addnewquoteitemsbutton');
+            //button.style.backgroundColor = "lightgreen";
+            //setTimeout(() => button.style.backgroundColor = 'white', 3000);
+            location.reload();
+        }
+
+        function createnewquote(enquiryid) {
+            try {
+                event.preventDefault();
+            } catch (er) {
+                alert(er);
+            }
+
+            var table = document.getElementById("existingquoteitemstable");
+            var currentQuoteID = @ViewBag.CurrentQuoteID;
+            var quoteitems = "";
+            for (var i = 0, row; row = table.rows[i]; i++) {
+                if (quoteitems == "") {
+                    quoteitems += row.childNodes[3].innerHTML.split('$')[1];
+                }
+                else {
+                    if (row.cells[0].style.backgroundColor == "red") { quoteitems += "$" + row.cells[3].innerHTML.split('$')[1] + "delete"; }
+                    else {
+                        quoteitems += "$" + row.cells[3].innerHTML.split('$')[1];
+                    }
+                }
+            }
+
+
+            var dataToSend = enquiryid + "$" + currentQuoteID + "$" + quoteitems;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Enquiry/CreateQuote", true);
+            xhr.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+
+
+                    var response = xhr.responseText;
+                    var headerText = response.split("$")[0];
+                    var quoteID = response.split("$")[2];
+                    if (headerText == "Success") {
+                        window.location.href = `Quote/Index?id=${quoteID}`;
+
+                    }
+
+                }
+                else {
+
+                }
+            };
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.ResponseType = 'text'
+            xhr.send(dataToSend);
+
+        }
+
+        function removeRow(rowIndex) {
+            var table = document.getElementById("existingquoteitemstable");
+
+            var imgrow = document.getElementById("row" + rowIndex);
+            var row = imgrow.parentElement.parentElement;
+            table.deleteRow(row.rowIndex);
+
+
+        }
+
+        function removeexistingRow(rowIndex) {
+            //debugger;
+            var index = parseInt(rowIndex.split("$")[0]);
+            var table = document.getElementById("existingquoteitemstable");
+            var row = table.rows[index + 1];
+            for (var i = 0; i < 3; i++) {
+                var cell = row.cells[i];
+                cell.style.backgroundColor = "red";
+                cell.style.color = "white";
+            }
+
+
+            var addnewquoteitemsbutton = document.getElementById('addnewquoteitemsbutton');
+            addnewquoteitemsbutton.style.backgroundColor = "red";
+            addnewquoteitemsbutton.style.color = "white";
+            addnewquoteitemsbutton.style.fontSize = "16px";
+            addnewquoteitemsbutton.style.visibility = "visible";
+            var createnewquoteitemsbutton = document.getElementById('createnewquoteitemsbutton');
+            createnewquoteitemsbutton.style.backgroundColor = "red";
+            createnewquoteitemsbutton.style.color = "white";
+            createnewquoteitemsbutton.style.fontSize = "16px";
+            createnewquoteitemsbutton.style.visibility = "visible";
+            //var stringToSend = rowIndex.split("$")[1];
+
+            //var xhr = new XMLHttpRequest();
+            //xhr.open("POST", "Enquiry/RemoveEnquiryQuoteItem", false);
+            //xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            //xhr.send(stringToSend);
+
+
+            //var table = document.getElementById("existingquoteitemstable");
+
+            //var imgrow = document.getElementById("row" + rowIndex.split("$")[0]);
+            //var row = imgrow.parentElement.parentElement;
+            //table.deleteRow(row.rowIndex);
+
+        }
+
+        function onSelect() {
+
+            if ($('#language-service-input').val() != '') {
+                document.getElementById('languageServicesRequired').hidden = true;
+            }
+            if ($('#source-language-input').val() != '') {
+                document.getElementById('sourceLanguagesRequired').hidden = true;
+            }
+            if ($('#target-language-input').val() != '' || $('.select-language-checkbox:checked').length > 0) {
+                document.getElementById('targetLanguagesRequired').hidden = true;
+            }
+        }
+        function sendEnquiry(data) {
+            //debugger;
+            $('.ajax-loader').css("visibility", "visible");
+            var currentQuoteID = @ViewBag.CurrentQuoteID;
+            var dataToSend = data + '$' + currentQuoteID;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Enquiry/SendEnquiry", true);
+            xhr.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+
+
+                    var response = xhr.responseText;
+                    var headerText = response.split("$")[0];
+                    document.getElementById('header-text').innerText = headerText;
+                    if (headerText == "Success") {
+                        $('.ajax-loader').css("visibility", "hidden");
+                        document.getElementById('enquiry-creation-success-string').hidden = false;
+                        document.getElementById('enquiry-creation-success-string').textContent = "";
+                        document.getElementById('enquiry-creation-success').innerText = response.split("$")[1];
+                        document.getElementById('enquiry-creation-warning-string').innerText = "";
+                    }
+                    else {
+                        $('.ajax-loader').css("visibility", "hidden");
+                        document.getElementById('enquiry-creation-success-string').hidden = true;
+                        document.getElementById('enquiry-creation-success').innerText = "";
+                        document.getElementById('enquiry-creation-warning-string').innerText = response.split("$")[1];
+                    }
+                    $('#enquiry-creation-result-modal').modal("show");
+
+                }
+                else {
+
+                }
+            };
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.ResponseType = 'text'
+            xhr.send(dataToSend);
+
+        }
+
+        function approveEnquiry() {
+
+
+            var enquiryId = @Html.Raw(JsonSerializer.Serialize( Model.Id));
+            var quoteID = @ViewBag.CurrentQuoteID;
+
+            var approveReject = 1;
+            var joborderNumber = document.getElementById('job-order-number').value;
+            var reason = document.getElementById('approve-quote-reason').value;
+            if (reason == 0) {
+                document.getElementById('approve-quote-validation').hidden = false;
+                return;
+            }
+            document.getElementById('approve-quote-button').disabled = true;
+            var comment = document.getElementById('approve-quote-comment').value;
+            var stringToSend = quoteID + '$' + enquiryId + '$' + approveReject + '$' + reason + '$' + comment + '$' + joborderNumber;
+            $('.ajax-loader').css("visibility", "visible");
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Enquiry/ApproveOrRejectEnquiry", true);
+            xhr.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+
+                    //debugger;
+
+
+                    //show job item creation successful modal
+                    var response = xhr.responseText;
+                    var headerText = response.split("$")[0];
+                    //document.getElementById('header-text').innerText = headerText;
+
+                    if (headerText == "Success") {
+                        $('.ajax-loader').css("visibility", "hidden");
+                        document.getElementById('enquiry-creation-success-string').hidden = false;
+                        document.getElementById('enquiry-creation-success-string').textContent = "";
+                        document.getElementById('enquiry-creation-success').innerText = "Enquiry Approved";
+                        document.getElementById('enquiry-creation-warning-string').innerText = "";
+                    }
+                    else {
+                        $('.ajax-loader').css("visibility", "hidden");
+                        document.getElementById('enquiry-creation-success-string').hidden = true;
+                        document.getElementById('enquiry-creation-success').innerText = "";
+                        document.getElementById('enquiry-creation-warning-string').innerText = response.split("$")[1];
+                    }
+                    $('#approveEnquiry').modal('hide');
+                    $('#enquiry-creation-result-modal').modal("show");
+
+
+
+                }
+                else {
+
+                }
+            };
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(stringToSend);
+        }
+        function rejectEnquiry() {
+            //debugger;
+
+            var enquiryId = @Html.Raw(JsonSerializer.Serialize( Model.Id));
+            var quoteID = @ViewBag.CurrentQuoteID;
+            var approveReject = 0;
+
+            var reason = document.getElementById('reject-quote-reason').value;
+            if (reason == 0) {
+                document.getElementById('reject-quote-validation').hidden = false;
+                return;
+            }
+            document.getElementById('reject-quote-button').disabled = true;
+            var comment = document.getElementById('reject-quote-comment').value;
+            var stringToSend = quoteID + '$' + enquiryId + '$' + approveReject + '$' + reason + '$' + comment;
+            $('.ajax-loader').css("visibility", "visible");
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Enquiry/ApproveOrRejectEnquiry", true);
+            xhr.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+
+                    //debugger;
+
+
+                    //show job item creation successful modal
+                    var response = xhr.responseText;
+                    var headerText = response.split("$")[0];
+                    //document.getElementById('header-text').innerText = headerText;
+
+                    if (headerText == "Rejected") {
+                        $('.ajax-loader').css("visibility", "hidden");
+                        document.getElementById('enquiry-creation-success-string').hidden = false;
+                        document.getElementById('enquiry-creation-success-string').textContent = "";
+                        document.getElementById('enquiry-creation-success').innerText = "Enquiry Rejected";
+                        document.getElementById('enquiry-creation-warning-string').innerText = "";
+                    }
+                    else {
+                        $('.ajax-loader').css("visibility", "hidden");
+                        document.getElementById('enquiry-creation-success-string').hidden = true;
+                        document.getElementById('enquiry-creation-success').innerText = "";
+                        document.getElementById('enquiry-creation-warning-string').innerText = response.split("$")[1];
+                    }
+                    $('#rejectEnquiry').modal('hide');
+                    $('#enquiry-creation-result-modal').modal("show");
+
+
+                }
+                else {
+                    //if the holiday could not be added ok, then notify the user
+                }
+            };
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(stringToSend);
+        }
+        function onCategorySelect(selectObject) {
+            var selectId = selectObject.id;
+            var values = $('#' + selectId).val();
+            var hiddenId = "hidden" + selectId;
+            $('#' + hiddenId + 'Values').val(values);
+            document.getElementById('language-service-input').disabled = false;
+            $.ajax({
+                beforeSend: function() {
+                    // add loading spinner
+                },
+                url: "api/GetServices",
+                method: 'POST',
+                dataType: 'json',
+                data: { 'SelectedField': values },
+                success: function(data) {
+                    //confirm update was successfull
+
+                    var select = $("#language-service-input");
+                    select.empty();
+                    select.append("<option value=''>(Please select)</option>"); // add "Please select" option
+                    for (let index = 0; index < data.length; ++index) {
+                        const element = data[index];
+                        var opt = document.createElement('option');
+
+                        opt.value = element.id;
+                        opt.innerHTML = element.name;
+                        select.append(opt);
+                        // ...use `element`...
+                    }
+                    select.val(null);
+
+                },
+                error: function(err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function() {
+                    // remove the spinner
+                }
+            });
+        }
+
+        function cloneQuote(quoteID, enquiryID) {
+
+            var stringToSend = quoteID + '$' + enquiryID;
+            $('.ajax-loader').css("visibility", "visible");
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "Enquiry/CloneQuote", true);
+            xhr.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    //debugger;
+                    var response = xhr.responseText;
+                    var headerText = response.split("$")[0];
+                    //document.getElementById('header-text').innerText = headerText;
+
+                    if (headerText == "Success") {
+                        //debugger;
+                        $('.ajax-loader').css("visibility", "hidden");
+                        document.getElementById('enquiry-creation-success-string').hidden = false;
+                        document.getElementById('enquiry-creation-success-string').textContent = "";
+                        document.getElementById('header-text').textContent = response.split("$")[0];
+                        document.getElementById('enquiry-creation-success').innerText = response.split("$")[1];
+                        document.getElementById('enquiry-creation-warning-string').innerText = "";
+                    }
+                    $('#enquiry-creation-result-modal').modal("show");
+                    //location.reload();
+
+                }
+                else {
+
+                }
+            };
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(stringToSend);
+        }
+
+        $(document).ready(function() {
+            $("#deadline-input").focus(function() {
+                $(this).attr({ type: 'datetime-local' });
+            });
+            $("#enquirydeadline-input").focus(function() {
+                $(this).attr({ type: 'datetime-local' });
+            });
+
+            var EditPageEnabled = @(JsonSerializer.Serialize(Model.EditPageEnabled));
+            if (!EditPageEnabled) {
+                $('input').attr('disabled', 'disabled');
+                $('select').attr('disabled', 'disabled');
+                $('textarea').attr('disabled', 'disabled');
+                $('radio').attr('disabled', 'disabled');
+                //$("#form *").prop("disabled", true);
+            }
+            $(function() {
+                runDatePicker();
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "Select"
+                });
+                $(".js-hide-search").select2({
+                    minimumResultsForSearch: 1 / 0
+                });
+                $(".js-max-length").select2({
+                    maximumSelectionLength: 2,
+                    placeholder: "Select maximum 2 items"
+                });
+                $(".select2-placeholder").select2({
+                    placeholder: "Select",
+                    allowClear: true
+                });
+                $(".js-select2-icons").select2({
+                    minimumResultsForSearch: 1 / 0,
+                    templateResult: icon,
+                    templateSelection: icon,
+                    escapeMarkup: function(elm) {
+                        return elm
+                    }
+                });
+
+                $("#target-language-input").select2({
+                    placeholder: "Select Target Language(s)"
+                });
+                $("#language-service-input").select2({
+                    placeholder: "Select Language Service"
+                });
+                $("#language-service-category-input").select2({
+                    placeholder: "Select Category"
+                });
+                $("#source-language-input").select2({
+                    placeholder: "Select Source Language"
+                });
+                function icon(elm) {
+                    elm.element;
+                    return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+                }
+
+            });
+
+
+        });
+
+
+    </script>
+}
+    <div class="ajax-loader">
+        <img src="@Href("~/img/loading.gif")" class="img-responsive" />
+    </div>
+    <div class="row justify-content-between px-5">
+        <div class="col-lg-6 mb-3 text-center">
+            <div class="row">
+                <label class="form-label col-lg-3 d-flex align-items-center px-0">Group</label>
+                <div class="col text-left">
+                    <a target="_blank" style="text-decoration: none !important; color: #BA9765;" asp-controller="OrgGroup" asp-action="Index" asp-route-GroupID="@Model.OrgGroupId">
+                        @(Model.OrgGroupId + " - " + Model.OrgGroupName)
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-3 d-flex align-items-center px-0">Organisation</label>
+                <div class="col text-left">
+                    <a target="_blank" style="text-decoration: none !important;" asp-controller="Organisation" asp-action="Index" asp-route-Id="@Model.OrgId">
+                        @(Model.OrgId + " - " + Model.OrgName)
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-3 d-flex align-items-center px-0">Contact</label>
+                <div class="col text-left">
+                    <a target="_blank" style="text-decoration: none !important;" asp-controller="Contact" asp-action="Index" asp-route-ContactID="@Model.ContactId">
+                        @(Model.ContactId + " - " + Model.ContactName)
+                    </a>
+                    @if (ViewBag.ContactDeleted != "")
+                {
+                    <span class="font-italic" style="color: red;">@Html.Raw(ViewBag.ContactDeleted)</span>
+                }
+            </div>
+        </div>
+        <div class="row">
+            <label class="form-label col-lg-3 d-flex align-items-center px-0">Enquiry</label>
+            <div class="col text-left">
+                @(Model.Id + " - " + Model.JobName)
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-3 text-center">
+        <div class="row justify-content-lg-end">
+            @{
+                if (Model.EnquiryFolder != "")
+                {
+
+                        <a href="@Model.EnquiryFolder">
+                            <i class="fal fa-folder-open fa-2x color-black d-block"></i>
+                            Enquiry folder
+                        </a>
+                }
+                else
+                {
+                        <i class="fal fa-folder-open fa-2x color-black d-block"></i>
+
+                    if (Model.ArchivedDateTime != null)
+                    {
+                            <label class="form-label col-lg-3 d-flex align-items-center px-0">&nbsp;Archived - please contact IT Support</label>
+                    }
+                    if (Model.ArchivedToLionBoxDateTime != null)
+                    {
+                            <label class="form-label col-lg-3 d-flex align-items-center px-0">&nbsp;Archived to LionBox - please contact IT Support</label>
+                    }
+                    if (Model.ArchivedToAmazonS3dateTime != null)
+                    {
+                            <label class="form-label">&nbsp;Archived to AWS - please contact IT Support</label>
+                    }
+                }
+            }
+        </div>
+        <br />
+        @if (Model.WentAheadAsJobOrderId != null)
+        {
+            <div class="row justify-content-lg-end">
+                @*<label class="form-label col-lg-3 d-flex align-items-right px-0">Status</label>*@
+                <label class="">
+                    <b>Went ahead as job order ID:</b>&nbsp;&nbsp;<a target="_blank" style="text-decoration: none !important;" asp-controller="tmsjoborder" asp-action="joborder" asp-route-joborderid="@Model.WentAheadAsJobOrderId">
+                        @Model.WentAheadAsJobOrderId
+                    </a>
+                </label>
+            </div>
+        }
+        <div class="row justify-content-lg-end">
+            @*<label class="form-label col-lg-3 d-flex align-items-right px-0">Status</label>*@
+            <label class=""><b>Status:</b>&nbsp;&nbsp;@ViewBag.EnquiryStatusString</label>
+        </div>
+        @if (ViewBag.EnquiryDecisionReason != null)
+        {
+            <div class="row justify-content-lg-end">
+                @*<label class="form-label col-lg-3 d-flex align-items-right px-0">Status</label>*@
+                <label class=""><b>Decision reason:</b>&nbsp;&nbsp;@ViewBag.EnquiryDecisionReason</label>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-info-circle fa-2x color-black color-black"></i> &nbsp; &nbsp;
+                <h2>Key Information</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="container">
+                        <form>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label" for="order-channel-input">How we received this enquiry:</label>
+                                        <select id="OrderChannelinput" class="select2 form-control w-200" onchange="onChange();">
+                                            <option value="-1">(Please select)</option>
+                                            @for (var j = 0; j < Model.AllJobOrderChannels.Count(); j++)
+                                            {
+                //if (@Model.OrderChannelId == @Model.AllJobOrderChannels.ElementAt(j).Id)
+                                            //{
+                                                <option value="@Model.AllJobOrderChannels.ElementAt(j).Id" selected="@(Model.OrderChannelId == Model.AllJobOrderChannels.ElementAt(j).Id)">@Model.AllJobOrderChannels.ElementAt(j).Name</option>
+                                                @*}
+                                            else
+                                            {
+                                            <option value="@Model.AllJobOrderChannels.ElementAt(j).Id">@Model.AllJobOrderChannels.ElementAt(j).Name</option>
+                                            }*@
+                                            }
+                                        </select>
+                                        <label id="OrderChannelRequired" class="text-danger" hidden>Specify how we received this enquiry</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label" for="job-name-input">Name of this job:</label>
+                                        <textarea class="form-control" id="job-name-input" style="height:39px" onchange="onChange();">@Model.JobName</textarea>
+                                        <label id="jobNameRequired" class="text-danger" hidden>You must provide a job name for this enquiry</label>
+                                    </div>
+
+                                </div>
+                                @*<div class="col-md-6">
+                                <div class="form-group validate-me">
+                                <label class="form-label" for="project-manger-input">Assigned to:</label>
+                                <select id="project-manager-select" class="select2 form-control w-200" onchange="onChange();">
+                                <option value="0">(Please select)</option>
+                                @for (var c = 0; c < Model.ListOfEmployees.Count(); c++)
+                                {
+                                <option value="@Model.ListOfEmployees.ElementAt(c).Id" selected="@(Model.ListOfEmployees.ElementAt(c).Id == (@Model.AssignedToEmployeeID))">@Model.ListOfEmployees.ElementAt(c).FirstName @Model.ListOfEmployees.ElementAt(c).Surname</option>
+                                }
+                                </select>
+                                <label id="projectManagerRequired" class="text-danger" hidden>Specify who should be assigned to this enquiry</label>
+                                </div>
+                                </div>*@
+                            </div>
+                            <br />
+                            <br />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label">Enquiry deadline:</label>&nbsp;<i class="ni ni-info" title="This is the deadline when we should provide the client with the quote"></i><br />
+                                        @{
+                                            if (Model.EnquiryDeadline != null)
+                                            {
+                                                    <input type="datetime-local" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="enquirydeadline-input" onchange="onChange();" value="@(((DateTime)Model.EnquiryDeadline).ToString("yyyy-MM-ddTHH:mm"))">
+                                            }
+                                            else
+                                            {
+                                                if (Model.OrgSLA != null && Model.OrgSLA > 0)
+                                                {
+                                                        <input type="datetime-local" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="enquirydeadline-input" onchange="onChange();" value="@(((DateTime)Model.SLAdeadline).ToString("yyyy-MM-ddTHH:mm"))">
+                                                }
+                                                else
+                                                {
+                                                        <input type="text" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="enquirydeadline-input" onchange="onChange();">
+                                                }
+                                            }
+                                        }
+
+
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label">Project deadline (if specified by client):</label>&nbsp;<i class="ni ni-info" title="Please select a specific job order deadline if the client has requested a fixed date and time to complete the project work."></i><br />
+                                        @{
+                                            if (Model.DeadlineRequestedByClient != null)
+                                            {
+                                                    <input type="datetime-local" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="deadline-input" onchange="onChange();" value="@(((DateTime)Model.DeadlineRequestedByClient).ToString("yyyy-MM-ddTHH:mm"))">
+                                            }
+                                            else
+                                            {
+                                                    <input type="text" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="deadline-input" onchange="onChange();">
+                                            }
+                                        }
+                                        <label id="deadlineRequired" class="text-danger" hidden>Specify the project delivery deadline</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <br />
+                            @if (Model.EditPageEnabled)
+                            {
+                                <div class="form-group-row d-flex flex-row-reverse" style="padding-bottom:5px">
+                                    <button id="updatekeyinfobutton" class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save" onclick="updatekeyinformation(@Model.Id);"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                </div>
+                            }
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-tools fa-2x color-black"></i> &nbsp; &nbsp;
+                <h2>
+                    Optional Information
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                </div>
+            </div>
+            <div class="panel-container expanded">
+                <div class="panel-content">
+                    <div class="container">
+                        <form>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="form-label" for="client-notes-textarea">Client Notes:</label><br />(Be aware that these notes will be visible to the client, including invoices.)
+                                        <textarea class="form-control" id="client-notes-textarea" placeholder="Notes or additional information" rows="5">@Model.ExternalNotes</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="form-label" for="internal-notes-textarea">Internal Notes:</label><br />(These notes will not be visible to the client, including on invoices.)
+                                        <textarea class="form-control" id="internal-notes-textarea" placeholder="Notes or additional information" rows="5">@Model.InternalNotes</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="form-label" for="additional-details-textarea">Additional Detils:</label><br />(optional)
+                                        <textarea class="form-control" id="additional-details-textarea" placeholder="Additional details" rows="5">@Model.AdditionalDetails</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="printing-packaging--div">
+                                <div class="row" id="translate-online-div">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Printing/packaging project?</label>
+                                        <br />
+                                        <br />
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="printing-checkbox" checked="@(Model.PrintingProject)">
+                                            <label class="custom-control-label" for="printing-checkbox">This is a printing/packaging project, and the relevant workflow stated in the Operations Guidebook must be followed at all times.</label>
+                                        </div>
+                                        <br /><br />
+                                    </div>
+                                </div>
+                            </div>
+                            @if (Model.EditPageEnabled)
+                            {
+                                <div class="form-group-row d-flex flex-row-reverse" style="padding-bottom:5px">
+                                    <button id="updateoptionalinfobutton" class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save" onclick="updateoptionalinformation(@Model.Id);"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                </div>
+                            }
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-info fa-2x color-black"></i> &nbsp; &nbsp;
+                <h2>
+                    General information
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                </div>
+            </div>
+            <div class="panel-container expanded">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        @*<div class="bg-subtlelight-fade custom-scroll" style="height: fit-content">*@
+                        <div class="h-100" style="width:100%">
+                            <div class="d-flex flex-row px-3 pt-3 pb-2">
+                                <table width="100%">
+                                    <tr>
+                                        <td>
+                                            <label class="form-label" for="simpleinput">Enquiry details created on:</label>&nbsp;
+                                        </td>
+                                        <td>
+                                            <input type="text" readonly="readonly" id="SetUpDateinput" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@Model.CreatedDateTime.ToString("dddd dd MMMM yyyy HH:mm")">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="form-label" for="simpleinput">Enquiry details set up by:</label>&nbsp;
+                                        </td>
+                                        <td>
+                                            <table>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-inline-block align-middle status status-success mr-3">
+                                                            @{
+                                                                var profileImage = ViewBag.SetUpByEmployeeImageBase64 != null ? ViewBag.SetUpByEmployeeImageBase64 : "/img/demo/avatars/" + (Settings.Theme.Avatar);
+                                                            }
+                                                            <span class="profile-image rounded-circle d-block" style="background-image:url('@(profileImage)'); background-size: cover;"></span>
+                                                        </div>
+                                                        &nbsp;
+                                                    </td>
+                                                    <td>
+                                                        <label class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">@Html.Raw(ViewBag.SetUpByEmployee)</label>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="form-label" for="simpleinput">Enquiry details last modified:</label>&nbsp;
+                                        </td>
+                                        <td>
+                                            @*<input type="text" readonly="readonly" id="LastModifiedDateinput" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@ViewBag.LastModifiedDate">*@
+                                            <label class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">@Html.Raw(ViewBag.LastModifiedDate)</label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="form-label" for="simpleinput">Enquiry details last modified by:</label>&nbsp;
+                                        </td>
+                                        <td>
+                                            <table>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-inline-block align-middle status status-success mr-3">
+                                                            @{
+                                                                var profileImageBase64 = ViewBag.LastModifiedByEmployeeImageBase64 != null ? ViewBag.LastModifiedByEmployeeImageBase64 : "/img/demo/avatars/" + (Settings.Theme.Avatar);
+                                                            }
+                                                            <span class="profile-image rounded-circle d-block" style="background-image:url('@(profileImageBase64)'); background-size: cover;"></span>
+                                                        </div>
+                                                        &nbsp;
+                                                    </td>
+                                                    <td>
+                                                        <label class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" for="simpleinput">@Html.Raw(ViewBag.LastModifiedByEmployee)</label>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            @*</div>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="ni ni-list fa-2x color-black color-black"></i> &nbsp; &nbsp;
+                <h2>Create Quote item(s)</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="container">
+                        <form>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Language&nbsp;service&nbsp;category</label>
+                                    <select name="" id="language-service-category-input" class="select2-placeholder-multiple custom-select" onchange="onCategorySelect(this);">
+                                        <option value="">Select</option>
+                                        @for (var i = 0; i < Model.LanguageServiceCategory.Count(); i++)
+                                        {
+                                            <option value="@Model.LanguageServiceCategory.ElementAt(i).Id">@Model.LanguageServiceCategory.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Language&nbsp;service</label>
+                                    <select name="" id="language-service-input" class="select2-placeholder-multiple custom-select" onchange="onSelect();" disabled>
+                                        <option value="">Select</option>
+                                        @for (var i = 0; i < Model.LanguageServices.Count(); i++)
+                                        {
+                                            <option value="@Model.LanguageServices.ElementAt(i).Id">@Model.LanguageServices.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="languageServicesRequired" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Source&nbsp;language</label>
+                                    <select name="" class="select2 form-control w-100" id="source-language-input" onchange="onSelect();">
+                                        <option value="">Select</option>
+                                        @for (var i = 0; i < Model.Languages.Count(); i++)
+                                        {
+                                            <option value="@Model.Languages.ElementAt(i).StringValue">@Model.Languages.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="sourceLanguagesRequired" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label col-sm-2 d-flex align-items-center px-0">Target&nbsp;language(s)</label>
+                                    <select name="" class="select2-placeholder-multiple custom-select" multiple="multiple" id="target-language-input" onchange="onSelect();">
+                                        @for (var i = 0; i < Model.Languages.Count(); i++)
+                                        {
+                                            <option value="@Model.Languages.ElementAt(i).StringValue">@Model.Languages.ElementAt(i).Name</option>
+                                        }
+                                    </select>&nbsp;
+                                    <label id="targetLanguagesRequired" class="text-danger" hidden>This field is mandatory.</label>
+                                </div>
+                            </div>
+                            @if (Model.EditPageEnabled)
+                            {
+                                <div class="form-group-row d-flex flex-row-reverse" style="padding-bottom:20px">
+                                    @{
+                                        var sourcepath = ViewBag.CurrentDirectory + "/img/close.png";
+                                    }
+                                    <button id="addquoteitembutton" class="@(Settings.Theme.IconPrefix) btn btn-success" type="submit" title="Add" onclick="addquoteitems('@sourcepath')"><i class="ni ni-plus fa-2x"></i></button>
+                                </div>
+                            }
+
+                            <label id="quoteitemsRequired" class="text-danger" hidden>You need to add at least one quote item</label>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table border="1" id="quoteitemstable" style="width:100%;visibility:hidden">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">
+                                                    Language Service
+                                                </th>
+                                                <th style="text-align:center">
+                                                    Source Language
+                                                </th>
+                                                <th style="text-align:center">
+                                                    Target Language
+                                                </th>
+                                                <th style="text-align:center">
+                                                    Remove
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @*@{
+                                            <label id="quoteitemstablerows" />
+                                            }*@
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+
+                            @*<div class="form-group-row d-flex flex-row-reverse" style="padding-bottom:5px">
+                            <button id="addnewquoteitemsbutton" style="visibility:hidden" class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save" onclick="addnewquoteitems(@Model.Id);"><i class="far fa-cloud-upload fa-2x"></i></button>
+                            </div>*@
+
+                            <hr />
+                            <label class="form-label col-sm-2 d-flex align-items-center px-0">Current&nbsp;quote&nbsp;item(s)</label>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table border="1" id="existingquoteitemstable" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center">
+                                                    Language&nbsp;Service
+                                                </th>
+                                                <th style="text-align:center">
+                                                    Source&nbsp;Language
+                                                </th>
+                                                <th style="text-align:center">
+                                                    Target&nbsp;Language
+                                                </th>
+                                                @if (Model.EditPageEnabled)
+                                                {
+                                                    <th style="text-align:center">
+                                                        Remove
+                                                    </th>
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @{
+                                                if (Model.QuoteItems != null)
+                                                {
+                                                    for (var j = 0; j < Model.QuoteItems.Count(); j++)
+                                                    {
+                                                            <tr>
+                                                                <td style="text-align:center">
+                                                                    @for (var i = 0; i < Model.LanguageServices.Count(); i++)
+                                                                {
+                                                                    if (Model.QuoteItems.ElementAt(j).LanguageServiceId == Model.LanguageServices.ElementAt(i).Id)
+                                                                    {
+                                                                            @Model.LanguageServices.ElementAt(i).Name
+                                                                    }
+                                                                }
+                                                                </td>
+
+                                                                <td style="text-align:center">
+                                                                    @for (var i = 0; i < Model.Languages.Count(); i++)
+                                                                {
+                                                                    if (Model.QuoteItems.ElementAt(j).SourceLanguageIanacode == Model.Languages.ElementAt(i).StringValue)
+                                                                    {
+                                                                            @Model.Languages.ElementAt(i).Name
+                                                                    }
+                                                                }
+                                                                </td>
+
+                                                                <td style="text-align:center">
+                                                                    @for (var i = 0; i < Model.Languages.Count(); i++)
+                                                                {
+                                                                    if (Model.QuoteItems.ElementAt(j).TargetLanguageIanacode == Model.Languages.ElementAt(i).StringValue)
+                                                                    {
+                                                                            @Model.Languages.ElementAt(i).Name
+                                                                    }
+                                                                }
+                                                                </td>
+                                                                @if (Model.EditPageEnabled)
+                                                            {
+                                                                    <td style="text-align:center">
+                                                                        @{
+                                                                        var rowid = j + "$" + Model.QuoteItems.ElementAt(j).Id.ToString();
+                                                                        var row = "row" + j;
+                                                                                <img id=@row src="/img/close.png" title="Remove" alt="Remove" onclick="removeexistingRow('@rowid')" />
+                                                                        }
+                                                                    </td>
+                                                            }
+                                                            </tr>
+
+                                                    }
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                    <br />
+                                    <div class="form-group-row d-flex flex-row-reverse" style="padding-bottom:5px">
+                                        @if (ViewBag.CurrentQuoteID != 0)
+                                        {
+                                            <button id="addnewquoteitemsbutton" style="visibility:hidden" class="btn btn-success waves-effect waves-themed" type="submit" title="Update current quote" onclick="addnewquoteitems(@Model.Id);">Update current quote</button>
+                                        }
+                                        &nbsp;&nbsp&nbsp&nbsp
+                                        <button id="createnewquoteitemsbutton" style="visibility:hidden" class="btn btn-success waves-effect waves-themed" type="submit" title="Create new quote" onclick="createnewquote(@Model.Id);">Create new quote</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <i class="fal fa-info fa-2x color-black"></i> &nbsp; &nbsp;
+                <h2>
+                    Logical information
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                </div>
+            </div>
+            <div class="panel-container expanded">
+                <div class="panel-content">
+                    <div class="container">
+                        <form>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label" for="simpleinput">Win chance:</label>&nbsp;
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <select name="" class="select2 form-control w-100" id="win-chance-input" onchange="onSelect();">
+                                            <option value="">Select</option>
+                                            @for (var i = 0; i <= 100; i++)
+                                            {
+                                                if (@i == Model.WinChance)
+                                                {
+                                                    <option value="@i" selected>@i%</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@i">@i%</option>
+                                                }
+                                            }
+                                        </select>&nbsp;
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label" for="simpleinput">Estimated client decision date:</label>&nbsp;
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <input type="date" class="form-control form-control-sm rounded-0 border-top-0 border-bottom-0 border-left-0 border-right-0 px-0 bg-transparent" id="client-decision-date-input" value="@String.Format("{0:yyyy-MM-dd}", Model.ClientDecisionDate)">
+
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <br />
+                            @if (Model.EditPageEnabled)
+                            {
+                                <div class="form-group-row d-flex flex-row-reverse" style="padding-bottom:10px;padding-right:23px;">
+                                    <button id="updatelogicalinfobutton" class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save" onclick="updatelogicalinformation(@Model.Id);"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                </div>
+                            }
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div id="panel-8" class="panel panel-locked" data-panel-lock="false" data-panel-close="false" data-panel-fullscreen="false" data-panel-collapsed="false" data-panel-color="false" data-panel-locked="false" data-panel-refresh="false" data-panel-reset="false">
+            <div class="panel-hdr">
+                <h2>
+                    Enquiry action centre
+                </h2>
+            </div>
+            <div class="panel-hdr">
+                <div class="panel-toolbar pr-3 align-self-end">
+                    <ul id="demo_panel-tabs" class="nav nav-tabs border-bottom-0 nav-tabs-clean" role="tablist">
+                        @*<li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" href="#tab_default-1" role="tab"><i class="fal fa-cogs fa-1x"></i>&nbsp;Automation</a>
+                        </li>*@
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#tab_default-2" role="tab"><i class="fal fa-ballot-check fa-1x"></i>&nbsp;Enquiry management</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="tab-content p-3">
+                <div class="tab-pane fade show active" id="tab_default-1" role="tabpanel">
+                    @*<div class="row justify-content-center">
+                    <div class="col-md col-lg-2 justify-content-center align-items-center">
+                    <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                    <a id="create-ncc-btn" href="#" data-toggle="modal" data-target="#createStudioTaskPopup" class="btn">
+                    <div class="rounded-top w-100 bg-success-50">
+                    <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                    <div class="icon-stack fa-6x">
+                    <i class="base base-7 icon-stack-3x opacity-100 color-success-900"></i>
+                    <i class="base base-7 icon-stack-2x opacity-100 color-success-500"></i>
+                    <i class="fal fa-list icon-stack-1x text-white"></i>
+                    </div>
+                    </div>
+                    </div>
+                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                    <span class="d-block text-truncate text-muted">Trados Studio automation</span>
+                    </div>
+                    </a>
+                    </div>
+                    </div>
+                    <div class="col-md col-lg-2 justify-content-center align-items-center">
+                    <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                    <a href="http://myplus/Order.aspx?OrderID=@Model.Id" class="btn">
+                    <div class="rounded-top w-100 bg-success-50">
+                    <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                    <div class="icon-stack fa-6x">
+                    <i class="base base-7 icon-stack-3x opacity-100 color-success-900"></i>
+                    <i class="base base-7 icon-stack-2x opacity-100 color-success-500"></i>
+                    <i class="fal fa-upload color-primary-500 icon-stack-1x text-white"></i>
+                    </div>
+                    </div>
+                    </div>
+                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                    <span class="d-block text-truncate text-muted">Import word counts</span>
+                    </div>
+                    </a>
+                    </div>
+                    </div>
+                    <div class="col-md col-lg-2 justify-content-center align-items-center">
+                    <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                    <a href="@Html.Raw(ViewBag.CalculateCostLink)" class="btn">
+                    <div class="rounded-top w-100 bg-success-50">
+                    <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                    <div class="icon-stack fa-6x">
+                    <i class="base base-7 icon-stack-3x opacity-100 color-success-900"></i>
+                    <i class="base base-7 icon-stack-2x opacity-100 color-success-500"></i>
+                    <i class="fal fa-calculator color-primary-500 icon-stack-1x text-white"></i>
+                    </div>
+                    </div>
+                    </div>
+                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                    <span class="d-block text-truncate text-muted">Calculate cost</span>
+                    </div>
+                    </a>
+                    </div>
+                    </div>
+                    </div>*@
+                    <div class="row justify-content-center">
+                        @{
+                            var deleteLinkEnabled = "javascript:void(0)"; var deleteLinkCSS1 = "base-2 icon-stack-3x color-danger-100";
+                            var deleteLinkCSS2 = "base-3 icon-stack-2x color-danger-100";
+                            if (Model.EditPageEnabled == true && Model.IsFinalised == false)
+                            {
+                                deleteLinkEnabled = @Model.DeleteLink;
+                                deleteLinkCSS1 = "base-2 icon-stack-3x color-danger-600";
+                                deleteLinkCSS2 = "base-3 icon-stack-2x color-danger-700";
+                            }
+                        }
+                        <div class="col-md col-lg-2 justify-content-center align-items-center">
+                            <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                <a href="@deleteLinkEnabled" class="btn">
+                                    <div class="rounded-top w-100 bg-primary-50">
+                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                            <div class="icon-stack fa-6x">
+                                                <i class="@deleteLinkCSS1"></i>
+                                                <i class="@deleteLinkCSS2"></i>
+                                                <i class="fal fa-trash-alt icon-stack-1x text-white"></i>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                        <span class="d-block text-truncate text-muted">Delete this enquiry</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        @{
+                            var clientLinkEnabled = ""; var clientLinkCSS1 = "base base-7 icon-stack-3x opacity-50 color-success-100";
+                            var clientLinkCSS2 = "base base-7 icon-stack-2x opacity-50 color-success-100";
+                            if (Model.EditPageEnabled == true && Model.MarkAsPending == true)
+                            {
+                                clientLinkEnabled = "sendEnquiry(" + @Model.Id + " + '$Pending')";
+                                clientLinkCSS1 = "base base-7 icon-stack-3x opacity-100 color-success-900";
+                                clientLinkCSS2 = "base base-7 icon-stack-2x opacity-100 color-success-500";
+                            }
+                        }
+                        @if (Model.EditPageEnabled == true && Model.MarkAsPending == true)
+                        {
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href="#" data-toggle="modal" class="btn" onclick="@clientLinkEnabled">
+                                        <div class="rounded-top w-100 bg-primary-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <div class="icon-stack fa-6x">
+                                                    <i class="@clientLinkCSS1"></i>
+                                                    <i class="@clientLinkCSS2"></i>
+                                                    <i class="fal fa-paper-plane icon-stack-1x text-white"></i>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">@Model.MarkAsPendingText</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                        @{
+                            var salesLinkEnabled = ""; var salesLinkCSS1 = "base base-7 icon-stack-3x opacity-50 color-success-100";
+                            var salesLinkCSS2 = "base base-7 icon-stack-2x opacity-50 color-success-100";
+                            if (Model.EditPageEnabled == true && Model.MarkForSales == true)
+                            {
+                                salesLinkEnabled = "sendEnquiry(" + @Model.Id + "+'$Sales')";
+                                salesLinkCSS1 = "base base-7 icon-stack-3x opacity-100 color-success-900";
+                                salesLinkCSS2 = "base base-7 icon-stack-2x opacity-100 color-success-500";
+                            }
+                        }
+                        <div class="col-md col-lg-2 justify-content-center align-items-center">
+                            <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                <a href="#" data-toggle="modal" class="btn" onclick="@salesLinkEnabled">
+                                    <div class="rounded-top w-100 bg-primary-50">
+                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                            <div class="icon-stack fa-6x">
+                                                <i class="@salesLinkCSS1"></i>
+                                                <i class="@salesLinkCSS2"></i>
+                                                <i class="fal fa-arrow-up icon-stack-1x text-white"></i>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                        <span class="d-block text-truncate text-muted">Send to sales</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        @{
+                            var opsLinkEnabled = ""; var opsLinkCSS1 = "base base-7 icon-stack-3x opacity-50 color-success-100";
+                            var opsLinkCSS2 = "base base-7 icon-stack-2x opacity-50 color-success-100";
+                            if (Model.EditPageEnabled == true && Model.MarkForOps == true)
+                            {
+                                opsLinkEnabled = "sendEnquiry(" + @Model.Id + "+'$Ops')";
+                                opsLinkCSS1 = "base base-7 icon-stack-3x opacity-100 color-success-900";
+                                opsLinkCSS2 = "base base-7 icon-stack-2x opacity-100 color-success-500";
+                            }
+                        }
+                        <div class="col-md col-lg-2 justify-content-center align-items-center">
+                            <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                <a href="#" class="btn" data-toggle="modal" onclick="@opsLinkEnabled">
+                                    <div class="rounded-top w-100 bg-primary-50">
+                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                            <div class="icon-stack fa-6x">
+                                                <i class="@opsLinkCSS1"></i>
+                                                <i class="@opsLinkCSS2"></i>
+                                                <i class="fal fa-arrow-alt-circle-right icon-stack-1x text-white"></i>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                        <span class="d-block text-truncate text-muted">Send to ops</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md col-lg-2 justify-content-center align-items-center">
+                            @{
+                                var approveEnquiry = ""; var approveEnquiryCSS1 = "base base-7 icon-stack-3x opacity-50 color-success-100";
+                                var approveEnquiryCSS2 = "base base-7 icon-stack-2x opacity-50 color-success-100";
+                                if (Model.FinaliseEnquiry == true && Model.EditPageEnabled == true)
+                                {
+                                    approveEnquiry = "#approveEnquiry";
+                                    approveEnquiryCSS1 = "base base-7 icon-stack-3x opacity-100 color-success-900";
+                                    approveEnquiryCSS2 = "base base-7 icon-stack-2x opacity-100 color-success-500";
+                                }
+
+                            }
+                            <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                <a href="#" class="btn" data-toggle="modal" data-dismiss="modal" data-target="@approveEnquiry">
+                                    <div class="rounded-top w-100 bg-primary-50">
+                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                            <div class="icon-stack fa-6x">
+                                                <i class="@approveEnquiryCSS1"></i>
+                                                <i class="@approveEnquiryCSS2"></i>
+                                                <i class="fal fa-check-circle icon-stack-1x text-white"></i>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                        <span class="d-block text-truncate text-muted">@Model.FinaliseEnquiryButtonText</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md col-lg-2 justify-content-center align-items-center">
+                            @{
+                                var rejectEnquiry = ""; var rejectEnquiryCSS1 = "base base-7 icon-stack-3x opacity-50 color-success-100";
+                                var rejectEnquiryCSS2 = "base base-7 icon-stack-2x opacity-50 color-success-100";
+                                if (Model.FinaliseEnquiry == true && Model.EditPageEnabled == true)
+                                {
+                                    rejectEnquiry = "#rejectEnquiry";
+                                    rejectEnquiryCSS1 = "base base-7 icon-stack-3x opacity-100 color-success-900";
+                                    rejectEnquiryCSS2 = "base base-7 icon-stack-2x opacity-100 color-success-500";
+                                }
+                            }
+                            <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                <a href="#" class="btn" data-toggle="modal" data-dismiss="modal" data-target="@rejectEnquiry">
+                                    <div class="rounded-top w-100 bg-primary-50">
+                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                            <div class="icon-stack fa-6x">
+                                                <i class="@rejectEnquiryCSS1"></i>
+                                                <i class="@rejectEnquiryCSS2"></i>
+                                                <i class="fal fa-star icon-stack-1x text-white"></i>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                        <span class="d-block text-truncate text-muted">Reject</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        @if (@Model.EditPageEnabled == true && Model.WebServiceDelivery == true)
+                        {
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href="@Model.WebServiceDeliveryLink" class="btn">
+                                        <div class="rounded-top w-100 bg-primary-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <div class="icon-stack fa-6x">
+                                                    <i class="base base-7 icon-stack-3x opacity-100 color-success-900"></i>
+                                                    <i class="base base-7 icon-stack-2x opacity-100 color-success-500"></i>
+                                                    <i class="fal fa-globe-americas icon-stack-1x text-white"></i>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Send quote via i plus/flow plus</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                        @*@{
+                        var autoLinkEnabled = ""; var autoLinkCSS1 = "base base-7 icon-stack-3x opacity-50 color-success-100";
+                        var autoLinkCSS2 = "base base-7 icon-stack-2x opacity-50 color-success-100";
+                        if (Model.EditPageEnabled == true && Model.IsFinalised == false)
+                        {
+                        autoLinkEnabled = @Model.CreateAutoQuoteLink;
+                        autoLinkCSS1 = "base base-7 icon-stack-3x opacity-100 color-success-900";
+                        autoLinkCSS2 = "base base-7 icon-stack-2x opacity-100 color-success-500";
+                        }
+                        }
+                        <div class="col-md col-lg-2 justify-content-center align-items-center">
+                        <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                        <a href="@autoLinkEnabled" class="btn">
+                        <div class="rounded-top w-100 bg-primary-50">
+                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                        <div class="icon-stack fa-6x">
+                        <i class="@autoLinkCSS1"></i>
+                        <i class="@autoLinkCSS2"></i>
+                        <i class="fal fa-file-plus icon-stack-1x text-white"></i>
+
+                        </div>
+                        </div>
+                        </div>
+                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                        <span class="d-block text-truncate text-muted">Create a quote automatically</span>
+                        </div>
+                        </a>
+                        </div>
+                        </div>*@
+                    </div>
+                </div>
+                @*<div class="tab-pane fade" id="tab_default-2" role="tabpanel">
+                <div class="row justify-content-center">
+                <div class="col-md col-lg-2 justify-content-center align-items-center">
+                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                <a href="@Html.Raw(ViewBag.DeleteLink)" class="btn">
+                <div class="rounded-top w-100 bg-primary-50">
+                <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                <div class="icon-stack fa-6x">
+                <i class="base base-7 icon-stack-3x opacity-100 color-success-900"></i>
+                <i class="base base-7 icon-stack-2x opacity-100 color-success-500"></i>
+                <i class="fal fa-recycle icon-stack-1x text-white"></i>
+
+                </div>
+                </div>
+                </div>
+                <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                <span class="d-block text-truncate text-muted">Delete this enquiry</span>
+                </div>
+                </a>
+                </div>
+                </div>
+                </div>
+                </div>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div id="panel-6" class="panel" data-panel-fullscreen="false" data-panel-close="false">
+            <div class="panel-hdr">
+                <h2>
+                    Quotes&nbsp;
+                    @if (Model.DeletedDateTime == null && Model.EditPageEnabled && ViewBag.CurrentQuoteID != 0)
+                    {
+                        <i class="fad fa-plus-circle d-flex align-items-center" style="--fa-primary-color: white; --fa-secondary-color: green; font-size: 18px;" onclick="createnewquote(@Model.Id);"></i>
+                    }
+                </h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content p-0">
+                    <div class="d-flex flex-column">
+                        <div class="custom-scroll" style="height: fit-content; width: 100%">
+                            <div class="w-100" style="width:100%">
+                                <form method="post">
+                                    <div class="px-3 pt-3 pb-2" width="100%">
+                                        <div style="white-space: nowrap;" width="100%">
+                                            @if (Model.QuotesResults != null)
+                                            {
+                                                <div class="table-container" style="overflow-y: auto;">
+                                                <table id="QuotesTable" class="table-sm table table-bordered table-hover table-striped w-100">
+                                                    <thead class="bg-warning-200" style="background-color: #e84133; color:white">
+                                                        <tr>
+                                                            <th>
+                                                                @*Created automatically*@
+                                                            </th>
+                                                                
+                                                            <th>
+                                                                Current version
+                                                            </th>
+                                                            <th>
+                                                                Quote ID
+                                                            </th>
+                                                            <th>
+                                                                Quote
+                                                            </th>
+                                                            <th>
+                                                                Language
+                                                            </th>
+                                                            <th>
+                                                                Internal notes
+                                                            </th>
+                                                            <th>
+                                                                Quote date
+                                                            </th>
+                                                            <th>
+                                                                Last modified
+                                                            </th>
+                                                            <th>
+                                                                Overall charge to client
+                                                            </th>
+                                                            <th>
+                                                                Sales contact
+                                                            </th>
+                                                            <th>
+                                                                Created by
+                                                            </th>
+                                                            <th>
+                                                                Action
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+                                                        @foreach (var row in Model.QuotesResults)
+                                                        {
+                                                            <tr>
+                                                                @*@if (row.CreatedAutomatically == true)
+                                                                {
+                                                                    <td align="center"><i class="fal fa-cog" title="Created automatically"></i></td>
+                                                                }*@
+                                                                @if (row.CreatedByID == 9 && row.LastModifiedEmployeeID == 9)
+                                                                {
+                                                                    <td align="center"><i class="fal fa-cog" title="Created automatically"></i></td>
+                                                                }
+                                                                else if(row.CreatedByID != 9 && row.LastModifiedEmployeeID != 9)
+                                                                {
+                                                                    <td align="center"><i class="fal fa-user" title="Created manually"></i></td>
+                                                                }
+                                                                else if(row.CreatedByID == 9 && row.LastModifiedEmployeeID != 9)
+                                                                {
+                                                                    <td align="center"><i class="fal fa-user-cog" title="Created/Edited manually"></i></td>
+                                                                }
+                                                                else{<td align="center"></td>}
+
+                                                                @if (row.CurrentVersion == true)
+                                                                {
+                                                                    <td align="center"><i class="fal fa-check-circle" title="Current version"></i></td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td align="center">
+                                                                        <div class="custom-control custom-switch">
+                                                                            <input type="checkbox" class="custom-control-input" id="@row.QuoteID$Currentversioncheckbox" onchange="markcurrentversion(@row.QuoteID+'$'+@Model.Id);">
+                                                                            <label class="custom-control-label" for="@row.QuoteID$Currentversioncheckbox"></label>
+                                                                        </div>
+                                                                    </td>
+                                                                }
+
+                                                                <td><a href='@string.Format("Quote?ID={0}",@row.QuoteID)'>@row.QuoteID</a></td>
+                                                                <td>@row.QuoteFileName</td>
+                                                                <td>@row.Language</td>
+                                                                <td>@row.InternalNotes</td>
+                                                                <td>@row.QuoteDate.ToString("dddd d MMMM yyyy")</td>
+
+                                                                @if (row.LastModifiedDateTime == null || Convert.ToDateTime(row.LastModifiedDateTime).Year < 1990)
+                                                                {
+                                                                    <td>(never)</td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td>@(Convert.ToDateTime(row.LastModifiedDateTime).ToString("dddd d MMMM yyyy HH:mm"))</td>
+                                                                }
+
+                                                                <td>@row.Prefix@row.OverallChargeToClient.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo(@row.LanguageIANACode))</td>
+                                                                <td><a href='@string.Format("http://myplusbeta/HR/EmployeeProfile/{0}",@row.SalesContactID)'>@row.SalesContact</a></td>
+                                                                <td><a href='@string.Format("http://myplusbeta/HR/EmployeeProfile/{0}",@row.CreatedByID)'>@row.CreatedBy</a></td>
+                                                                @if (Model.EditPageEnabled == true)
+                                                                {
+                                                                    <td align="center"><img id="" src="/img/CopyIcon.gif" title="Clone this quote" alt="Clone this quote" onclick="cloneQuote(@row.QuoteID,@Model.Id)" /></td>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <td align="center"><img id="" src="/img/CopyIcon.gif" title="Clone this quote" alt="Clone this quote" /></td>
+                                                                }
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--<div class="row">
+    <div class="col-lg-12 text-center">
+        <button class="btn btn-success" type="submit" onclick="createEnquiry()">Create Enquiry</button>&nbsp;&nbsp;
+        <button class="btn btn-default" type="submit" onclick="returnPage()">Cancel</button>
+    </div>
+</div>
+<div class="modal modal-alert fade" id="enquiry-creation-result-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><label id="header-text"></label></h5>-->
+@*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                    </button>*@
+<!--</div>
+<div class="modal-body">
+    <label id="enquiry-creation-success-string"></label>&nbsp;<label class="text-success md-header" id="enquiry-creation-success-dates"></label>
+    <label class="text-warning md-header" id="enquiry-creation-warning-string"></label>
+    <div id="created-enquiry-id" hidden></div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="returnPage()">Return to Contact</button>
+    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="viewPage()">View Enquiry</button>-->
+@*<button type="button" class="btn btn-primary">Save changes</button>*@
+<!--</div>
+        </div>
+    </div>
+</div>-->
+<div class="modal modal-alert fade" id="enquiry-creation-result-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><label id="header-text"></label></h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>*@
+            </div>
+            <div class="modal-body">
+                <label id="enquiry-creation-success-string"></label>&nbsp;<label class="text-success md-header" id="enquiry-creation-success"></label>
+                <label class="text-warning md-header" id="enquiry-creation-warning-string"></label>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="location.reload()">OK</button>
+
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+<div id="approveEnquiry" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="timeLogEditHeader">
+                    <strong><label id="nonStatusHeader">Approve enquiry</label></strong>
+
+                </h5>
+                <a onclick="" data-dismiss="modal" class="close" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </a>
+            </div>
+            <div class="modal-body bg-faded">
+                Link job order (optional)<br />
+
+                <input type="text" class="form-control d-flex align-items-center col-4" id="job-order-number"><br />
+
+                <p>
+                    <b>Important:</b> you should <b>only</b> confirm that this enquiry is final when
+                    you are certain that it is complete and correct. Also, that the job order that you would like to link this enquiry to
+                    is the correct job order that originated from this enquiry as this will not create a new job order.
+                </p>
+                <p>
+                    Once you have confirmed this, it will not be possible to make any amendments
+                    whatsoever to the enquiry which include quotes and quote items attached to the
+                    enquiry.
+                </p>
+                <p>
+                    <br />
+                    Please select the reason for the go ahead...
+                    <select class="select2 form-control" id="approve-quote-reason">
+                        <option value="0">(Please Select)</option>
+                            @foreach (var reason in Model.ClientDecisionReason.Where(o => o.Type == 1 && o.Ianacode == "en").OrderBy(o => o.Reason))
+                            {
+                            <option value="@reason.DecisionReasonId">@reason.Reason.ToString()</option>
+                            }
+                    </select><label class="text-danger" id="approve-quote-validation" hidden>Please select an option from the list</label><br /><br />
+                    Additional comments(optional)<br />
+                    <textarea class="form-control" id="approve-quote-comment" rows="3" style="width:100%;"></textarea><br /><br />
+                    <button type="button" style="float:right;" id="approve-quote-button" class="btn btn-success" onclick="approveEnquiry();">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="rejectEnquiry" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="timeLogEditHeader">
+                    <strong><label id="nonStatusHeader">Reject Enquiry</label></strong>
+
+                </h5>
+                <a onclick="" data-dismiss="modal" class="close" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </a>
+            </div>
+            <div class="modal-body bg-faded">
+
+                <p>
+                    <b>Important:</b> you should <b>only</b> confirm that this enquiry is final when
+                    you are certain that it is complete and correct.
+                </p>
+                <p>
+                    Once you have confirmed this, it will not be possible to make any amendments
+                    whatsoever to the enquiry which include quotes and quote items attached to the
+                    enquiry.
+                </p>
+                <p>
+                    <br />
+                    Reason
+                    <select class="select2 form-control" id="reject-quote-reason">
+                        <option value="0">(Please Select)</option>
+                        @foreach (var reason in Model.ClientDecisionReason.Where(o => o.Type == 0 && o.Ianacode == "en").OrderBy(o => o.Reason))
+                        {
+                            <option value="@reason.DecisionReasonId">@reason.Reason.ToString()</option>
+                        }
+                    </select><label class="text-danger" id="reject-quote-validation" hidden>Please select an option from the list</label><br /><br />
+                    Additional comments(optional)<br />
+                    <textarea class="form-control" id="reject-quote-comment" rows="3" style="width:100%;"></textarea><br /><br />
+                    <button type="button" style="float:right;" id="reject-quote-button" class="btn btn-success" onclick="rejectEnquiry();">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>

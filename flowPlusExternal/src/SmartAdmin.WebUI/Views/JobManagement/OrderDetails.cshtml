@@ -1,0 +1,497 @@
+﻿@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+}
+
+@{ ViewData["Title"] = "Order details";
+    //ViewData["PageName"] = "datatables_basic";
+    ViewData["Category1"] = "Job management";
+    //ViewData["Heading"] = "Project Status";
+    //ViewData["PageDescription"] = "Create headache free searching, sorting and pagination tables without any complex configuration";
+}
+@{
+    @using ViewModels.JobOrder;
+    @model JobOrderDetailsViewModel;
+    @using Global_Settings;
+}
+
+
+@section ScriptsBlock {
+<script src="~/js/statistics/peity/peity.bundle.js"></script>
+<script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+<script src="~/js/statistics/peity/peity.bundle.js"></script>
+<script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+<script src="~/js/formplugins/select2/select2.bundle.js"></script>
+<script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            //initializeJobOrdersTable();
+            //initializeJobOrdersDataTable();
+        });
+
+        // downloads source and reference files for job order.
+        function downloadJobOrderSourceOrRefFile(fileIndex, jobOrderId, fileDownloadType){
+            var stringToSend = fileIndex + '$' + jobOrderId + '$' + fileDownloadType;
+            window.location.href = "@Url.RouteUrl(new { Controller = "JobManagement", Action = "DownloadJobOrderSourceAndRefFiles" })/?file=" + stringToSend;
+        }
+
+        // downloads job order target files
+        function downloadJobOrder(jobOrderId){
+            window.location.href = "@Url.RouteUrl(new { Controller = "JobManagement", Action = "DownloadJobOrder" })/?jobOrderId=" + jobOrderId;
+        }
+
+        // downloads jobitem
+        function downloadJobItem(jobItemId){
+            window.location.href = "@Url.RouteUrl(new { Controller = "JobManagement", Action = "DownloadJobItem" })/?jobItemId=" + jobItemId;
+        }
+
+        function cancelOrder(jobOrderId) {            
+            console.log(jobOrderId);
+            $("#cancel-order-modal").modal("show");
+        }
+
+        function getDateString(date) {
+            var dataObj = new Date(date);
+            var dayofweek = dataObj.toLocaleString('default', { weekday: 'short' });
+            var month = dataObj.toLocaleString('default', { month: 'long' });
+            var day = dataObj.getUTCDate();
+            var year = dataObj.getUTCFullYear();
+            return dayofweek + " " + day + " " + month + " " + year;
+        }
+
+        function submitForReview(jobItemIndex) {
+            console.log(jobItemIndex);
+            let jobItemId = $("#" + jobItemIndex).html();
+            console.log(jobItemId);
+            document.getElementById('job-item-id').value = jobItemId;
+            $.ajax(
+                {
+                    url: `jobmanagement/getdataforreview/${@Model.OrderDetails.JobOrderId}/${jobItemId}`,
+                    type: 'GET',
+                    success: function (data) {
+                        debugger;
+                        console.log(data);
+                        let title = `<h4>Send job item ${jobItemId} for review`;
+                        $("#job-item").html(title);
+                        document.getElementById("jobitem-source-lang").value = data[0].sourceLanguage;
+                        document.getElementById("jobitem-target-lang").value = data[0].targetLanguage;
+                        document.getElementById("jobitem-filename").value = data[0].filename === undefined ? "" : data[0].filename;
+                        document.getElementById("datepicker-deadline-date").value = data[0].supplierCompletionDeadline;
+                    }
+                });
+            $("#submit-for-review-modal").modal("show");
+        }
+
+        function CancelOrder(e) {
+            //var isValid = $("#cancelorder-form").valid();
+            //if (isValid == true) {
+                var jobOrderId = @Model.OrderDetails.JobOrderId;
+                var cancelComments = document.getElementById('cancel-joborder').value;
+                var stringToSend = jobOrderId + '$' + cancelComments;
+
+            $.ajax({
+                url: `jobmanagement/cancelorder`,
+                type: 'POST',
+                data: stringToSend,
+                contentType: 'application/x-www-form-urlencoded',
+                success: function (data) {
+                    console.log("ajax is executed");
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(data, 'text/html');
+                    console.log("element is parsed");
+                    $("#emp-holiday-table").html(doc.getElementById("emp-holiday-table"));
+                    console.log("emp=holiday table dom is manipulated");
+                    //var htmlData = $.parseHTML(data);
+                    //$("#office-select").html(doc.getElementById("office-select"));
+                    //$("#year-select").html(doc.getElementById("year-select"));
+                    //$("#emp-holiday-table").html(doc.getElementById("emp-holiday-table"));
+                }
+            });
+
+            $('#cancel-order-modal').modal("hide");
+            console.log("save is executed");
+            //$('#editing-success-modal').modal("show");
+            //document.getElementById('updated-employee-holiday-name').textContent = document.getElementById('emp-name').value;
+            e.preventDefault();
+
+            //}
+        }
+
+        function SubmitReview(e) {
+            //var isValid = $("#cancelorder-form").valid();
+            //if (isValid == true) {
+            var jobOrderId = @Model.OrderDetails.JobOrderId;
+            var jobItemId = document.getElementById('job-item-id').value;
+            var reviewer = document.getElementById('reviewer-select').value;
+            var deadlineDate = document.getElementById('datepicker-start-date').value;
+            var stringToSend = jobItemId + '$' + reviewer + '$' + deadlineDate;
+
+            $.ajax({
+                url: `jobmanagement/submitreview`,
+                type: 'POST',
+                data: stringToSend,
+                contentType: 'application/x-www-form-urlencoded',
+                success: function (data) {
+                    console.log("ajax is executed");
+                    let successDesc = `<div class="modal-body" id="submit-sucess">
+                                            Successfully submitted job item <strong>${jobItemId}</strong> for review.
+                                        </div>`;
+                    $("#submit-success").html(successDesc);
+                    $('#submitreview-success-modal').modal("show");
+                }
+            });
+
+            $('#submit-for-review-modal').modal("hide");
+            console.log("save is executed");
+            e.preventDefault();
+        }
+
+
+    </script>
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div id="panel-4" class="panel">
+            <div class="panel-hdr">
+                <i class="fal fa-tools fa-2x color-black"></i> &nbsp; &nbsp;
+                <h2>
+                    Details for order number <span class="fw-300"><i><strong>@Model.OrderDetails.JobOrderId</strong></i></span>
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="panel">
+                        <div class="panel-hdr"><h2 id="TableofContents">Order Details</h2></div><div class="panel-container show">
+                            <div class="panel-content">
+                                <div class="frame-wrap">
+                                    <table class="table table-striped m-0">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td style="text-align:center"><strong>Order number </strong></td>
+                                                <td style="text-align:center"><strong>Submitted </strong></td>
+                                                <td style="text-align:center"><strong>Delivery deadline </strong></td>
+                                                <td style="text-align:center"><strong>Job reference </strong></td>
+                                                <td style="text-align:center"><strong>Purchase order number </strong></td>
+                                                <td style="text-align:center"><strong>Notes </strong></td>
+                                                <td style="text-align:center"><strong>Currency </strong></td>
+                                                <td style="text-align:center"><strong>Submission method </strong></td>
+                                                @{
+                                                    if (Model.OrderDetails.IsSourceFileAvailable)
+                                                    {
+                                                        <td style="text-align:center"><strong>Source file(s) </strong></td>
+                                                    }
+                                                }
+                                                @{
+                                                    if (Model.OrderDetails.IsReferenceFileAvailable)
+                                                    {
+                                                        <td style="text-align:center"><strong>Reference file(s)</strong></td>
+                                                    }
+                                                }
+                                                @{
+                                                    if (Model.OrderDetails.IsTargetFileAvailable)
+                                                    {
+                                                        <td style="text-align:center"><strong>Target file(s) </strong></td>
+                                                    }
+                                                }
+                                                <td style="text-align:center"><strong>Action </strong></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="text-align:center">@Model.OrderDetails.JobOrderId</td>
+                                                <td style="text-align:center">@Model.OrderDetails.SubmittedDate</td>
+                                                <td style="text-align:center">@Model.OrderDetails.DeliveryDate</td>
+                                                <td style="text-align:center">@Model.OrderDetails.JobName</td>
+                                                <td style="text-align:center">@Model.OrderDetails.PONumber</td>
+                                                <td style="text-align:center">@Model.OrderDetails.ClientNotes</td>
+                                                <td style="text-align:center">@Model.OrderDetails.Currency</td>
+                                                <td style="text-align:center">@Model.OrderDetails.OrderChannel</td>
+                                                @{
+                                                    if (Model.OrderDetails.IsSourceFileAvailable)
+                                                    {
+                                                        <td style="text-align:center">@Html.Raw(@Model.OrderDetails.SourceFiles)</td>
+                                                    }
+                                                }
+                                                @{
+                                                    if (Model.OrderDetails.IsReferenceFileAvailable)
+                                                    {
+                                                        <td style="text-align:center"><strong>@Html.Raw(@Model.OrderDetails.ReferenceFiles)</strong></td>
+                                                    }
+                                                }
+                                                @{
+                                                    if (Model.OrderDetails.IsTargetFileAvailable)
+                                                    {
+                                                        <td style="text-align:center"><strong>@Html.Raw(@Model.OrderDetails.TargetFiles)</strong></td>
+                                                    }
+                                                }
+                                                <td style="text-align:center"><a title="Cancel this order" href="javascript:cancelOrder(@Model.OrderDetails.JobOrderId)"><i class="ni ni-close fa-2x danger"></i></a></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <table id="table-job-items" class="table table-bordered table-hover table-striped w-100">
+                        <thead class="bg-warning-200">
+                            <tr>
+                                <th style="text-align:center; vertical-align:middle">Job item</th>
+                                <th style="text-align:center; vertical-align:middle">Service</th>
+                                <th style="text-align:center; vertical-align:middle">Source</th>
+                                <th style="text-align:center; vertical-align:middle">Target</th>
+                                <th style="text-align:center; vertical-align:middle">Translator</th>
+                                <th style="text-align:center; vertical-align:middle">Reviewer</th>
+                                <th style="text-align:center; vertical-align:middle">Filename</th>
+                                <th style="text-align:center; vertical-align:middle">Cost</th>
+                                <th style="text-align:center; vertical-align:middle">Status</th>
+                                <th style="text-align:center; vertical-align:middle">Review item<br> completed on</th>
+                                <th style="text-align:center; vertical-align:middle">Downloaded</th>
+                                <th style="text-align:center; vertical-align:middle">Progress</th>
+                                <th style="text-align:center; vertical-align:middle">Send for review</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.JobItems.Count(); i++)
+                            {
+                                <tr id="jobitem-row">
+                                    <td id="jobItemRow-@i">@Model.JobItems.ElementAt(i).JobItemId</td>
+                                    <td>@Model.JobItems.ElementAt(i).LanguageService</td>
+                                    <td>@Model.JobItems.ElementAt(i).SourceLanguage</td>
+                                    <td>@Model.JobItems.ElementAt(i).TargetLanguage</td>
+                                    <td>@Model.JobItems.ElementAt(i).Translator</td>
+                                    <td>@Model.JobItems.ElementAt(i).Reviewer</td>
+                                    <td>@Model.JobItems.ElementAt(i).FileName</td>
+                                    <td>@Model.JobItems.ElementAt(i).Cost </td>
+                                    <td>@Html.Raw(@Model.JobItems.ElementAt(i).Status)</td>
+                                    <td>@Model.JobItems.ElementAt(i).ProofReadingCompDate</td>
+                                    <td style="text-align:center">
+                                        @{
+                                            if (Model.JobItems.ElementAt(i).IsDownloaded)
+                                            {
+                                                <i class="ni ni-check fa-2x"></i>
+                                            }
+                                        }
+                                    </td>
+                                    <td>@Model.JobItems.ElementAt(i).Progress <div id="progress-bar" class="progress"><div class="progress-bar bg-warning" role="progressbar" style="width: @Model.JobItems.ElementAt(i).Progress;" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div></div></td>
+                                    <td style="text-align:center">
+                                        @{
+                                            if(Model.JobItems.ElementAt(i).LanguageService == "Client review")
+                                            {
+                                                <a href="javascript:submitForReview('jobItemRow-@i')"><i class="ni ni-arrow-right fa-2x"></i></a>       
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="cancel-order-modal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            @{
+                {
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">
+                                Cancel order @Model.OrderDetails.JobOrderId
+                            </h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                            </button>
+                        </div>
+                        <form class="needs-validation" id="cancelorder-form" novalidate>
+                            <div class="modal-body bg-faded">
+                                <table class="table table-borderless" style="table-layout: fixed;">
+                                    <tr>
+                                        <td>
+                                            <label class="form-label md-header">Posted:</label>
+                                            <input type="text" class="form-control" value="@Model.OrderDetails.SubmittedDate" id="joborder-posted" disabled>
+                                        </td>
+                                        <td>
+                                            <label class="form-label md-header">Delivery date:</label>
+                                            <input type="text" class="form-control" value="@Model.OrderDetails.DeliveryDate" id="joborder-delivery" disabled>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="form-label md-header">Job reference:</label>
+                                            <input type="text" class="form-control" value="@Model.OrderDetails.JobName" id="joborder-reference" disabled>
+                                        </td>
+                                        <td>
+                                            <label class="form-label md-header">Currency:</label>
+                                            <input type="text" class="form-control" value="@Model.OrderDetails.Currency" id="joborder-currency" disabled>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="form-label md-header">Cost: </label>
+                                            <input type="text" class="form-control" value="@Model.OrderDetails.Cost" id="joborder-cost" disabled>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            <p>Do you really want to cancel this order?</p>
+                                            <p>
+                                                <i>
+                                                    <strong>
+                                                        Note: for jobs that have already started, translate plus may need to charge a fee for the completed part of work.
+                                                        We will be in touch as soon as possible to discuss the details if necessary.
+                                                    </strong>
+                                                </i>
+                                            </p>
+                                            <label class="form-label md-header">Comments (optional):</label>
+                                            <textarea class="form-control" placeholder="Enter comments" id="cancel-joborder"></textarea>
+
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+                            <div class="modal-footer">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <button type="submit" class="btn btn-success" onclick="CancelOrder(event);">Cancel this job order</button>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </form>
+                    </div>
+                }
+            }
+        </div>
+
+    </div>
+    @*<input type="hidden" value="" id="job-item-id" />*@
+    <div class="modal fade" id="submit-for-review-modal" role="dialog" aria-hidden="true">
+        <input type="hidden" value="" id="job-item-id" />
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            @{
+                {
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title" id="job-item">
+                                Send job item for review
+                            </h4>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                            </button>
+                        </div>
+                        <form class="needs-validation" id="send-for-review-form" novalidate>
+                            <div class="modal-body bg-faded">
+                                <table class="table table-borderless" style="table-layout:fixed;">
+                                    <tr>
+                                        <td colspan="2">
+                                            <p>Set a deadline, assign a reviewer and send the job item to review on <strong>review plus</strong></p>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="form-label md-header">Source Language:</label>
+                                            <input type="text" class="form-control" value="Test" id="jobitem-source-lang" disabled>
+                                        </td>
+                                        <td>
+                                            <label class="form-label md-header">Target Language:</label>
+                                            <input type="text" class="form-control" value="Test" id="jobitem-target-lang" disabled>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="form-label md-header">Filename:</label>
+                                            <input type="text" class="form-control" value="Test" id="jobitem-filename" disabled>
+                                        </td>
+                                        <td>
+                                            <label class="form-label md-header">Editor:</label>
+                                            <select class="select2 form-control w-100" id="reviewer-select">
+                                                @{
+                                                    if (Model.JobItems.Count() != 0)
+                                                    {
+                                                        @for (var i = 0; i < Model.JobItems.FirstOrDefault().Editor.Count(); i++)
+                                                        {
+                                                            var values = Model.JobItems.FirstOrDefault().Editor;
+                                                            <option value="@values.ElementAt(i).ContactId" selected="@(values.ElementAt(i).ContactId)">@values.ElementAt(i).ReviewerName</option>
+                                                        }
+                                                    }
+                                                }
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label class="form-label md-header">Deadline date: </label>
+                                            <div class="input-group">
+                                                <input type="date" required class="form-control" id="datepicker-deadline-date" @*onchange="startDateUpdated()"*@>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text fs-xl">
+                                                        <i class="@(Settings.Theme.IconPrefix) fa-calendar-exclamation"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </div>
+                            <div class="modal-footer">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <button type="submit" class="btn btn-success" onclick="SubmitReview(event);">Save</button>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </form>
+                    </div>
+                }
+            }
+        </div>
+
+    </div>
+    <div class="modal fade" id="submitreview-success-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">
+                        Success
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body" id="submit-success">
+                    Successfully submitted job item <strong></strong> for review.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

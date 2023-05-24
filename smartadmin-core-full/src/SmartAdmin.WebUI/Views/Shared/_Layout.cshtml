@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<partial name="_CopyrightHeader" />
+<html lang="en">
+<head>
+    @*<base href="~/" />*@
+    <partial name="_Head" />
+    @RenderSection("HeadBlock", required: false)
+</head>
+<body class="mod-bg-1 mod-nav-link mod-nav-link @ViewBag.PreemptiveClass">
+    <partial name="_ScriptsLoadingSaving" />
+    @*<script>Object.defineProperty(WebSocket, 'OPEN', { value: 1, });</script>*@
+    <div class="page-wrapper">
+        <div class="page-inner">
+            <partial name="_LeftPanel" />
+            <div class="page-content-wrapper">
+                @await Component.InvokeAsync("PageHeader")
+                <main id="js-page-content" role="main" class="page-content">
+                    @if (ViewBag.PreemptiveClass?.Length > 0)
+                    {
+                    }
+                    else
+                    {
+                        <partial name="_PageBreadcrumb" />
+                        <div class="subheader"><partial name="_PageHeading" />@RenderSection("Subheaderblock", required: false)</div>
+                    }
+                    @RenderBody()
+                    @*<style>
+            .components-reconnect-show, .components-reconnect-failed, .components-reconnect-rejected {
+                display: none;
+            }
+        </style>
+        <script src="_framework/blazor.server.js"></script>
+        <script>
+            (function start() {
+                Blazor.start({
+                    logLevel: 1, // LogLevel.Debug
+                    configureSignalR: builder => builder.configureLogging("debug") // LogLevel.Debug
+                });
+            })()
+        </script>*@
+                    <partial name="_ProfileSettingsModal" />
+                    <partial name="_HolidayRequest" />
+                    <partial name="_bankHolidayAlert" />
+                    <partial name="_HolidayCreationResult" />
+                    <partial name="_HolidayDeletionConfirmation" />
+                    <partial name="_HolidayDeletionResult" />
+                    <partial name="_HolidayApprovalConfirmation" />
+                    <partial name="_HolidayApprovalResult" />
+                    <partial name="_HolidayDecliningResult" />
+                    <partial name="_SicknessDeletionConfirmation" />
+                    <partial name="_SicknessDeletionResult" />
+                    <partial name="_EditEmployeeTask" />
+                    <partial name="_TaskSavedMessage" />
+
+                </main>
+                <partial name="_PageContentOverlay" />
+                <partial name="_PageFooter" />
+                <partial name="_ShortcutModal" />
+                <partial name="_ColorProfileReference" />
+                
+            </div>
+        </div>
+    </div>
+    
+    <partial name="_ShortcutMenu" />
+    <partial name="_ShortcutMessenger" />
+    <partial name="_PageSettings" />
+    <partial name="_GoogleAnalytics" />
+    <partial name="_ScriptsBasePlugins" />
+    @RenderSection("ScriptsBlock", required: false)
+</body>
+</html>

@@ -1,0 +1,17 @@
+﻿<div class="modal modal-alert fade" id="sickness-deletion-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm deletion<label id="header-text"></label></h5>
+            </div>
+            <div class="modal-body">
+                <label id="sickness-deletion-confirmation-string">Are you sure you want to delete </label>&nbsp;<label class="text-success md-header" id="deletion-sickness-dates"></label>&nbsp;?
+                <input type="hidden" id="sickness-id" />
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-success" onclick="deleteSickness()">Delete</a>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,86 @@
+{
+  "version": "4.5",
+  "lists": [
+    {
+      "title": "Home",
+      "icon": "fal fa-home-lg-alt",
+      "roles": [],
+      "items": [
+        {
+          "title": "Project flow dashboard",
+          "showOnSeed": false,
+          "href": "Home/Index",
+          "roles": []
+        }
+      ]
+    },
+    {
+      "title": "Services",
+      "icon": "fal fa-globe",
+      "roles": [],
+      "items": [
+        {
+          "title": "New project",
+          "href": "Services/NewProject",
+          "roles": []
+        }
+      ]
+    },
+    {
+      "title": "Job management",
+      "showOnSeed": false,
+      "icon": "fal fa-clipboard-list-check",
+      "roles": [],
+      "items": [
+        {
+          "title": "Project status",
+          "href": "jobmanagement/projectstatus",
+          "roles": []
+        },
+        {
+          "title": "Approve quotes",
+          "href": "jobmanagement/approvequotes",
+          "roles": []
+        }
+      ]
+    },
+    {
+      "title": "review plus",
+      "icon": "fal fa-book",
+      "roles": [],
+      "items": [
+        {
+          "title": "Review status",
+          "href": "reviewplus/reviewstatus",
+          "roles": []
+        }
+      ]
+    },
+
+    {
+      "title": "translate online",
+      "icon": "fal fa-language",
+      "roles": [],
+      "items": [
+        {
+          "title": "translation status",
+          "href": "translateonline/translateonlinestatus",
+          "roles": []
+        }
+      ]
+    },
+    {
+      "title": "design plus",
+      "icon": "far fa-dice-d6",
+      "roles": [],
+      "items": [
+        {
+          "title": "design plus",
+          "href": "designplus/designPlusEditing/27593",
+          "roles": []
+        }
+      ]
+    }
+
+  ]
+}

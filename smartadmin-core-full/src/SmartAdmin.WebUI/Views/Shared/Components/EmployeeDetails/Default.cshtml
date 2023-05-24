@@ -1,0 +1,23 @@
+﻿@{
+    @model ViewModels.Common.EmployeeDetailsViewModel
+
+}
+<div>
+    <div class="d-inline-block align-middle status status-success mr-3">
+        @{
+            var profileImage = Model.ProfilePicture != null ? Model.ProfilePicture : "/img/demo/avatars/" + (Settings.Theme.Avatar);
+        }
+        <span class="profile-image-md rounded-circle d-block" style="background-image:url('@(profileImage)'); background-size: cover; "></span>
+    </div>
+    <div style="display: inline-grid;">
+        <a asp-controller="HR" asp-action="EmployeeProfile" asp-route-employeeToViewId="@Model.Id" >
+            <h5 class="mb-0 flex-1 text-dark fw-500 d-inline">
+                @Model.FirstName @Model.LastName
+            </h5>
+        </a>
+        @if (Model.DisplayJobTitle)
+        {
+            <span class="help-block m-0">@Model.JobTitle</span>
+        }
+    </div>
+</div>

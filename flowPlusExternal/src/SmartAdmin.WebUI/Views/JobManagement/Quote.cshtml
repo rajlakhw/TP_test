@@ -1,0 +1,15 @@
+﻿
+@section HeadBlock {
+        <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+}
+@{
+    ViewData["Title"] = "Quote";
+    ViewData["Heading"] = "<i class='far fa-ballot-check'></i> Quote preparation in progress";
+}
+
+<label>Thank you for your quote request, which is being tracked with enquiry ID <b>@ViewBag.EnquiryId</b></label>
+<br />
+Costs and timings are currently being prepared, and you will receive a notification once the quote is ready for approval.
+

@@ -1,0 +1,662 @@
+﻿@using ViewModels.flowplusLicences
+@model flowplusLicenceMappingModel
+
+
+<form id="flow-plus-licencing" enctype="multipart/form-data" asp-action="UpdateFlowPlusLicencingInfo" asp-controller="Organisation"
+      asp-route-Id="@Model.Id" asp-route-AccessForDataObjectID="@ViewBag.DataObjectID"
+      asp-route-AccessForDataObjectTypeID="@ViewBag.DataObjectTypeID" asp-route-SendConsolidatedInvoice="@Model.CreateSingleOrderForAllLicences"
+      asp-route-flowplusLicence="@Model.flowplusLicence" asp-route-reviewPlusLicence="@Model.reviewPlusLicence"
+      asp-route-translateOnlineLicence="@Model.translateOnlineLicence" asp-route-designPlusLicence="@Model.designPlusLicence"
+      asp-route-AIOrMTLicence="@Model.AIOrMTLicence" asp-route-CMSLicence="@Model.CMSLicence"
+      method="post" role="form" onchange="onflowplusLicenceUpdate()"
+      style="padding-left:0px;padding-right:0px;width:100%;margin-left:0px;margin-right:0px;width:1400px;">
+    <div hidden="@(ViewBag.flowplusLicencingDisabled == true ? false : true )">
+        @if (ViewBag.DataObjectTypeID == 3)
+        {
+            <div class="alert alert-warning" role="alert">
+                <strong>Information! </strong>One or more orgs under this group are enabled for flowplus licencing. To enable licencing on group level, please disable flow plus licencing for all orgs under this group.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning" role="alert">
+                <strong>Information! </strong>flowplus licencing is enabled on group level for this org. To enable licencing on org level, please disable flow plus licencing on group level.
+            </div>
+        }
+    </div>
+    <div hidden="@ViewBag.flowplusLicencingDisabled" style="padding-left:0px;padding-right:0px;width:100%;margin-left:0px;margin-right:0px;width:1400px;">
+        <table style="padding-left:0px;padding-right:0px;width:100%;margin-left:0px;margin-right:0px;overflow:inherit;">
+            <tr>
+                <td colspan="2" valign="middle">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="consolidateInvoice" onchange="showHideConsolidatedOptions(this)"
+                               checked="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)"
+                               asp-for="CreateSingleOrderForAllLicences"
+                               disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.flowplusLicence.DemoEnabled == true)">
+                        <label class="custom-control-label" for="consolidateInvoice">Create one Job Order for all enabled licences</label>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <a asp-controller="Articles" asp-action="Article" target="_blank" asp-route-Id="979" data-toggle="tooltip" data-placement="right" title="share plus article"><i class="fal fa-info-circle fa-2x" style="color:#e84133;"></i></a>
+                    </div>
+                </td>
+                <td>
+                    <div class="form-group-row d-flex justify-content-center flex-row-reverse">
+
+                        <button class="@(Settings.Theme.IconPrefix) btn btn-outline-default" onclick="saveFlowPlusLicencingDetails();"
+                                id="licence-save-button" title="Save">
+                            <i class="far fa-cloud-upload fa-2x color-black"></i>
+                        </button>
+                    </div>
+                </td>
+
+                <td style="width:200px;">
+                    <label class="form-label d-flex align-items-center"> Enabled date/<br />Trial started on</label>
+                </td>
+                <td colspan="@(ViewBag.DataObjectTypeID == 3 ? "2" : "1")" align="center">
+                    <label class="form-label d-flex">Job Order for monthly<br /> licensing assigned to</label>
+                </td>
+                <td style="width:150px;padding-right: 40px;">
+                    <label class="form-label d-flex align-items-center"> Previous order<br />created on</label>
+                </td>
+                <td style="width:150px;">
+                    <label class="form-label d-flex align-items-center"> Next order<br />creation date</label>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="4">
+                    &nbsp;
+                </td>
+
+            </tr>
+            <tr>
+                <td style="width:250px;">
+                    <div class="custom-control custom-switch border-top-0 border-left-0 border-right-0">
+                        <input type="checkbox" class="custom-control-input" id="flowplusSwitchBox"
+                               asp-for="flowplusLicence.IsEnabled"
+                               onchange="enableFlowPlusControls(this)"
+                               checked="@(Model.flowplusLicence == null ? false : Model.flowplusLicence.IsEnabled )">
+                        <label class="custom-control-label" for="flowplusSwitchBox">flow plus</label>
+                        <input type="hidden" asp-for="@Model.flowplusLicence.Id" />
+                    </div>
+                </td>
+                <td style="width:150px;">
+                    <div class="custom-control custom-switch border-top-0 border-left-0 border-right-0">
+                        <input type="checkbox" class="custom-control-input flowpluscontrol" id="flowplusDemoSwitchBox"
+                               asp-for="flowplusLicence.DemoEnabled" onchange="enableFlowPlusDemoControls(this)"
+                               disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false)"
+                               checked="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false ? false : Model.flowplusLicence.DemoEnabled )">
+                        <label class="custom-control-label" for="flowplusDemoSwitchBox">On trial</label>
+                    </div>
+                </td>
+
+                <td style="width:120px;padding-right:20px;">
+                    <table>
+                        <tr>
+                            <td>
+                                @if (ViewBag.DataObjectTypeID == 2)
+                                {
+                                    @ViewBag.OrgCurrencySymbol
+                                }
+                                else
+                                {
+                                    <label id="flowplus-currency"></label>
+                                }
+
+                            </td>
+                            <td>
+                                <input value="@(Model.flowplusLicence == null ? "" : Math.Round(Model.flowplusLicence.AppCost, 2).ToString("N2"))"
+                                       disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.flowplusLicence.DemoEnabled == true)" type="number"
+                                       asp-for="@Model.flowplusLicence.AppCost"
+                                       class="flowpluscontrol flowplusDemoControl form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0">
+                            </td>
+                            <td>
+                                &nbsp;/month
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
+
+                <td>
+                    <label>@(Model.flowplusLicence == null ? "" : (Model.flowplusLicence.IsEnabled == false ? "(disabled)" : Model.flowplusLicence.LastEnabledDateTime.ToString("dd MMMM yyyy HH:mm")))</label>
+                </td>
+                @if (ViewBag.DataObjectTypeID == 3)
+                {
+                    <td style="width:350px;">
+
+                        <select data-placeholder="Select org" disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.flowplusLicence.DemoEnabled == true)"
+                                class="select2 form-control flowpluscontrol flowplusDemoControl" onchange="showContactForOrg(this, 'flowplus')">
+                            <option></option>
+                            @foreach (var org in Model.AllOrgs)
+                            {
+                                <option value="@org.Split(" - ")[0]">@org</option>
+                            }
+                        </select>
+
+                    </td>
+                }
+                <td style="overflow: hidden;width:400px;">
+                    <select data-placeholder="Select contact" id="flowplus-contact-select" asp-for="flowplusLicence.OrderContactID"
+                            disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.flowplusLicence.DemoEnabled == true)"
+                            class="select2 form-control flowpluscontrol flowplusDemoControl">
+                        <option></option>
+                        @foreach (var contact in Model.AllContacts)
+                        {
+                            <option value="@contact.Split(" - ")[0]">@contact</option>
+                        }
+                    </select>
+                </td>
+                <td>
+                    <label>@(Model.flowplusLicence == null || Model.flowplusLicence.PreviousOrderSetDate == null ? "" : Model.flowplusLicence.PreviousOrderSetDate.Value.ToString("dd MMMM yyyy"))</label>
+                </td>
+                <td>
+                    <label id="flow-plus-next-invoice-label">@(Model.flowplusLicence == null || Model.flowplusLicence.NextOrderSetDate == null || Model.flowplusLicence.IsEnabled == false ? "" : (Model.flowplusLicence != null && Model.flowplusLicence.DemoEnabled == true ? "(On trial)" : Model.flowplusLicence.NextOrderSetDate.Value.ToString("dd MMMM yyyy")))</label>
+                </td>
+
+            </tr>
+
+            <tr>
+                <td>
+                    <div class="custom-control custom-switch">
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" class="custom-control-input" id="reviewplusSwitchBox" onchange="enableReviewPlusControls(this)"
+                               checked="@(Model.reviewPlusLicence == null ? false : Model.reviewPlusLicence.IsEnabled )"
+                               disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false)"
+                               asp-for="reviewPlusLicence.IsEnabled">
+                        <label class="custom-control-label" for="reviewplusSwitchBox">review plus</label>
+                        <input type="hidden" asp-for="@Model.reviewPlusLicence.Id" />
+                    </div>
+                </td>
+                <td>
+                    <div class="custom-control custom-switch border-top-0 border-left-0 border-right-0">
+                        <input type="checkbox" class="custom-control-input reviewpluscontrol" id="reviewplusDemoSwitchBox"
+                               asp-for="reviewPlusLicence.DemoEnabled" onchange="enableReviewPlusDemoControls(this)"
+                               disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.flowplusLicence.DemoEnabled == true)"
+                               checked="@(Model.reviewPlusLicence == null ? (Model.flowplusLicence == null ? false : Model.flowplusLicence.DemoEnabled) : Model.reviewPlusLicence.DemoEnabled )">
+                        <label class="custom-control-label" for="reviewplusDemoSwitchBox">On trial</label>
+                    </div>
+                </td>
+                <td style="width:200px;padding-right:20px;">
+                    <table>
+                        <tr>
+                            <td>
+                                @if (ViewBag.DataObjectTypeID == 2)
+                                {
+                                    @ViewBag.OrgCurrencySymbol
+                                }
+                                else
+                                {
+                                    <label id="reviewplus-currency"></label>
+                                }
+                            </td>
+                            <td>
+                                <input value="@(Model.reviewPlusLicence == null ? "" : Math.Round(Model.reviewPlusLicence.AppCost, 2).ToString("N2"))" type="number"
+                                       disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.reviewPlusLicence == null || Model.reviewPlusLicence.DemoEnabled == true)"
+                                       class="reviewpluscontrol reviewplusDemocontrol form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0"
+                                       id="reviewplus-appcost" asp-for="reviewPlusLicence.AppCost">
+                            </td>
+                            <td>
+                                &nbsp;/month
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+                <td>
+                    <label>@(Model.reviewPlusLicence == null ? "" : (Model.reviewPlusLicence.IsEnabled == false ? "(disabled)" : Model.reviewPlusLicence.LastEnabledDateTime.ToString("dd MMMM yyyy HH:mm")))</label>
+                </td>
+                @if (ViewBag.DataObjectTypeID == 3)
+                {
+                    <td style="width:350px;">
+                        <div class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                            <select data-placeholder="Select org" id="reviewplus-org-select"
+                                    disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.reviewPlusLicence == null || Model.reviewPlusLicence.DemoEnabled == true)"
+                                    class="select2 form-control reviewpluscontrol reviewplusDemocontrol" onchange="showContactForOrg(this, 'reviewplus')">
+                                <option></option>
+                                @foreach (var org in Model.AllOrgs)
+                                {
+                                    <option value="@org.Split(" - ")[0]">@org</option>
+                                }
+                            </select>
+                        </div>
+                    </td>
+                }
+                <td style="width:400px;">
+                    <div class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        <select data-placeholder="Select contact" id="reviewplus-contact-select"
+                                asp-for="reviewPlusLicence.OrderContactID"
+                                disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.reviewPlusLicence == null || Model.reviewPlusLicence.DemoEnabled == true)"
+                                class="select2 form-control reviewpluscontrol reviewplusDemocontrol">
+                            <option></option>
+                            @foreach (var contact in Model.AllContacts)
+                            {
+                                <option value="@contact.Split(" - ")[0]">@contact</option>
+                            }
+                        </select>
+                    </div>
+                </td>
+                <td>
+                    <label class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">@(Model.reviewPlusLicence == null || Model.reviewPlusLicence.PreviousOrderSetDate == null ? "" : Model.reviewPlusLicence.PreviousOrderSetDate.Value.ToString("dd MMMM yyyy"))</label>
+                </td>
+                <td>
+                    <label class="non-consolidated" id="review-plus-next-invoice-label" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">@(Model.reviewPlusLicence == null || Model.reviewPlusLicence.NextOrderSetDate == null || Model.reviewPlusLicence.IsEnabled == false ? "" : (Model.reviewPlusLicence != null && Model.reviewPlusLicence.DemoEnabled == true ? "(On trial)" : Model.reviewPlusLicence.NextOrderSetDate.Value.ToString("dd MMMM yyyy")))</label>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td>
+                    <div class="custom-control custom-switch">
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        @*<input type="checkbox" class="custom-control-input" id="translateOnlineSwitchBox" onchange="enabletranslateOnlineControls(this)"
+                            checked="@(Model.translateOnlineLicence == null ? false : true )"
+                            disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false)"
+                            asp-for="translateOnlineLicence.IsEnabled">*@
+                        <input type="checkbox" class="custom-control-input" id="translateOnlineSwitchBox" onchange="enabletranslateOnlineControls(this)"
+                               checked="@(Model.translateOnlineLicence == null ? false : Model.translateOnlineLicence.IsEnabled )"
+                               disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false)"
+                               asp-for="translateOnlineLicence.IsEnabled">
+                        <label class="custom-control-label" for="translateOnlineSwitchBox">translate online</label>
+                        <input type="hidden" asp-for="@Model.translateOnlineLicence.Id" />
+                    </div>
+                </td>
+                <td>
+                    <div class="custom-control custom-switch border-top-0 border-left-0 border-right-0">
+                        <input type="checkbox" class="translateonlinecontrol custom-control-input" id="translateOnlineDemoSwitchBox"
+                               asp-for="translateOnlineLicence.DemoEnabled" onchange="enabletranslateOnlineDemoControls(this)"
+                               disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.flowplusLicence.DemoEnabled == true || Model.translateOnlineLicence == null || Model.translateOnlineLicence.IsEnabled == false)"
+                               checked="@(Model.translateOnlineLicence == null ? (Model.flowplusLicence == null ? false : Model.flowplusLicence.DemoEnabled) : Model.translateOnlineLicence.DemoEnabled )">
+                        <label class="custom-control-label" for="translateOnlineDemoSwitchBox">On trial</label>
+                    </div>
+                </td>
+                <td style="width:200px;padding-right:20px;">
+                    <table>
+                        <tr>
+                            <td>
+                                @if (ViewBag.DataObjectTypeID == 2)
+                                {
+                                    @ViewBag.OrgCurrencySymbol
+                                }
+                                else
+                                {
+                                    <label id="translateonline-currency"></label>
+                                }
+                            </td>
+                            <td>
+                                <input value="@(Model.translateOnlineLicence == null ? "" : Math.Round(Model.translateOnlineLicence.AppCost, 2).ToString("N2"))" type="number"
+                                       disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.translateOnlineLicence == null || Model.translateOnlineLicence.DemoEnabled == true)"
+                                       class="translateonlinecontrol translateonlineDemocontrol form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0"
+                                       id="translateonline-appcost" asp-for="translateOnlineLicence.AppCost">
+                            </td>
+                            <td>
+                                &nbsp;/month
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <label>@(Model.translateOnlineLicence == null ? "" : (Model.translateOnlineLicence.IsEnabled == false ? "(disabled)" : Model.translateOnlineLicence.LastEnabledDateTime.ToString("dd MMMM yyyy HH:mm")))</label>
+                </td>
+                @if (ViewBag.DataObjectTypeID == 3)
+                {
+                    <td style="width:350px;">
+                        <div class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                            <select data-placeholder="Select org" class="select2 form-control translateonlinecontrol translateonlineDemocontrol"
+                                    onchange="showContactForOrg(this, 'translateonline')" id="translateonline-org-select"
+                                    disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.translateOnlineLicence == null || Model.translateOnlineLicence.DemoEnabled == true)">
+                                <option></option>
+                                @foreach (var org in Model.AllOrgs)
+                                {
+                                    <option value="@org.Split(" - ")[0]">@org</option>
+                                }
+                            </select>
+                        </div>
+                    </td>
+                }
+                <td style="width:400px;">
+                    <div class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        <select data-placeholder="Select contact" id="translateonline-contact-select" asp-for="translateOnlineLicence.OrderContactID"
+                                disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.translateOnlineLicence == null || Model.translateOnlineLicence.DemoEnabled == true)"
+                                class="select2 form-control translateonlinecontrol translateonlineDemocontrol">
+                            <option></option>
+                            @foreach (var contact in Model.AllContacts)
+                            {
+                                <option value="@contact.Split(" - ")[0]">@contact</option>
+                            }
+                        </select>
+                    </div>
+                </td>
+                <td>
+                    <label class="non-consolidated"
+                           hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        @(Model.translateOnlineLicence == null || Model.translateOnlineLicence.PreviousOrderSetDate == null ? "" : Model.translateOnlineLicence.PreviousOrderSetDate.Value.ToString("dd MMMM yyyy"))
+                    </label>
+                </td>
+                <td>
+                    <label class="non-consolidated" id="translate-online-next-invoice-label" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        @(Model.translateOnlineLicence == null || Model.translateOnlineLicence.NextOrderSetDate == null || Model.translateOnlineLicence.IsEnabled == false ? "" : (Model.translateOnlineLicence != null && Model.translateOnlineLicence.DemoEnabled == true ? "(On trial)" : Model.translateOnlineLicence.NextOrderSetDate.Value.ToString("dd MMMM yyyy")))
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="custom-control custom-switch">
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        @*<input type="checkbox" class="custom-control-input" id="designPlusSwitchBox" onchange="enabledesignPlusControls(this)"
+                            checked="@(Model.designPlusLicence == null ? false : true )"
+                            disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false)"
+                            asp-for="designPlusLicence.IsEnabled">*@
+                        <input type="checkbox" class="custom-control-input" id="designPlusSwitchBox" onchange="enabledesignPlusControls(this)"
+                               checked="@(Model.designPlusLicence == null ? false : Model.designPlusLicence.IsEnabled )" disabled
+                               asp-for="designPlusLicence.IsEnabled">
+                        <label class="custom-control-label" for="designPlusSwitchBox">design plus</label>
+                        <input type="hidden" asp-for="@Model.designPlusLicence.Id" />
+                    </div>
+                </td>
+                <td>
+                    <div class="custom-control custom-switch border-top-0 border-left-0 border-right-0">
+                        <input type="checkbox" class="custom-control-input designpluscontrol" id="designPlusDemoSwitchBox"
+                               asp-for="designPlusLicence.DemoEnabled" onchange="enabledesignPlusDemoControls(this)"
+                               disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.flowplusLicence.DemoEnabled == true || Model.designPlusLicence == null || Model.designPlusLicence.IsEnabled == false)"
+                               checked="@(Model.designPlusLicence == null ? (Model.flowplusLicence == null ? false : Model.flowplusLicence.DemoEnabled) : Model.designPlusLicence.DemoEnabled )">
+                        <label class="custom-control-label" for="designPlusDemoSwitchBox">On trial</label>
+                    </div>
+                </td>
+                <td style="width:200px;padding-right:20px;">
+                    <table>
+                        <tr>
+                            <td>
+                                @if (ViewBag.DataObjectTypeID == 2)
+                                {
+                                    @ViewBag.OrgCurrencySymbol
+                                }
+                                else
+                                {
+                                    <label id="designplus-currency"></label>
+                                }
+                            </td>
+                            <td>
+                                <input value="@(Model.designPlusLicence == null ? "" : Math.Round(Model.designPlusLicence.AppCost, 2).ToString("N2"))" type="number"
+                                       disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.designPlusLicence == null || Model.designPlusLicence.DemoEnabled == true)"
+                                       class="designpluscontrol designplusDemocontrol form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0"
+                                       id="designplus-appcost" asp-for="designPlusLicence.AppCost">
+                            </td>
+                            <td>
+                                &nbsp;/month
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <label>@(Model.designPlusLicence == null ? "" : (Model.designPlusLicence.IsEnabled == false ? "(disabled)" : Model.designPlusLicence.LastEnabledDateTime.ToString("dd MMMM yyyy HH:mm")))</label>
+                </td>
+                @if (ViewBag.DataObjectTypeID == 3)
+                {
+                    <td style="width:350px;">
+                        <div class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                            <select data-placeholder="Select org" class="select2 form-control designpluscontrol designplusDemocontrol"
+                                    onchange="showContactForOrg(this, 'designplus')" id="designplus-org-select"
+                                    disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.designPlusLicence == null || Model.designPlusLicence.DemoEnabled == true)">
+                                <option></option>
+                                @foreach (var org in Model.AllOrgs)
+                                {
+                                    <option value="@org.Split(" - ")[0]">@org</option>
+                                }
+                            </select>
+                        </div>
+                    </td>
+                }
+                <td style="width:400px;">
+                    <div class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        <select data-placeholder="Select contact" id="designplus-contact-select" asp-for="designPlusLicence.OrderContactID"
+                                disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.designPlusLicence == null || Model.designPlusLicence.DemoEnabled == true)"
+                                class="select2 form-control designpluscontrol designplusDemocontrol">
+                            <option></option>
+                            @foreach (var contact in Model.AllContacts)
+                            {
+                                <option value="@contact.Split(" - ")[0]">@contact</option>
+                            }
+                        </select>
+                    </div>
+                </td>
+                <td>
+                    <label class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        @(Model.designPlusLicence == null || Model.designPlusLicence.PreviousOrderSetDate == null ? "" : Model.designPlusLicence.PreviousOrderSetDate.Value.ToString("dd MMMM yyyy"))
+                    </label>
+                </td>
+                <td>
+                    <label id="design-plus-next-invoice-label" class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        @(Model.designPlusLicence == null || Model.designPlusLicence.NextOrderSetDate == null || Model.designPlusLicence.IsEnabled == false ? "" : (Model.designPlusLicence != null && Model.designPlusLicence.DemoEnabled == true ? "(On trial)" : Model.designPlusLicence.NextOrderSetDate.Value.ToString("dd MMMM yyyy")))
+                    </label>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <div class="custom-control custom-switch">
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <input type="checkbox" class="custom-control-input" id="AIOrMTSwitchBox" onchange="enableAIControls(this)"
+                               checked="@(Model.AIOrMTLicence == null ? false : Model.AIOrMTLicence.IsEnabled )"
+                               disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false)"
+                               asp-for="AIOrMTLicence.IsEnabled">
+                        <label class="custom-control-label" for="AIOrMTSwitchBox">AI/MT plus</label>
+                        <input type="hidden" asp-for="@Model.AIOrMTLicence.Id" />
+                    </div>
+                </td>
+                <td>
+                    <div class="custom-control custom-switch border-top-0 border-left-0 border-right-0">
+                        <input type="checkbox" class="custom-control-input aicontrol" id="AIOrMTDemoSwitchBox"
+                               asp-for="AIOrMTLicence.DemoEnabled" onchange="enableAIDemoControls(this)"
+                               disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.flowplusLicence.DemoEnabled == true || Model.AIOrMTLicence == null || Model.AIOrMTLicence.IsEnabled == false)"
+                               checked="@(Model.AIOrMTLicence == null ? (Model.flowplusLicence == null ? false : Model.flowplusLicence.DemoEnabled) : Model.AIOrMTLicence.DemoEnabled )">
+                        <label class="custom-control-label" for="AIOrMTDemoSwitchBox">On trial</label>
+                    </div>
+                </td>
+                <td style="width:200px;padding-right:20px;">
+                    <table>
+                        <tr>
+                            <td>
+                                @if (ViewBag.DataObjectTypeID == 2)
+                                {
+                                    @ViewBag.OrgCurrencySymbol
+                                }
+                                else
+                                {
+                                    <label id="aiormt-currency"></label>
+                                }
+                            </td>
+                            <td>
+                                <input value="@(Model.AIOrMTLicence == null ? "" : Math.Round(Model.AIOrMTLicence.AppCost, 2).ToString("N2"))" type="number"
+                                       disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.AIOrMTLicence == null || Model.AIOrMTLicence.DemoEnabled == true)"
+                                       class="aicontrol aiDemocontrol form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0"
+                                       id="aiormt-appcost" asp-for="AIOrMTLicence.AppCost">
+                            </td>
+                            <td>
+                                &nbsp;/month
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+                <td>
+                    <label>@(Model.AIOrMTLicence == null ? "" : (Model.AIOrMTLicence.IsEnabled == false ? "(disabled)" : Model.AIOrMTLicence.LastEnabledDateTime.ToString("dd MMMM yyyy HH:mm")))</label>
+                </td>
+                @if (ViewBag.DataObjectTypeID == 3)
+                {
+                    <td style="width:350px;">
+                        <div class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                            <select data-placeholder="Select org" class="select2 form-control aicontrol aiDemocontrol"
+                                    onchange="showContactForOrg(this, 'aiormt')" id="aiormt-org-select"
+                                    disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.AIOrMTLicence == null || Model.AIOrMTLicence.DemoEnabled == true)">
+                                <option></option>
+                                @foreach (var org in Model.AllOrgs)
+                                {
+                                    <option value="@org.Split(" - ")[0]">@org</option>
+                                }
+                            </select>
+                        </div>
+                    </td>
+                }
+                <td style="width:400px;">
+                    <div class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        <select data-placeholder="Select contact" id="aiormt-contact-select"
+                                class="select2 form-control aicontrol aiDemocontrol" asp-for="AIOrMTLicence.OrderContactID"
+                                disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.AIOrMTLicence == null || Model.AIOrMTLicence.DemoEnabled == true)">
+                            <option></option>
+                            @foreach (var contact in Model.AllContacts)
+                            {
+                                <option value="@contact.Split(" - ")[0]">@contact</option>
+                            }
+                        </select>
+                    </div>
+                </td>
+
+                <td>
+                    <label class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        @(Model.AIOrMTLicence == null || Model.AIOrMTLicence.PreviousOrderSetDate == null ? "" : Model.AIOrMTLicence.PreviousOrderSetDate.Value.ToString("dd MMMM yyyy"))
+                    </label>
+                </td>
+                <td>
+                    <label id="aiOrMT-next-invoice-label" class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        @(Model.AIOrMTLicence == null || Model.AIOrMTLicence.NextOrderSetDate == null || Model.AIOrMTLicence.IsEnabled == false ? "" : (Model.AIOrMTLicence != null && Model.AIOrMTLicence.DemoEnabled == true ? "(On trial)" : Model.AIOrMTLicence.NextOrderSetDate.Value.ToString("dd MMMM yyyy")))
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="custom-control custom-switch">
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        @*<input type="checkbox" class="custom-control-input" id="CMSSwitchBox" onchange="enableCMSControls(this)"
+                            checked="@(Model.CMSLicence == null ? false : true )"
+                            disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false)"
+                            asp-for="CMSLicence.IsEnabled">*@
+                        <input type="checkbox" class="custom-control-input" id="CMSSwitchBox" onchange="enableCMSControls(this)"
+                               checked="@(Model.CMSLicence == null ? false : Model.CMSLicence.IsEnabled )" disabled
+                               asp-for="CMSLicence.IsEnabled">
+                        <label class="custom-control-label" for="CMSSwitchBox">CMS</label>
+                        <input type="hidden" asp-for="@Model.CMSLicence.Id" />
+                    </div>
+                </td>
+                <td>
+                    <div class="custom-control custom-switch border-top-0 border-left-0 border-right-0">
+                        <input type="checkbox" class="custom-control-input cmscontrol" id="CMSDemoSwitchBox"
+                               asp-for="CMSLicence.DemoEnabled" onchange="enableCMSDemoControls(this)"
+                               disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.flowplusLicence.DemoEnabled == true || Model.CMSLicence == null || Model.CMSLicence.IsEnabled == false)"
+                               checked="@(Model.CMSLicence == null ? (Model.flowplusLicence == null ? false : Model.flowplusLicence.DemoEnabled) : Model.CMSLicence.DemoEnabled )">
+                        <label class="custom-control-label" for="CMSDemoSwitchBox">On trial</label>
+                    </div>
+                </td>
+                <td style="width:200px;padding-right:20px;">
+                    <table>
+                        <tr>
+                            <td>
+                                @if (ViewBag.DataObjectTypeID == 2)
+                                {
+                                    @ViewBag.OrgCurrencySymbol
+                                }
+                                else
+                                {
+                                    <label id="cms-currency"></label>
+                                }
+                            </td>
+                            <td>
+                                <input value="@(Model.CMSLicence == null ? "" : Math.Round(Model.CMSLicence.AppCost, 2).ToString("N2"))" type="number"
+                                       disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.CMSLicence == null || Model.CMSLicence.DemoEnabled == true)"
+                                       class="cmscontrol cmsDemocontrol form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0"
+                                       id="cms-appcost" asp-for="CMSLicence.AppCost">
+                            </td>
+                            <td>
+                                &nbsp;/month
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <label>@(Model.CMSLicence == null ? "" : (Model.CMSLicence.IsEnabled == false ? "(disabled)" : Model.CMSLicence.LastEnabledDateTime.ToString("dd MMMM yyyy HH:mm")))</label>
+                </td>
+                @if (ViewBag.DataObjectTypeID == 3)
+                {
+                    <td style="width:350px;">
+                        <div class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                            <select data-placeholder="Select org" id="cms-org-select" class="select2 form-control cmscontrol cmsDemocontrol"
+                                    onchange="showContactForOrg(this, 'cms')"
+                                    disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.CMSLicence == null || Model.CMSLicence.DemoEnabled == true)">
+                                <option></option>
+                                @foreach (var org in Model.AllOrgs)
+                                {
+                                    <option value="@org.Split(" - ")[0]">@org</option>
+                                }
+                            </select>
+                        </div>
+                    </td>
+                }
+                <td style="width:400px;">
+                    <div class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        <select data-placeholder="Select contact" id="cms-contact-select"
+                                class="select2 form-control cmscontrol cmsDemocontrol" asp-for="CMSLicence.OrderContactID"
+                                disabled="@(Model.flowplusLicence == null || Model.flowplusLicence.IsEnabled == false || Model.CMSLicence == null || Model.CMSLicence.DemoEnabled == true)">
+                            <option></option>
+                            @foreach (var contact in Model.AllContacts)
+                            {
+                                <option value="@contact.Split(" - ")[0]">@contact</option>
+                            }
+                        </select>
+                    </div>
+                </td>
+
+                <td>
+                    <label class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        @(Model.CMSLicence == null || Model.CMSLicence.PreviousOrderSetDate == null ? "" : Model.CMSLicence.PreviousOrderSetDate.Value.ToString("dd MMMM yyyy"))
+                    </label>
+                </td>
+                <td>
+                    <label id="cms-next-invoice-label" class="non-consolidated" hidden="@(Model.Id == 0 ? true : Model.CreateSingleOrderForAllLicences)">
+                        @(Model.CMSLicence == null || Model.CMSLicence.NextOrderSetDate == null || Model.CMSLicence.IsEnabled == false ? "" : (Model.CMSLicence != null && Model.CMSLicence.DemoEnabled == true ? "(On trial)" : Model.CMSLicence.NextOrderSetDate.Value.ToString("dd MMMM yyyy")))
+                    </label>
+                </td>
+            </tr>
+        </table>
+        <br /><br />
+        <table class="table-borderless" style="width:100%">
+            <tr>
+                <td style="width:1200px;">
+                    <label class="form-label">Notes:</label>
+                    <textarea asp-for="@Model.Notes" rows="3" class="col-12 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">@Model.Notes</textarea>
+                </td>
+                @*<td>
+
+                    </td>*@
+            </tr>
+        </table>
+    </div>
+    <div class="modal fade" id="order-created-confirmation-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">
+                        Job Order(s) created
+                    </h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Job Order(s) have now been automatically created in flow plus for invoicing purposes.<br /><br />
+                    These have been setup under your selected client contact and will be automatically created on a monthly basis.<br /><br />
+                    If you need to make any changes, then be sure to delete the pending Job Order, and update the license page with the latest information, and resave.<br /><br />
+
+                    <label style="color:red">NOTE: Due to the soft launch, no job orders will be created or sent until the 1st April</label>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</form>
+<br />
+<br />
+
+
+
+
+

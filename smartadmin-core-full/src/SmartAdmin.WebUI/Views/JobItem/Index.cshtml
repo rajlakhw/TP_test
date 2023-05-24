@@ -1,0 +1,2543 @@
+﻿@{
+    ViewData["Title"] = "Job item";
+    ViewData["PageName"] = "job item";
+    ViewData["Category1"] = "flow plus";
+
+    @model ViewModels.JobItem.JobItemViewModel
+
+    string chargeLabel = Model.AdditionalDetails.IsCLSJob == true ? "Intercompany charge" : "Charge to client";
+    string chargeafterdiscountsLabel = Model.AdditionalDetails.IsCLSJob == true ? "Intercompany charge after discount(s) and/or surcharge(s)" : "Charge to client after discount(s) and/or surcharge(s)";
+}
+
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-daterangepicker/bootstrap-daterangepicker.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/notifications/sweetalert2/sweetalert2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/dropzone/dropzone.css">
+}
+
+    <style>
+        .select2-container {
+            width: 58% !important;
+        }
+
+        .form-group {
+            margin-bottom: 0.8rem;
+        }
+
+        .bg-tp-red {
+            /*background-image: linear-gradient(250deg, #E84133, #bd3e29);*/
+            background-color: #E84133;
+        }
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .custom-control-input:checked ~ .custom-control-label::before {
+            color: #ffffff;
+            border-color: #717e86;
+            background-color: lightgreen;
+        }
+
+        .custom-control-label::before {
+            background-color: #d5d5d5;
+        }
+    </style>
+
+    <div id="js-page-content">
+        <div class="row justify-content-between px-5">
+            <div class="col-lg-6 mb-3 text-center">
+                <div class="row">
+                    <label class="form-label col-lg-3 d-flex align-items-center px-0">Group</label>
+                    <div class="col text-left">
+                        <a target="_blank" style="text-decoration: none !important; color: #BA9765;" asp-controller="OrgGroup" asp-route-GroupID="@Model.AdditionalDetails.OrgGroupId">
+                            @(Model.AdditionalDetails.OrgGroupId + " - " + Model.AdditionalDetails.OrgGroupName)
+                        </a>
+                        @if (Model.AdditionalDetails.IsOrgGroupDeleted)
+                    {
+                        <span class="font-italic" style="color: red;"> (Deleted)</span>
+                    }
+                </div>
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-3 d-flex align-items-center px-0">Organisation</label>
+                <div class="col text-left">
+                    <a target="_blank" style="text-decoration: none !important;" asp-controller="Organisation" asp-route-Id="@Model.AdditionalDetails.OrgId">
+                        @(Model.AdditionalDetails.OrgId +" - "+ Model.AdditionalDetails.OrgName)
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-3 d-flex align-items-center px-0">Contact</label>
+                <div class="col text-left">
+                    <a target="_blank" style="text-decoration: none !important;" asp-controller="Contact" asp-route-ContactID="@Model.AdditionalDetails.ContactId">
+                        @(Model.AdditionalDetails.ContactId +" - "+ Model.AdditionalDetails.ContactName)
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <label class="form-label col-lg-3 d-flex align-items-center px-0">Order</label>
+                <div class="col text-left">
+                    <a target="_blank" style="text-decoration: none !important;" asp-controller="TMSJobOrder" asp-action="JobOrder" asp-route-JobOrderId="@Model.JobOrderId">
+                        @(Model.JobOrderId.ToString() + " - " + Model.AdditionalDetails.JobOrderName)
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                @{
+                    string source = Model.Languages.Where(x => x.StringValue.ToLower() == Model.SourceLanguageIanacode.ToLower()).FirstOrDefault().Name;
+                    string target = Model.Languages.Where(x => x.StringValue.ToLower() == Model.TargetLanguageIanacode.ToLower()).FirstOrDefault().Name;
+                }
+                <label class="form-label col-lg-3 d-flex align-items-center px-0">Job item</label>
+                <label class="col text-left">@(Model.Id.ToString() + " - " + source + " to " + target)</label>
+            </div>
+            @if (Model.IsVisibleToClient == false)
+            {
+                <div class="row">
+                    <div class="col-lg-3"><i class="fal fa-eye-slash" style="font-size: 20px;"></i></div>
+                    <div class="col text-left"><label style="color: #cd0000;">This job item is not visible to the client</label></div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-6 mb-3 text-center">
+            <div class="row justify-content-lg-end">
+                @if (Model.AdditionalDetails.JobOrderChannelId == 7 || Model.AdditionalDetails.JobOrderChannelId == 8 || Model.AdditionalDetails.JobOrderChannelId == 21 || Model.AdditionalDetails.JobOrderChannelId == 22)
+                {
+                    @if (Model.WebServiceClientStatusId == 4 || Model.WebServiceClientStatusId == 7)
+                    {
+                        <span class="p-2">
+                            <img src="/img/WebServiceDeliveredIcon.png" title="Delivered and collected by client" style="float:right; height: 24px;" />
+                        </span>
+
+                    }
+                    @if (Model.WebServiceClientStatusId == 2 || Model.WebServiceClientStatusId == 6)
+                    {
+                        <span class="p-2">
+                            <img src="/img/WebServiceDeliveredButNotCollected.png" title="Delivered but not collected" style="float:right;height:24px;vertical-align:sub" />
+                        </span>
+                    }
+                     @if (Model.WebServiceClientStatusId == 1 && Model.SupplierCompletedItemDateTime!=null)
+                    {
+                        <span class="p-2">
+                            <img src="/img/WebServiceIcon.png" title="Delivered" style="float:right;height:24px;vertical-align:sub" />
+                        </span>
+                    }
+                }
+                &nbsp;
+                @if (Model.AdditionalDetails.JobOrderNetworkPath != null && Model.AdditionalDetails.JobOrderNetworkPath != "")
+                {
+                    <a class="p-2" href="@Model.AdditionalDetails.JobOrderNetworkPath">
+                        <i class="fal fa-folder-open fa-2x color-black d-block"></i>
+                        Job folder
+                    </a>
+                }
+            </div>
+            <div class="row justify-content-lg-end">
+                <label class="form-label px-4">@chargeafterdiscountsLabel</label>
+                <label class="form-label px-1">@Model.ChargeToClientAfterDiscountSurcharges.GetValueOrDefault().ToString("N2") (@Model.AdditionalDetails.OrderCurrencyName)</label>
+            </div>
+            <div class="row justify-content-lg-end">
+                <label class="form-label px-4">Margin after discount(s) and/or surcharge(s): </label>
+                <label class="form-label px-1">£ @((Model.ChargeToClientInGbpAfterDiscountSurcharges - Model.PaymentToSupplierInGbp).ToString("N2")) (@Model.MarginAfterDiscountSurcharges.GetValueOrDefault().ToString("N2") %)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            @*Key information*@
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <i class="fal fa-info-circle fa-2x color-black color-black"></i> &nbsp; &nbsp;
+                    <h2>Key information</h2>
+                </div>
+                <div class="panel-container collapse">
+                    <div class="panel-content">
+                        <div class="container">
+                            <form id="@Model.keyInfoSection">
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Visible to client</label>
+                                    <div class="custom-control custom-switch col-sm-9">
+                                        <input asp-for="@Model.IsVisibleToClient" type="checkbox" class="custom-control-input" id="@nameof(Model.IsVisibleToClient)">
+                                        <label class="custom-control-label" for="@nameof(Model.IsVisibleToClient)"><i class="fal fa-info-circle" style="font-size: 1.2rem;" data-toggle="popover" data-trigger="hover" data-placement="top" title="" data-html="true" data-content="This should be enabled unless there's a special reason why we don't want something to be visible to clients in i plus or in reporting."></i></label>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Language service category</label>
+                                    <select name="@nameof(Model.LanguageServiceCategoryId)" id="lang-service-category-dropdown" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" onchange="onCategorySelect(this);">
+                                        <option value="">(Please select)</option>
+                                        @foreach (var service in Model.LanguageServiceCategory)
+                                        {
+                                            @if (Model.LanguageServiceCategoryId == service.Id)
+                                            {
+                                                <option value="@service.Id" selected="selected">@service.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@service.Id">@service.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Language service</label>
+                                    <select name="@nameof(Model.LanguageServiceId)" id="lang-service-dropdown" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">
+                                        @foreach (var service in Model.LanguageServices)
+                                        {
+                                            @if (Model.LanguageServiceId == service.Id)
+                                            {
+                                                <option value="@service.Id" selected="selected">@service.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@service.Id">@service.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Source language</label>
+                                    <select name="@nameof(Model.SourceLanguageIanacode)" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">
+                                        @foreach (var language in Model.Languages)
+                                        {
+                                            @if (Model.SourceLanguageIanacode == language.StringValue)
+                                            {
+                                                <option value="@language.StringValue" selected="selected">@language.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@language.StringValue">@language.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Target language</label>
+                                    <select name="@nameof(Model.TargetLanguageIanacode)" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">
+                                        @foreach (var language in Model.Languages)
+                                        {
+                                            @if (Model.TargetLanguageIanacode.ToLower() == language.StringValue.ToLower())
+                                            {
+                                                <option value="@language.StringValue" selected="selected">@language.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@language.StringValue">@language.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Customer specific data</label>
+                                    <input type="text" asp-for="@Model.CustomerSpecificField" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                </div>
+                                <div class="form-group row">
+                                    @{
+                                        var totalCount = Model.WordCountNew.GetValueOrDefault() + Model.WordCountExact.GetValueOrDefault() + Model.WordCountRepetitions.GetValueOrDefault() + Model.WordCountPerfectMatches.GetValueOrDefault() + Model.WordCountFuzzyBand1.GetValueOrDefault() + Model.WordCountFuzzyBand2.GetValueOrDefault() + Model.WordCountFuzzyBand3.GetValueOrDefault() + Model.WordCountFuzzyBand4.GetValueOrDefault();
+                                    }
+                                    <label class="form-label col-lg-3 d-flex align-items-center">Word counts</label>
+                                    <span class="help-block col-2 m-0 px-0 d-flex align-items-center">New</span>
+                                    <input type="number" asp-for="@Model.WordCountNew" class="col-lg-6 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-3"></div>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">Exact</span>
+                                    <input type="number" asp-for="@Model.WordCountExact" class="col-lg-6 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-3"></div>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">Repetitions</span>
+                                    <input type="number" asp-for="@Model.WordCountRepetitions" class="col-lg-6 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-3"></div>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">Perfect matches</span>
+                                    <input type="number" asp-for="@Model.WordCountPerfectMatches" class="col-lg-6 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+
+                                    @{
+#nullable enable
+                                        string band1Label = "Band 1";
+                                        string? band1Disabled = "disabled";
+                                        string band2Label = "Band 2";
+                                        string? band2Disabled = "disabled";
+                                        string band3Label = "Band 3";
+                                        string? band3Disabled = "disabled";
+                                        string band4Label = "Band 4";
+                                        string? band4Disabled = "disabled";
+                                        if (Model.AdditionalDetails.FuzzyBand1BottomPercentage > 0)
+                                        {
+                                            band1Disabled = null;
+                                            band1Label = String.Format("{0} ({1} - {2}%)", band1Label, Model.AdditionalDetails.FuzzyBand1BottomPercentage.ToString(), Model.AdditionalDetails.FuzzyBand1TopPercentage.ToString());
+                                        }
+                                        if (Model.AdditionalDetails.FuzzyBand2BottomPercentage > 0)
+                                        {
+                                            band2Disabled = null;
+                                            band2Label = String.Format("{0} ({1} - {2}%)", band2Label, Model.AdditionalDetails.FuzzyBand2BottomPercentage.ToString(), Model.AdditionalDetails.FuzzyBand2TopPercentage.ToString());
+                                        }
+                                        if (Model.AdditionalDetails.FuzzyBand3BottomPercentage > 0)
+                                        {
+                                            band3Disabled = null;
+                                            band3Label = String.Format("{0} ({1} - {2}%)", band3Label, Model.AdditionalDetails.FuzzyBand3BottomPercentage.ToString(), Model.AdditionalDetails.FuzzyBand3TopPercentage.ToString());
+                                        }
+                                        if (Model.AdditionalDetails.FuzzyBand4BottomPercentage > 0)
+                                        {
+                                            band4Disabled = null;
+                                            band4Label = String.Format("{0} ({1} - {2}%)", band4Label, Model.AdditionalDetails.FuzzyBand4BottomPercentage.ToString(), Model.AdditionalDetails.FuzzyBand4TopPercentage.ToString());
+                                        }
+                                    }
+                                    @if (band1Disabled != "disabled")
+                                    {
+                                        <div class="px-4 col-lg-3 col-12 d-flex align-items-center"><label class="px-2">Fuzzy</label></div>
+                                        <span class="help-block col-2 m-0 px-0 d-flex align-items-center">@band1Label</span>
+                                        <input type="number" asp-for="@Model.WordCountFuzzyBand1" disabled="@band1Disabled" class="col-lg-6 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    }
+                                    @if (band2Disabled != "disabled")
+                                    {
+                                        <div class="col-3"></div>
+                                        <span class="help-block col-2 m-0 px-0 d-flex align-items-center">@band2Label</span>
+                                        <input type="number" asp-for="@Model.WordCountFuzzyBand2" disabled="@band2Disabled" class="col-lg-6 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    }
+                                    @if (band3Disabled != "disabled")
+                                    {
+                                        <div class="col-3"></div>
+                                        <span class="help-block col-2 m-0 px-0 d-flex align-items-center">@band3Label</span>
+                                        <input type="number" asp-for="@Model.WordCountFuzzyBand3" disabled="@band3Disabled" class="col-lg-6 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    }
+                                    @if (band4Disabled != "disabled")
+                                    {
+                                        <div class="col-3"></div>
+                                        <span class="help-block col-2 m-0 px-0 d-flex align-items-center">@band4Label</span>
+                                        <input type="number" asp-for="@Model.WordCountFuzzyBand4" disabled="@band4Disabled" class="col-lg-6 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    }
+                                    <div class="col-3"></div>
+                                    <div class="col-2 d-flex align-items-center px-0"><label class="form-label mt-3">Total</label></div>
+                                    <label class="form-label mt-3 col px-0" id="total-word-count">@totalCount</label>
+                                </div>
+
+                                <div class="form-group row">
+
+                                    <label class="form-label col-3 d-flex align-items-center justify-content-center">Work time</label>
+                                    <input type="number" asp-for="@Model.WorkTimeHours" class="col-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-0"></div>
+                                    <input type="number" asp-for="@Model.WorkTimeMinutes" class="col-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+
+                                    <div class="col-6"></div>
+                                    <div class="col-3"></div>
+                                    <span class="help-block col-1 m-0 px-0">Hours</span>
+                                    <div class="col-0"></div>
+                                    <span class="help-block col-lg-1 m-0 px-0">Minutes</span>
+                                </div>
+
+                                <div class="form-group row">
+                                    <label class="form-label col-3 d-flex align-items-center">@chargeLabel</label>
+                                    <label class="form-label col-lg-9 d-flex align-items-center px-0">@Model.ChargeToClient.GetValueOrDefault().ToString("N2")</label>
+                                    @*<input type="number" asp-for="@Model.ChargeToClient" value="@Model.ChargeToClient.GetValueOrDefault().ToString("N2")" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />*@
+                                    <div class="col-3"></div>
+                                    <span class="help-block m-0 px-0">(@Model.AdditionalDetails.OrderCurrencyName)</span>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-3 d-flex align-items-center">@chargeafterdiscountsLabel</label>
+                                    <label class="form-label col-lg-9 d-flex align-items-center px-0">@Model.ChargeToClientAfterDiscountSurcharges.GetValueOrDefault().ToString("N2")</label>
+                                    <div class="col-3"></div>
+                                    <span class="help-block m-0 px-0">(@Model.AdditionalDetails.OrderCurrencyName)</span>
+                                </div>
+
+                                @{
+                                    if (Model.ClientCostCalculatedById != 0)
+                                    {
+                                            <div class="form-group row">
+                                                <label class="form-label col-9 d-flex align-items-center">
+                                                    Client costs calculated by
+                                                </label>
+
+                                                @{
+                                                if (Model.ClientCostCalculatedByPriceList != null)
+                                                {
+                                                    if (Model.ClientCostCalculatedByPriceList == false)
+                                                    {
+                                                                <label class="form-label col d-flex align-items-center px-0"><a href="https://myplus.publicisgroupe.net/Employee.aspx?EmployeeID=@Model.ClientCostCalculatedById">@Model.ClientCostCalculatedById</a> &nbsp; (@Model.ClientCostCalculatedByDateTime)</label>
+                                                    }
+                                                    else
+                                                    {
+                                                                <label class="form-label col d-flex align-items-center px-0"><a href="https://myplus.publicisgroupe.net/ClientPriceList.aspx?PriceListID=@Model.ClientCostCalculatedById">@Model.ClientCostCalculatedById</a> &nbsp; (@String.Format("{0:dd/MM/yyyy HH:mm:ss}", @Model.ClientCostCalculatedByDateTime))</label>
+                                                    }
+                                                }
+                                                }
+                                            </div>
+                                    }
+                                }
+
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Client deadline</label>
+                                    <div class="col-12 col-lg-9">
+                                        @*<div class="input-group">
+                                        <input type="text" asp-for="@Model.OurCompletionDeadline" class="form-control" placeholder="Select date" id="our-deadline-datepicker">*@
+
+                                        <input type="datetime-local" asp-for="@Model.OurCompletionDeadline" id="our-deadline-datepicker" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="Select date">
+
+                                        @*<div class="input-group-append">
+                                        <span class="input-group-text fs-xl">
+                                        <i class="@(Settings.Theme.IconPrefix) fa-calendar"></i>
+                                        </span>
+                                        </div>
+                                        </div>*@
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-sm-3 d-flex align-items-center">Is this item complete?</label>
+                                    @{
+                                        string? completeEnabled = Model.CompleteCheckboxEnabled == true ? null : "disabled";
+                                    }
+                                    @{
+                                        string? completed = (Model.WeCompletedItemDateTime == null || Model.WeCompletedItemDateTime == DateTime.MinValue) ? null : "checked";
+                                    }
+                                    <div class="custom-control custom-switch col-sm-9">
+                                        <input asp-for="@Model.IsCompleted" type="checkbox" checked="@completed" disabled="@completeEnabled" class="custom-control-input" id="@nameof(Model.IsCompleted)">
+                                        <label class="custom-control-label" for="@nameof(Model.IsCompleted)">(only tick this if all aspects of the job item are complete as far as the client is concerned)</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <a href="#" id="additional-details-link" class="form-label col d-flex align-items-center">Show additional details...</a>
+                                </div>
+                                <div id="details" style="display: none;">
+
+                                    <div class="form-group row">
+                                        <label class="form-label col-lg-3 d-flex align-items-center">Pages/slides</label>
+                                        <input type="number" asp-for="@Model.Pages" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+
+                                        <div class="col-lg-3 d-flex align-items-center justify-content-end"><label class="form-label">Characters</label></div>
+                                        <input type="number" asp-for="@Model.Characters" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+
+                                        <div class=" col-lg-3 d-flex align-items-center justify-content-end"><label class="form-label">Documents</label></div>
+                                        <input type="number" asp-for="@Model.Documents" class="col-lg-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <label class="form-label col-3 d-flex align-items-center">Audio time</label>
+                                        <input type="number" asp-for="@Model.AudioTimeHours" class="col-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                        <div class="col-1"></div>
+                                        <input type="number" asp-for="@Model.AudioTimeMinutes" class="col-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+
+                                        <div class="col-5"></div>
+                                        <div class="col-3"></div>
+                                        <span class="help-block col-1 m-0 px-0">Hours</span>
+                                        <div class="col-1"></div>
+                                        <span class="help-block col-lg-1 m-0 px-0">Minutes</span>
+                                    </div>
+
+                                    <div class="form-group row">
+                                        <label class="form-label col-3 d-flex align-items-center">Interpreting expected duration</label>
+                                        @*<label class="col-1 d-flex align-items-center">Hours</label>*@
+                                        <input type="number" asp-for="@Model.InterpretingExpectedHours" class="col-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                        <div class="col-1"></div>
+                                        @*<label class="col-2 d-flex align-items-center">Minutes</label>*@
+                                        <input type="number" asp-for="@Model.InterpretingExpectedMinutes" class="col-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                        <div class="col-6"></div>
+                                        <div class="col-3"></div>
+                                        <span class="help-block col-1 m-0 px-0">Hours</span>
+                                        <div class="col-1"></div>
+                                        <span class="help-block col-lg-1 m-0 px-0">Minutes</span>
+                                        <div class="col-6"></div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="form-label col-sm-3 d-flex align-items-center">Interpreting actual duration</label>
+                                        <input type="number" asp-for="@Model.InterpretingActualHours" class="col-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                        <div class="col-1"></div>
+                                        <input type="number" asp-for="@Model.InterpretingActualMinutes" class="col-1 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                        <div class="col-6"></div>
+                                        <div class="col-3"></div>
+                                        <span class="help-block col-1 m-0 px-0">Hours</span>
+                                        <div class="col-1"></div>
+                                        <span class="help-block col-lg-1 m-0 px-0">Minutes</span>
+                                        <div class="col-6"></div>
+                                    </div>
+                                    @if (Model.AdditionalDetails.IsInterpreting == true)
+                                    {
+                                        <div class="form-group row mt-4">
+                                            <label class="form-label col-12 d-flex align-items-center">Interpreting assignment location</label>
+                                            <label class="px-4 col-3 d-flex align-items-center">Organisation name</label>
+                                            <input type="text" asp-for="@Model.InterpretingLocationOrgName" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                            <label class="px-4 col-3 d-flex align-items-center">Address</label>
+                                            <input type="text" asp-for="@Model.InterpretingLocationAddress1" class="col-lg-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                            <div class="col-1"></div>
+                                            <input type="text" asp-for="@Model.InterpretingLocationAddress2" class="col-lg-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                            <div class="col-3"></div>
+                                            <input type="text" asp-for="@Model.InterpretingLocationAddress3" class="col-lg-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                            <div class="col-1"></div>
+                                            <input type="text" asp-for="@Model.InterpretingLocationAddress4" class="col-lg-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                            <label class="px-4 col-3 d-flex align-items-center">County/state</label>
+                                            <input type="text" asp-for="@Model.InterpretingLocationCountyOrState" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                            <label class="px-4 col-3 d-flex align-items-center">Postcode/zip</label>
+                                            <input type="text" asp-for="@Model.InterpretingLocationPostcodeOrZip" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                            <label class="px-4 col-3 d-flex align-items-center">Country</label>
+                                            <select name="@nameof(Model.InterpretingLocationCountryId)" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">
+                                                <option></option>
+                                                @foreach (var country in Model.Countries)
+                                                {
+                                                    @if (Model.InterpretingLocationCountryId == country.Id)
+                                                    {
+                                                        <option value="@country.Id" selected="selected">@country.CountryName</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@country.Id">@country.CountryName</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    }
+                                </div>
+                                @if (Model.EditPageEnabled)
+                                {
+                                    <div class="form-group-row d-flex flex-row-reverse">
+                                        <button class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x color-black"></i></button>
+                                    </div>
+                                }
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            @*Supplier information*@
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <i class="fal fa-language fa-2x color-black"></i> &nbsp; &nbsp;
+                    <h2 id="supplier-panel-heading">Supplier Information</h2>
+                </div>
+                <div class="panel-container collapse">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div id="supplier-radio-buttons">
+                                <div class="form-group row">
+                                    @if (Model.AdditionalDetails.IsCLSJob == false)
+                                    {
+                                        <div class="custom-control custom-switch col text-right px-4">
+                                            @{
+                                                string? linguistIDEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                            }
+                                            <input type="radio" name="linguistRadio" class="custom-control-input" id="linguistID" value="linguist" disabled="@linguistIDEnabled">
+                                            <label class="custom-control-label" for="linguistID">Linguistic supplier ID</label>
+                                        </div>
+                                        <div class="custom-control custom-switch col">
+                                            @{
+                                                string? contactIDEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                            }
+                                            <input type="radio" name="linguistRadio" class="custom-control-input" id="contactID" value="contact" disabled="@contactIDEnabled">
+                                            <label class="custom-control-label" for="contactID">Client contact ID</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="form-group row col mt-3"><span id="supplier-info" class="font-italic">(This information should <b>not normally be shared with the client</b>)</span></div>
+                            <form id="@Model.supplierInfoSection">
+                                <div class="form-group row">
+                                    <label class="form-label col-2 d-flex align-items-center" id="supplier-id-label">Linguistic supplier ID</label>
+
+                                    <div class="custom-control custom-switch col-3" id="supplier-id-row">
+                                        @{
+                                            string? usesupplieridEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                        }
+                                        <input type="checkbox" class="custom-control-input" id="usesupplierid" disabled="@usesupplieridEnabled">
+                                        <label class="custom-control-label" for="usesupplierid">Use supplier ID</label>
+                                    </div>
+
+                                    <div id="linguistid-div" class="col-5" style="display: none;">
+                                        @{
+                                            string? linguistidinputEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                        }
+                                        <input type="number" id="linguistidinput" class="col-5 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" onblur="checkforsupplierpaymentcurrency();" disabled="@linguistidinputEnabled" />
+                                    </div>
+
+                                    <div id="internal-linguist-div" style="display: none; display: contents;">
+                                        <input type="text" id="internal-linguist-input" disabled value="19568 - translate plus internal linguist" class="col-7 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    </div>
+                                    <div id="linguist-or-contact-div" style="display:contents;">
+                                        @{
+                                            string? ajaxSearchEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                        }
+                                        <select class="js-data-example-ajax form-control" id="ajax-search" onchange="checkforpaymentcurrency();" disabled="@ajaxSearchEnabled"></select>
+                                    </div>
+                                    <div class="col-5" id="column5"></div>
+
+
+
+                                    <div id="linguist-contact-details-div" class="col-5" style="display: none; display: contents;">
+                                        @*<label id="linguist-contact-details">@Model.LinguisticSupplierOrClientReviewerId - @Model.SupplierOrContactName</label>*@
+
+                                        @if (Model.LinguisticSupplierOrClientReviewerId != null)
+                                        {
+                                            @if (Model.SupplierIsClientReviewer == null || Model.SupplierIsClientReviewer == false)
+                                            {
+                                                <a href="https://myplusbeta.publicisgroupe.net/Linguist?id=@Model.LinguisticSupplierOrClientReviewerId" target="_blank">@Model.LinguisticSupplierOrClientReviewerId - @Model.SupplierOrContactName&nbsp;</a>
+                                            }
+                                            else
+                                            {
+                                                <a href="http://myplusbeta.publicisgroupe.net/Contact?contactid=@Model.LinguisticSupplierOrClientReviewerId" target="_blank">@Model.LinguisticSupplierOrClientReviewerId - @Model.SupplierOrContactName&nbsp;</a>
+                                            }
+
+                                            <div class="custom-control custom-switch col" id="remove-supplier-row">
+                                                @{
+                                                    string? removesupplierEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                                }
+                                                <input type="checkbox" class="custom-control-input" id="removesupplier" disabled="@removesupplierEnabled">
+                                                <label class="custom-control-label" for="removesupplier">Remove</label>
+                                            </div>
+                                        }
+                                    </div>
+                                    @if (Model.ClientReviewers != null && Model.ClientReviewers.Count() > 0)
+                                    {
+                                        <div id="reviewer-div" style="display:contents;">
+                                            <select name="@nameof(Model.LinguisticSupplierOrClientReviewerId)" style="display: none;" id="reviewer-input" class="form-control">
+                                                @if (Model.SupplierIsClientReviewer == null || Model.SupplierIsClientReviewer == false || Model.LinguisticSupplierOrClientReviewerId == null)
+                                                {
+                                                    <option selected="selected" disabled value="0">Please select the reviewer</option>
+                                                }
+                                                @if (Model.ClientReviewers != null)
+                                                {
+                                                    foreach (var contact in Model.ClientReviewers)
+                                                    {
+                                                        <option value="@contact.Id">@(contact.Id + " - " + contact.Name)</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    }
+                                    <div class="col-5"></div>
+                                    <div class="custom-control custom-switch col" id="internal-linguist-row">
+                                        @{
+                                            string? internalLinguistEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                        }
+                                        <input type="checkbox" class="custom-control-input" id="internalLinguist" disabled="@internalLinguistEnabled" onblur="checkforsupplierpaymentcurrencyforTPIL();">
+                                        <label class="custom-control-label" for="internalLinguist">Use translate plus internal linguist</label>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    @{
+                                        string? DescriptionForSupplierOnlyEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                    }
+                                    <label class="form-label col-5 d-flex align-items-center" id="supplier-description">Our description to the supplier</label>
+                                    <textarea asp-for="@Model.DescriptionForSupplierOnly" class="col-lg-7 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" disabled="@DescriptionForSupplierOnlyEnabled"></textarea>
+                                </div>
+                                <div class="form-group row">
+                                    @{
+#nullable enable
+                                        string? defaultSelected = Model.TranslationMemoryRequired == 2 ? "selected" : null;
+                                        string? NoSelected = Model.TranslationMemoryRequired == 0 ? "selected" : null;
+                                        string? YesSelected = Model.TranslationMemoryRequired == 1 ? "selected" : null;
+                                        string? tagSelected = Model.TranslationMemoryRequired == 4 ? "selected" : null;
+                                        string? TradosSelected = Model.TranslationMemoryRequired == 5 ? "selected" : null;
+                                        string? AcrossSelected = Model.TranslationMemoryRequired == 6 ? "selected" : null;
+                                        string? notSelected = Model.TranslationMemoryRequired == 3 ? "selected" : null;
+                                    }
+                                    <label class="form-label col-5 d-flex align-items-center">Translation memory required?</label>
+                                    @{
+                                        string? TranslationMemoryEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                    }
+                                    <select name="@nameof(Model.TranslationMemoryRequired)" class="col-lg-5 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" disabled="@TranslationMemoryEnabled">
+                                        <option selected="@defaultSelected" value="2">(Please select)</option>
+                                        <option selected="@NoSelected" value="0">No</option>
+                                        <option selected="@YesSelected" value="1">Yes</option>
+                                        <option selected="@tagSelected" value="4">Yes; Trados TagEditor is required</option>
+                                        <option selected="@TradosSelected" value="5">Yes; Trados 2009 or 2011 is required</option>
+                                        <option selected="@AcrossSelected" value="6">Yes; Across is required</option>
+                                        <option selected="@notSelected" value="3">Not applicable</option>
+                                    </select>
+                                </div>
+                                <div class="form-group row">
+                                    @{
+                                        int total = Model.SupplierWordCountNew.GetValueOrDefault() + Model.SupplierWordCountExact.GetValueOrDefault() + Model.SupplierWordCountRepetitions.GetValueOrDefault() + Model.SupplierWordCountPerfectMatches.GetValueOrDefault() + @Model.SupplierWordCountFuzzyBand1.GetValueOrDefault() + @Model.SupplierWordCountFuzzyBand2.GetValueOrDefault() + @Model.SupplierWordCountFuzzyBand3.GetValueOrDefault() + @Model.SupplierWordCountFuzzyBand4.GetValueOrDefault();
+                                    }
+                                    <label class="form-label col-5 d-flex align-items-end">Supplier word counts</label>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">New</span>
+                                    <input type="number" asp-for="@Model.SupplierWordCountNew" class="col-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-5"></div>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">Exact</span>
+                                    <input type="number" asp-for="@Model.SupplierWordCountExact" class="col-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-5"></div>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">Repetitions</span>
+                                    <input type="number" asp-for="@Model.SupplierWordCountRepetitions" class="col-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-5"></div>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">Perfect matches</span>
+                                    <input type="number" asp-for="@Model.SupplierWordCountPerfectMatches" class="col-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+
+
+                                    <div class="px-4 col-lg-5 col-12 d-flex align-items-center justify-content-center"><label class="px-2">Fuzzy</label></div>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">Band 1 (50 - 74%)</span>
+                                    <input type="number" asp-for="@Model.SupplierWordCountFuzzyBand1" class="col-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-5"></div>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">Band 2 (75 - 84%)</span>
+                                    <input type="number" asp-for="@Model.SupplierWordCountFuzzyBand2" class="col-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-5"></div>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">Band 3 (85 - 94%)</span>
+                                    <input type="number" asp-for="@Model.SupplierWordCountFuzzyBand3" class="col-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-5"></div>
+                                    <span class="help-block col-lg-2 m-0 px-0 d-flex align-items-center">Band 4 (95 - 99%)</span>
+                                    <input type="number" asp-for="@Model.SupplierWordCountFuzzyBand4" class="col-4 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+
+                                    <div class="col-lg-5 col-sm-8"></div>
+                                    <div class="col-2 d-flex align-items-center px-0"><label class="form-label mt-3">Total</label></div>
+                                    <label class="form-label mt-3 col px-0" id="supplier-total-word-count">@total</label>
+                                </div>
+                                <div class="form-group row">
+                                    @{
+                                        string? SupplierSentWorkEnabled = (ViewBag.JobItemInvoice == null && Model.WeCompletedItemDateTime == null) ? null : "true";
+                                    }
+                                    <label class="form-label col-5 d-flex align-items-center" id="sent-to-label">Sent to supplier</label>
+                                    <div class="col-7">
+                                        <input type="datetime-local" asp-for="@Model.SupplierSentWorkDateTime" id="supplier-sent-datepicker" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="Select date" disabled="@SupplierSentWorkEnabled">
+                                        @*<div class="input-group">
+                                        <input type="text" asp-for="@Model.SupplierSentWorkDateTime" class="form-control" placeholder="Select date" id="supplier-sent-datepicker">
+                                        <div class="input-group-append">
+                                        <span class="input-group-text fs-xl">
+                                        <i class="@(Settings.Theme.IconPrefix) fa-calendar"></i>
+                                        </span>
+                                        </div>
+                                        </div>*@
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    @{
+                                        string? SupplierAcceptedEnabled = (ViewBag.JobItemInvoice == null && Model.WeCompletedItemDateTime == null) ? null : "true";
+                                    }
+                                    <label class="form-label col-5 d-flex align-items-center" id="accepted-by-label">Accepted by supplier</label>
+                                    <div class="col-7">
+                                        <input type="datetime-local" asp-for="@Model.SupplierAcceptedWorkDateTime" id="supplier-accepted-datepicker" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="Select date" disabled="@SupplierAcceptedEnabled">
+                                        @*<div class="input-group">
+                                        <input type="text" asp-for="@Model.SupplierAcceptedWorkDateTime" class="form-control" placeholder="Select date" id="supplier-accepted-datepicker">
+                                        <div class="input-group-append">
+                                        <span class="input-group-text fs-xl">
+                                        <i class="@(Settings.Theme.IconPrefix) fa-calendar"></i>
+                                        </span>
+                                        </div>
+                                        </div>*@
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    @{
+                                        string? SupplierCompletionEnabled = (ViewBag.JobItemInvoice == null && Model.WeCompletedItemDateTime == null) ? null : "true";
+                                    }
+                                    <label class="form-label col-5 d-flex align-items-center" id="deadline-label">Supplier's deadline</label>
+                                    <div class="col-7">
+                                        <input type="datetime-local" asp-for="@Model.SupplierCompletionDeadline" id="supplier-deadline-datepicker" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="Select date" disabled="@SupplierCompletionEnabled">
+                                        @*<div class="input-group">
+                                        <input type="text" asp-for="@Model.SupplierCompletionDeadline" class="form-control" placeholder="Select date" id="supplier-deadline-datepicker">
+                                        <div class="input-group-append">
+                                        <span class="input-group-text fs-xl">
+                                        <i class="@(Settings.Theme.IconPrefix) fa-calendar"></i>
+                                        </span>
+                                        </div>
+                                        </div>*@
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    @{
+                                        string? SupplierCompletedEnabled = (ViewBag.JobItemInvoice == null && Model.WeCompletedItemDateTime == null && ViewBag.IsACMSProject == 0) ? null : "true";
+                                    }
+                                    <label class="form-label col-5 d-flex align-items-center" id="completed-by-label">Completed by supplier on</label>
+                                    <div class="col-7">
+                                        <input type="datetime-local" asp-for="@Model.SupplierCompletedItemDateTime" id="supplier-completed-datepicker" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" placeholder="Select date" disabled="@SupplierCompletedEnabled">
+                                        @*<div class="input-group">
+                                        <input type="text" asp-for="@Model.SupplierCompletedItemDateTime" class="form-control" placeholder="Select date" id="supplier-completed-datepicker">
+                                        <div class="input-group-append">
+                                        <span class="input-group-text fs-xl">
+                                        <i class="@(Settings.Theme.IconPrefix) fa-calendar"></i>
+                                        </span>
+                                        </div>
+                                        </div>*@
+                                    </div>
+                                </div>
+                                @if (Model.ShowSignOffComments)
+                                {
+                                    <div class="form-group row">
+                                        @{
+                                            string? ShowSignOffCommentsEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                        }
+                                        <label class="form-label col-5 d-flex align-items-center">Client review signoff comments</label>
+                                        <textarea asp-for="@Model.ExtranetSignoffComment" class="col-lg-7 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" disabled="@ShowSignOffCommentsEnabled"></textarea>
+                                    </div>
+                                }
+                                <div class="form-group row">
+                                    @{
+                                        string? paymentCurrency = Model.SupplierInvoiceCurrencyEnabled == true ? null : "disabled";
+                                    }
+                                    <label class="form-label col-5 d-flex align-items-center" id="payment-currency-label">Supplier payment currency</label>
+                                    <select name="@nameof(Model.PaymentToSupplierCurrencyId)" disabled="true" class="col-lg-5 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="supplierpaymentcurrencies">
+                                        <option></option>
+                                        @foreach (var currency in Model.Currencies)
+                                        {
+                                            @if (Model.PaymentToSupplierCurrencyId == currency.Id)
+                                            {
+                                                <option value="@currency.Id" selected="selected">@(currency.Name+" ("+currency.StringValue + ")")</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@currency.Id">@(currency.Name+" ("+currency.StringValue + ")")</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group row">
+                                    @{
+                                        string? PaymentToSupplierEnabled = ViewBag.JobItemInvoice == null ? null : "true";
+                                    }
+                                    <label class="form-label col-5 d-flex align-items-center" id="payment-to-label">Payment to supplier</label>
+                                    <input type="number" name="@nameof(Model.PaymentToSupplier)" value="@Model.PaymentToSupplier.GetValueOrDefault().ToString("0.00")" class="col-2 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" disabled="@PaymentToSupplierEnabled" />
+                                    <div class="col-1"></div>
+                                    <div class="custom-control custom-switch col-4">
+                                        @Html.CheckBox(nameof(Model.MinimumSupplierChargeApplied), Model.MinimumSupplierChargeApplied ?? false, new { Class = "custom-control-input", id = nameof(Model.MinimumSupplierChargeApplied) })
+                                        <label class="custom-control-label" for="@nameof(Model.MinimumSupplierChargeApplied)">Minimum charges applied</label>
+                                    </div>
+                                </div>
+
+                                @{
+                                    if (Model.SupplierCostCalculatedById != 0)
+                                    {
+                                            <div class="form-group row">
+                                                <label class="form-label col-5 d-flex align-items-center">
+                                                    Supplier costs calculated by
+                                                </label>
+
+                                                @{
+                                                if (Model.SupplierCostCalculatedByPriceList != null)
+                                                {
+                                                    if (Model.SupplierCostCalculatedByPriceList == false)
+                                                    {
+                                                                <label class="col-5 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent"><a href="https://myplus.publicisgroupe.net/Employee.aspx?EmployeeID=@Model.SupplierCostCalculatedById">@Model.SupplierCostCalculatedById</a>&nbsp;(@Model.SupplierCostCalculatedByDateTime)</label>
+                                                    }
+                                                    else
+                                                    {
+                                                                <label class="col-5 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">Supplier price rate ID @Model.SupplierCostCalculatedById&nbsp;(@String.Format("{0:dd/MM/yyyyHH:mm:ss}", @Model.SupplierCostCalculatedByDateTime))</label>
+                                                    }
+                                                }
+                                                }
+                                        </div>
+                                    }
+                                }
+                                @if (ViewBag.JobItemInvoice!=null) {
+                                    <div class="form-group row">
+                                        <label class="form-label col-5 d-flex align-items-center">Supplier invoice</label>
+                                        <div class="col-7">
+                                            
+                                                <label class="col-7 form-label col d-flex align-items-center px-0"><a target="_blank" href="https://myplus.publicisgroupe.net/LinguisticSupplierInvoice.aspx?InvoiceID=@ViewBag.JobItemInvoice.Id">Invoice @ViewBag.JobItemInvoice.Id </a></label>
+                                            
+                                        </div>
+                                    </div>
+                                }
+                                @{
+                                    string? supplierPaymentEnabled = Model.SupplierInvoiceFieldsEnabled == true ? null : "disabled";
+                                }
+                                <div class="form-group row">
+                                    <label class="form-label col-5 d-flex align-items-center" id="invoice-label">Supplier invoice paid</label>
+                                    <div class="col-7">
+                                        <div class="input-group">
+                                            <input type="text" asp-for="@Model.SupplierInvoicePaidDate" disabled="@supplierPaymentEnabled" class="form-control" placeholder="Select date" id="supplier-invoice-paid-datepicker">
+                                            <div class="input-group-append">
+                                                <span class="input-group-text fs-xl">
+                                                    <i class="@(Settings.Theme.IconPrefix) fa-calendar"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-5 d-flex align-items-center" id="invoice-payment-method-label">Supplier invoice payment method</label>
+                                    <select name="@nameof(Model.SupplierInvoicePaidMethodId)" disabled="@supplierPaymentEnabled" class="col-lg-5 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">
+                                        <option></option>
+                                        @foreach (var method in Model.PaymentMethods)
+                                        {
+                                            @if (Model.SupplierInvoicePaidMethodId == method.Id)
+                                            {
+                                                <option value="@method.Id" selected="selected">@method.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@method.Id">@method.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                @if (Model.EditPageEnabled)
+                                {
+                                    <div class="form-group-row d-flex flex-row-reverse">
+                                        <button class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x color-black"></i></button>
+                                    </div>
+                                }
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            @*Profitability*@
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <i class="fal fa-money-bill-wave fa-2x color-black"></i> &nbsp; &nbsp;
+                    <h2>Profitability</h2>
+                </div>
+                <div class="panel-container collapse">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div class="form-group row col"><span class="font-italic">(Be aware that these figures relate only to this specific job item and may not be a reflection of the overall profitability of the order)</span></div>
+                            <form id="@Model.profitabilitySection">
+                                <div class="form-group row">
+                                    <label class="form-label col-9 d-flex align-items-center">@chargeLabel</label>
+                                    <input type="number" asp-for="@Model.ChargeToClient" value="@Model.ChargeToClient.GetValueOrDefault().ToString("F")" class="col-lg-2 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" />
+                                    <div class="col-9"></div>
+                                    <span class="help-block m-0 px-0">(@Model.AdditionalDetails.OrderCurrencyName)</span>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-9 d-flex align-items-center">@chargeafterdiscountsLabel</label>
+                                    <label class="form-label col-lg-2 d-flex align-items-center px-0">@Model.ChargeToClientAfterDiscountSurcharges.GetValueOrDefault().ToString("N2")</label>
+                                    <div class="col-9"></div>
+                                    <span class="help-block m-0 px-0">(@Model.AdditionalDetails.OrderCurrencyName)</span>
+                                </div>
+                                @if (Model.AdditionalDetails.EarlyPaymentDiscount>0) {
+                                    <div class="form-group row">
+                                        <label class="form-label col-9 d-flex align-items-center">Anticipated total value:</label>
+                                        <label class="form-label col-lg-2 d-flex align-items-center px-0">@Model.AnticipatedFinalValueAmount.GetValueOrDefault().ToString("N2")</label>
+                                        <div class="col-9"></div>
+                                        <span class="help-block m-0 px-0">(@Model.AdditionalDetails.OrderCurrencyName)</span>
+                                    </div>
+                                }
+                                @{
+                                    if (Model.ClientCostCalculatedById != 0)
+                                    {
+                                            <div class="form-group row">
+                                                <label class="form-label col-6 d-flex align-items-center">
+                                                    Client costs calculated by
+                                                </label>
+
+                                                @{
+                                                if (Model.ClientCostCalculatedByPriceList != null)
+                                                {
+                                                    if (Model.ClientCostCalculatedByPriceList == false)
+                                                    {
+                                                                <label class="form-label col d-flex align-items-center px-0"><a href="https://myplus.publicisgroupe.net/Employee.aspx?EmployeeID=@Model.ClientCostCalculatedById">@Model.ClientCostCalculatedById</a> &nbsp; (@Model.ClientCostCalculatedByDateTime)</label>
+                                                    }
+                                                    else
+                                                    {
+                                                                <label class="form-label col d-flex align-items-center px-0"><a href="https://myplus.publicisgroupe.net/ClientPriceList.aspx?PriceListID=@Model.ClientCostCalculatedById">@Model.ClientCostCalculatedById</a> &nbsp; (@String.Format("{0:dd/MM/yyyy HH:mm:ss}", @Model.ClientCostCalculatedByDateTime))</label>
+                                                    }
+                                                }
+                                                }
+                                            </div>
+                                    }
+                                }
+
+
+                                <div class="form-group row">
+                                    <label class="form-label col-9 d-flex align-items-center">
+                                        Margin before discount(s) and/or surcharge(s) &nbsp;
+                                        <i class="fal fa-info-circle" style="font-size: 1.2rem;" data-toggle="popover" data-trigger="click" data-placement="top" title="" data-html="true" data-content='<span class="font-weight-lighter font-italic">(This is a GBP-based calculation which, where necessary, will have involved <a target="_blank" href="http://myplus/ExchangeRates.aspx">currency conversions</a>)</span>'></i>
+                                    </label>
+                                    <label class="form-label col d-flex align-items-center px-0">£ @((Model.ChargeToClientInGbp - Model.PaymentToSupplierInGbp).ToString("N2")) (@Model.MarginPercentage.ToString("N2") %) </label>
+
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-9 d-flex align-items-center">
+                                        Margin after discount(s) and/or surcharge(s) &nbsp;
+                                        <i class="fal fa-info-circle" style="font-size: 1.2rem;" data-toggle="popover" data-trigger="click" data-placement="top" title="" data-html="true" data-content='<span class="font-weight-lighter font-italic">(This is a GBP-based calculation which, where necessary, will have involved <a target="_blank" href="http://myplus/ExchangeRates.aspx">currency conversions</a>)</span>'></i>
+                                    </label>
+                                    <label class="form-label col d-flex align-items-center px-0">£ @((Model.ChargeToClientInGbpAfterDiscountSurcharges - Model.PaymentToSupplierInGbp).ToString("N2")) (@Model.MarginAfterDiscountSurcharges.GetValueOrDefault().ToString("N2") %) </label>
+                                </div>
+                                @if (Model.AdditionalDetails.EarlyPaymentDiscount > 0)
+                                {
+                                    <div class="form-group row">
+                                        <label class="form-label col-9 d-flex align-items-center">
+                                        Anticipated margin &nbsp;
+                                        <i class="fal fa-info-circle" style="font-size: 1.2rem;" data-toggle="popover" data-trigger="click" data-placement="top" title="" data-html="true" data-content='<span class="font-weight-lighter font-italic">(This is a GBP-based calculation which, where necessary, will have involved <a target="_blank" href="http://myplus/ExchangeRates.aspx">currency conversions</a>)</span>'></i>
+                                    </label>
+                                    <label class="form-label col d-flex align-items-center px-0">£ @((Model.AnticipatedChargeToClientInGbpAfterDiscountSurcharges - Model.PaymentToSupplierInGbp).ToString("N2")) (@Model.AnticipatedGrossMarginPercentage.GetValueOrDefault().ToString("N2") %) </label>
+                                </div>}
+                                @if (Model.EditPageEnabled)
+                                {
+                                    <div class="form-group-row d-flex flex-row-reverse">
+                                        <button class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x color-black"></i></button>
+                                    </div>
+                                }
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            @*Other*@
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <i class="fal fa-calendar-alt fa-2x color-black"></i> &nbsp; &nbsp;
+                    <h2>Other</h2>
+                </div>
+                <div class="panel-container collapse">
+                    <div class="panel-content">
+                        <div class="container">
+                            <form>
+                                <div class="form-group row">
+                                    <label class="form-label col-5 d-flex align-items-center">Job item created on</label>
+                                    <label class="form-label col-7">@Model.CreatedDateTime.ToString("dd MMMM yyyy HH:mm")</label>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-5 d-flex align-items-center">Job item created by</label>
+                                    <div class="form-label col-7">@await Component.InvokeAsync("EmployeeDetails", new { employeeId = Model.CreatedByEmployeeId, displayJobTitle = true })</div>
+                                </div>
+                                <div class="form-group row">
+                                    @{
+                                        string lastModified = Model.LastModifiedDateTime == null ? "(never)" : Model.LastModifiedDateTime.GetValueOrDefault().ToString("dd MMMM yyyy HH:mm");
+                                    }
+                                    <label class="form-label col-5 d-flex align-items-center">Item details last modified on</label>
+                                    <label class="form-label col-7">@lastModified</label>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="form-label col-5 d-flex align-items-center">Item details last modified by</label>
+                                    <div class="form-label col-7">@await Component.InvokeAsync("EmployeeDetails", new { employeeId = Model.LastModifiedByEmployeeId, displayJobTitle = true })</div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <input value="@Model.AdditionalDetails.IsCLSJob" type="hidden" id="IsCLSJob" />
+        @if ((Model.AdditionalDetails.IsCLSJob == true || Model.AdditionalDetails.TypeOfOrder == 3 || Model.AdditionalDetails.TypeOfOrder == 4 || Model.AdditionalDetails.TypeOfOrder == 5))
+        {
+
+
+
+            @*<div class="row">*@
+            <div class="col-lg-6">
+                <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                    <div class="panel-hdr">
+                        <i class="fal fa-list-alt fa-2x color-black color-black"></i> &nbsp; &nbsp;
+                        <h2>Creative Language Services / Transcreation & Production</h2>
+                    </div>
+                    @{
+                        string? clsEnabled = Model.EditPageEnabled == true ? null : "disabled";
+                    }
+                    <div class="panel-container collapse">
+                        <div class="panel-content">
+                            <div class="container">
+                                <form>
+                                    @if (Model.PGDDetails != null)
+                                    {
+                                        <div class="form-group row">
+                                            @{
+                                                var markets = Model.PGDDetails.Markets.Split(",");
+                                            }
+                                            <label class="form-label col-sm-3 d-flex align-items-center" id="marketsHeader">Markets (@markets.Length.ToString())</label>
+                                            <select name="Markets" class="select2 form-control" multiple="multiple" id="Markets" disabled="@clsEnabled">
+                                                @foreach (var country in Model.Countries)
+                                                {
+                                                    if (markets.Contains(country.CountryName))
+                                                    {
+                                                        <option value="@country.CountryName" selected>@country.CountryName</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@country.CountryName">@country.CountryName</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="form-group row">
+
+                                            <label class="form-label col-sm-3 d-flex align-items-center" id="marketsHeader">Markets</label>
+                                            <select name="Markets" class="select2 form-control" multiple="multiple" id="Markets" disabled="@clsEnabled">
+                                                @foreach (var country in Model.Countries)
+                                                {
+                                                    <option value="@country.CountryName">@country.CountryName</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    }
+
+                                    @*<div class="form-group row">
+                                <label class="form-label col-sm-3 d-flex align-items-center">Service</label>
+                                <select name="pgdService" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent">
+                                @foreach (var service in Model.PGDServices)
+                                {
+                                if (Model.PGDDetails.Service == service.Name)
+                                {
+                                <option value="@service.Name" selected>@service.Name</option>
+                                }
+                                else
+                                {
+                                <option value="@service.Name">@service.Name</option>
+                                }
+                                }
+                                </select>
+                                </div>*@
+                                    @if (Model.PGDDetails != null)
+                                    {
+                                        <div class="form-group row">
+                                            @{
+                                                var assets = Model.PGDDetails.AssetsOverview.Split(",");
+                                            }
+                                            <label class="form-label col-sm-3 d-flex align-items-center" id="assetsHeader">Assets overview  (@assets.Length.ToString())</label>
+                                            @*@{ var assets = Model.PGDDetails.AssetsOverview.Split(","); }*@
+                                            @{
+                                                if (Model.LanguageServiceId == 6 || Model.LanguageServiceId == 7 || Model.LanguageServiceId == 36 || Model.LanguageServiceId == 49)
+                                                {
+                                                //var assets = Model.PGDDetails.AssetsOverview.Split(",");
+                                                        <select id="pgdAssets" name="pgdAssests" class="select2 form-control" multiple="multiple" onchange="addassetoption();" disabled="@clsEnabled">
+                                                            @foreach (var asset in Model.PGDDropdownItems)
+                                                        {
+                                                                <option value="@asset.Name">@asset.Name</option>
+
+                                                            if (assets.Contains(asset.Name))
+                                                            {
+                                                                var counter = System.Text.RegularExpressions.Regex.Matches(Model.PGDDetails.AssetsOverview, asset.Name).Count;
+                                                                for (Int32 j = 0; j < counter; j++)
+                                                                {
+                                                                        <option value="@asset.Name" selected>@asset.Name</option>
+                                                                }
+
+                                                            }
+                                                            //else
+                                                            //{
+                                                            //<option value="@asset.Name">@asset.Name</option>
+                                                            //}
+                                                        }
+                                                        </select>
+                                                }
+                                                else
+                                                {
+                                                    if (Model.LanguageServiceId != 61)
+                                                    {
+                                                            <textarea id="Assetsinput" rows="5" class="form-control form-control-sm col-sm-7 rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" asp-for="PGDDetails.AssetsOverview" disabled="@clsEnabled">@Html.Encode(Model.PGDDetails.AssetsOverview)</textarea>
+                                                    }
+                                                }
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="form-group row">
+
+                                            <label class="form-label col-sm-3 d-flex align-items-center" id="assetsHeader">Assets overview</label>
+
+                                            @{
+                                                if (Model.LanguageServiceId == 6 || Model.LanguageServiceId == 7 || Model.LanguageServiceId == 36 || Model.LanguageServiceId == 49)
+                                                {
+                                                //var assets = Model.PGDDetails.AssetsOverview.Split(",");
+                                                        <select id="pgdAssets" name="pgdAssests" class="select2 form-control" multiple="multiple" onchange="addassetoption();" disabled="@clsEnabled">
+                                                            @foreach (var asset in Model.PGDDropdownItems)
+                                                        {
+                                                                <option value="@asset.Name">@asset.Name</option>
+
+                                                        }
+                                                        </select>
+                                                }
+                                                else
+                                                {
+                                                    if (Model.LanguageServiceId != 61)
+                                                    {
+                                                            <textarea id="Assetsinput" rows="5" class="form-control form-control-sm col-sm-7 rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" asp-for="PGDDetails.AssetsOverview" disabled="@clsEnabled">@Html.Encode(Model.PGDDetails.AssetsOverview)</textarea>
+                                                    }
+                                                }
+                                            }
+                                        </div>
+                                    }
+                                    @if (Model.LanguageServiceId == 36)
+                                    {
+                                        <div class="form-group row">
+                                            <label class="form-label col-sm-3 d-flex align-items-center">Copydeck stored</label>
+                                            <div class="custom-control custom-switch col-sm-9">
+                                                <input asp-for="PGDDetails.CopydeckStored" type="checkbox" class="custom-control-input" id="CopydeckStoredinput" disabled="@clsEnabled">
+                                                <label class="custom-control-label" for="CopydeckStoredinput"></label>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @if (Model.LanguageServiceId == 6 || Model.LanguageServiceId == 49)
+                                    {
+                                        <div class="form-group row">
+                                            <label class="form-label col-3 d-flex align-items-center">VO talent</label>
+                                            <input type="text" id="votalentinput" asp-for="PGDDetails.Votalent" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@(Model.PGDDetails==null?"": Model.PGDDetails.Votalent)" disabled="@clsEnabled" />
+                                        </div>
+                                    }
+                                    @if (Model.LanguageServiceId == 49)
+                                    {
+                                        <div class="form-group row">
+                                            <label class="form-label col-sm-3 d-flex align-items-center">Buyout agreement signed</label>
+                                            <div class="custom-control custom-switch col-sm-9">
+                                                <input asp-for="PGDDetails.BuyoutAgreementSigned" type="checkbox" class="custom-control-input" id="BuyoutAgreementSignedinput" disabled="@clsEnabled">
+                                                <label class="custom-control-label" for="BuyoutAgreementSignedinput"></label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="form-label col-sm-3 d-flex align-items-center">Usage type</label>
+                                            <select id="usagetype" name="usagetype" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" disabled="@clsEnabled">
+                                                <option value="">(Please Select)</option>
+                                                @foreach (var service in Model.AllPGDDropdownItems.Where(x => x.VodropdownListId == 11))
+                                                {
+                                                    if (Model.PGDDetails == null)
+                                                    {
+
+                                                        <option value="@service.Value">@service.Value</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        if (Model.PGDDetails.UsageType == service.Value)
+                                                        {
+                                                            <option value="@service.Value" selected>@service.Value</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@service.Value">@service.Value</option>
+                                                        }
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="form-label col-sm-3 d-flex align-items-center">Usage duration</label>
+                                            <select id="usageduration" name="usageduration" class="col-lg-9 form-control form-control-md rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" disabled="@clsEnabled">
+                                                <option value="-1">(Please Select)</option>
+                                                @foreach (var service in Model.AllPGDDropdownItems.Where(x => x.VodropdownListId == 14))
+                                                {
+                                                    if (Model.PGDDetails == null)
+                                                    {
+
+                                                        <option value="@service.Idvalue">@service.Value</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        if (Model.PGDDetails.UsageDuration == service.Idvalue)
+                                                        {
+                                                            <option value="@service.Idvalue" selected>@service.Value</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@service.Idvalue">@service.Value</option>
+                                                        }
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        @*<div class="form-group row">
+                                <label class="form-label col-sm-3 d-flex align-items-center">Air date:</label>
+                                <div class="col-12 col-lg-9">
+                                <div class="input-group">
+                                <input type="date" asp-for="PGDDetails.AirDate" id="AirDateinput" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@String.Format("{0:yyyy-MM-dd}", Model.PGDDetails.AirDate)">
+                                </div>
+                                </div>
+                                </div>*@
+                                        <div class="form-group row">
+                                            <label class="form-label col-sm-3 d-flex align-items-center">Usage start date:</label>
+                                            <div class="col-12 col-lg-9">
+                                                <div class="input-group">
+                                                    <input type="date" asp-for="PGDDetails.UsageStartDate" id="UsageStartDateinput" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@(Model.PGDDetails==null? "": String.Format("{0:yyyy-MM-dd}", Model.PGDDetails.UsageStartDate))" disabled="@clsEnabled">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <label class="form-label col-sm-3 d-flex align-items-center">Usage end date:</label>
+                                            <div class="col-12 col-lg-9">
+                                                <div class="input-group">
+                                                    <input type="date" id="UsageEndDateinput" asp-for="PGDDetails.UsageEndDate" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@(Model.PGDDetails==null? "": String.Format("{0:yyyy-MM-dd}", Model.PGDDetails.UsageEndDate))" disabled="@clsEnabled">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="form-group-row d-flex flex-row-reverse">
+                                        @*<button class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save"><i class="far fa-cloud-upload fa-2x color-black"></i></button>*@
+                                        @if (Model.EditPageEnabled)
+                                        {
+                                            <button id="updateclsinfobutton" class="@(Settings.Theme.IconPrefix) btn btn-outline-default" type="submit" title="Save" onclick="updateclsinformation(@Model.Id);"><i class="far fa-cloud-upload fa-2x"></i></button>
+                                        }
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @*</div>*@
+        }
+
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            @*Action Centre*@
+            <div class="panel panel-locked" data-panel-lock="false" data-panel-close="false" data-panel-fullscreen="false" data-panel-collapsed="true" data-panel-color="false" data-panel-locked="false" data-panel-refresh="false" data-panel-reset="false">
+                <div class="panel-hdr">
+                    <h2>
+                        Action Centre
+                    </h2>
+                </div>
+                <div class="panel-hdr">
+                    <div class="panel-toolbar pr-3 align-self-end">
+                        <ul id="demo_panel-tabs" class="nav nav-tabs border-bottom-0 nav-tabs-clean" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-toggle="tab" href="#tab_default-1" role="tab"><i class="fal fa-cogs fa-1x"></i>&nbsp;Management</a>
+                            </li>
+                            @*<li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#tab_default-2" role="tab"><i class="fal fa-child fa-1x"></i>&nbsp;Pricelists</a>
+                            </li>*@
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="tab-content p-3">
+                    <div class="tab-pane fade show active" id="tab_default-1" role="tabpanel">
+                        <div class="row justify-content-center">
+                            @{
+                                var AllowImportWordCounts = "";
+                                if (ViewBag.IsAllowedToEdit == true)
+                                {
+                                    AllowImportWordCounts = "#importJobItemWordCounts";
+                                }
+                            }
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    @*<a target="_blank" href="@(String.Format("http://myplus/JobItem.aspx?JobItemID={0}", Model.Id))" class="btn">*@
+                                    <a class="btn btn-icon align-middle" id="select-div" href="#" data-toggle="modal"
+                                       data-target="@AllowImportWordCounts" style="display:contents;">
+                                        <div class="rounded-top w-100 bg-warning-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <div class='icon-stack fa-6x'>
+                                                    <i class="base base-3 icon-stack-3x opacity-100 color-warning-600"></i>
+                                                    <i class="base base-3 icon-stack-2x opacity-100 color-warning-300"></i>
+                                                    <i class="fal fa-file-word icon-stack-1x opacity-100 color-white"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Import word counts</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            @{
+                                var costLink = "javascript:void(0);";
+                                if (ViewBag.OrderOverallCompletedDateTime == null)
+                                { costLink = String.Format("http://myplus/CalculateJobCosts.aspx?JobItemID={0}", Model.Id); }
+                            }
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href="@(costLink)" target="_blank" class="btn">
+                                        <div class="rounded-top w-100 bg-success-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <div class='icon-stack fa-6x'>
+                                                    <i class="base base-7 icon-stack-3x opacity-100 color-success-900"></i> <i class="base base-7 icon-stack-2x opacity-100 color-success-500"></i> <i class="fal fa-calculator icon-stack-1x opacity-100 color-white"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Calculate costs</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href="#" class="btn" id="generate-brief-btn">
+                                        <div class="rounded-top w-100 bg-info-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <div class='icon-stack fa-6x'>
+                                                    <i class="base base-4 icon-stack-3x opacity-100 color-info-300"></i>
+                                                    <i class="base base-4 icon-stack-2x opacity-100 color-info-100"></i>
+                                                    <i class="fal fa-list-alt icon-stack-1x opacity-100 color-white"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Generate Brief</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    @{
+                                        var sentToLink = "javascript:void(0);";
+                                        if (ViewBag.IsAllowedToEdit == true)
+                                        { sentToLink = String.Format("http://myplus/SendItemToLinguistOrReviewerViaiplus.aspx?JobItemID={0}", Model.Id); }
+                                    }
+                                    <a href="@sentToLink" target="_blank" class="btn">
+                                        <div class="rounded-top w-100 bg-success-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <div class='icon-stack fa-6x'>
+                                                    <i class="base base-7 icon-stack-3x opacity-100 color-success-900"></i> <i class="base base-7 icon-stack-2x opacity-100 color-success-500"></i> <i class="fal fa-child icon-stack-1x opacity-100 color-white"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            @{
+                                                string sendTo = Model.ShowSignOffComments == true ? "client reviewer" : "linguist";
+                                            }
+                                            <span class="d-block text-truncate text-muted">Send to @sendTo</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+
+                            @{
+                                if (ViewBag.IsACMSProject == 1)
+                                {
+                                        <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                            <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                                <a href="@(String.Format("http://myplus/CMSViewJobItemTranslation.aspx?JobItemID={0}", Model.Id))" class="btn">
+                                                    <div class="rounded-top w-100 bg-success-50">
+                                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                            <div class="icon-stack fa-6x">
+                                                                <i class="base base-7 icon-stack-3x opacity-100 color-success-900"></i>
+                                                                <i class="base base-7 icon-stack-2x opacity-100 color-success-500"></i>
+                                                                <i class="fal fa-database color-primary-500 icon-stack-1x text-white"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                                        <span class="d-block text-truncate text-muted">View strings for translation</span>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                }
+                            }
+
+                            @{
+                                string link = String.Format("http://myplus/ConfirmJobDeletion.aspx?ID={0}&Delete=Item", Model.Id);
+                                if (Model.DeleteButtonEnabled == false)
+                                    link = "javascript:void(0);";
+                            }
+                            <div class="col-md col-lg-2 justify-content-center align-items-center">
+                                <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                                    <a href="@link" class="btn">
+                                        <div class="rounded-top w-100 bg-danger-50">
+                                            <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                                                <span class="icon-stack fa-6x">
+                                                    <i class="base-2 icon-stack-3x color-danger-600"></i>
+                                                    <i class="base-3 icon-stack-2x color-danger-700"></i>
+                                                    <i class="fal fa-trash-alt icon-stack-1x text-white"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                                            <span class="d-block text-truncate text-muted">Delete</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @*<div class="tab-pane fade" id="tab_default-2" role="tabpanel">
+                    <div class="row justify-content-center">
+                    <div class="col col-lg-2 justify-content-center align-items-center">
+                    <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                    <a href="#" class="btn">
+                    <div class="rounded-top w-100 bg-info-50">
+                    <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                    <div class='icon-stack fa-6x'>
+                    <i class="base base-7 icon-stack-3x opacity-100 color-info-300"></i> <i class="base base-7 icon-stack-2x opacity-100 color-info-50"></i> <i class="fal fa-folder-open icon-stack-1x opacity-100 color-white"></i>
+                    </div>
+                    </div>
+                    </div>
+                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                    <span class="d-block text-truncate text-muted">Open info folder</span>
+                    </div>
+                    </a>
+                    </div>
+                    </div>
+                    <div class="col col-lg-2 justify-content-center align-items-center">
+                    <div class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100">
+                    <a href="#" class="btn">
+                    <div class="rounded-top w-100 bg-warning-50">
+                    <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 hover-bg">
+                    <div class='icon-stack fa-6x'>
+                    <i class="base base-4 icon-stack-3x opacity-100 color-warning-900"></i> <i class="base base-4 icon-stack-2x opacity-100 color-warning-600"></i> <i class="fal fa-edit icon-stack-1x opacity-100 color-white"></i>
+                    </div>
+                    </div>
+                    </div>
+                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">
+                    <span class="d-block text-truncate text-muted">Edit automation</span>
+                    </div>
+                    </a>
+                    </div>
+                    </div>
+                    </div>
+                    </div>*@
+                </div>
+            </div>
+        </div>
+
+        @*<div class="col-lg-6">
+        <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+        <div class="panel-hdr">
+        <i class="fal fa-calendar-alt fa-2x color-black"></i> &nbsp; &nbsp;
+        <h2>Import word counts</h2>
+        </div>
+        <div class="panel-container">
+        <div class="panel-content">
+        <div class="container">
+        <form id="imortWords" action="/upload" class="dropzone needsclick" style="min-height: 7rem;">
+        <div class="dz-message needsclick">
+        <i class="@(Settings.Theme.IconPrefix) fa-cloud-upload text-muted mb-3"></i> <br>
+        <span class="text-uppercase">Drop files here or click to upload.</span>
+        <br>
+        <span class="fs-sm text-muted">This is just a demo dropzone. Selected files are <strong>not</strong> actually uploaded.</span>
+        </div>
+        </form>
+        </div>
+        </div>
+        </div>
+        </div>
+        </div>*@
+    </div>
+</div>
+<div id="importJobItemWordCounts" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="timeLogEditHeader">
+                    <strong><label id="importJobItemWordCountsHeader">Import word counts</label></strong>
+                </h5>
+                <a onclick="" data-dismiss="modal" class="close" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </a>
+            </div>
+            <div class="modal-body bg-faded">
+                <label class="form-label">Please paste the path to the analysis XML file.  <label class="text-danger">(The file should be on the server where the job order is stored. The path must contain the XML along with its extension.) </label> </label>
+                <br />
+                <input type="text" id="jobItem-file-path" class="form-control form-control-sm rounded-0" placeholder="File path">
+                <label id="folderPathRequired-JobItem" class="text-danger" hidden>Please enter file path.</label><br />
+                <input type="radio" value="2" checked name="jobItemWordCountsImport" id="jobItem-import-both" /> <label class="form-label" for="jobItem-import-both">Import for both</label>
+                &nbsp; <input type="radio" value="1" name="jobItemWordCountsImport" id="jobItem-import-client" /> <label class="form-label" for="jobItem-import-client">Import for Client</label>
+                &nbsp;<input type="radio" value="0" name="jobItemWordCountsImport" id="jobItem-import-linguist" /> <label class="form-label" for="jobItem-import-linguist">Import for Linguist</label>
+                <br />
+                <br />
+                <br />
+                <br />
+                <div style="position:relative;left:365px;">
+                    <button type="button" class="btn btn-success" data-toggle="modal" data-dismiss="modal" onclick="importJobItemWordCounts(@Model.Id);">Import</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal modal-alert fade" id="job-item-word-counts-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><label id="header-text"></label></h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>*@
+            </div>
+            <div class="modal-body">
+                <label id="job-item-word-counts-success-string"></label>&nbsp;<label class="text-success md-header" id="job-item-word-counts-success-dates"></label>
+                <label class="text-warning md-header" id="job-item-word-counts-warning-string"></label>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="refreshPage(@Model.Id)">Close</button>
+
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+@section ScriptsBlock {
+
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="~/js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-daterangepicker/bootstrap-daterangepicker.js"></script>
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/dropzone/dropzone.js"></script>
+
+    <script>
+        //$("form#imortWords").dropzone({
+        //    url: "/file/post",
+        //    acceptedFiles: ".xml",
+        //    maxFiles: 1,
+        //    init: function () {
+        //        this.on("maxfilesexceeded", function (file) {
+        //            this.removeFile(file);
+        //        });
+        //    }
+        //});
+
+        $('#js-page-content').smartPanel();
+
+        var namePrefix = "Item.";
+        var searchType = undefined;
+        var linguisOrContactName = undefined;
+        var shouldReloadPage = false;
+
+        function addassetoption(e) {
+            var select = document.getElementById('pgdAssets');
+            //var selectedValue = select.options[select.selectedIndex].value;
+            //alert(e.value);
+            //var selectedvalue = "";
+            for (var option of select.options) {
+                if (option.selected) {
+                    selectedValue = option.value;
+
+                    var addopt = true;
+                    for (var op of select.options) {
+                        if (!op.selected && op.value === selectedValue) {
+                            addopt = false;
+                            break;
+                        }
+                    }
+
+                    if (addopt) {
+                        var opt = document.createElement('option');
+                        opt.value = selectedValue;
+                        opt.innerHTML = selectedValue;
+                        select.add(opt, option);
+                        /*select.appendChild(opt);*/
+                    }
+                }
+            }
+            //alert(selectedValue);
+            //var opt = document.createElement('option');
+            //opt.value = selectedValue;
+            //opt.innerHTML = selectedValue;
+            //select.appendChild(opt);
+        }
+
+        function checkforpaymentcurrency(e) {
+            var select = document.getElementById('ajax-search');
+
+            for (var option of select.options) {
+                if (option.selected && option.value != "") {
+                    var stringToSend = option.value;
+                    var xhrjobitems = new XMLHttpRequest();
+                    xhrjobitems.open("POST", "JobItem/CheckforPaymentCurrency", false);
+                    xhrjobitems.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhrjobitems.ResponseType = 'text'
+                    xhrjobitems.send(stringToSend);
+
+                    if (xhrjobitems.responseText != "" && xhrjobitems.responseText != "0") {
+                        var currencyselect = document.getElementById('supplierpaymentcurrencies');
+
+                        for (var option of currencyselect.options) {
+                            if (option.value == xhrjobitems.responseText) {
+                                option.selected = true;
+                                break;
+                            }
+                        }
+
+
+                        try {
+                            event.preventDefault();
+                        } catch (er) {
+                            alert("er");
+                            alert(er);
+                        }
+                    }
+                }
+            }
+        }
+
+        function checkforsupplierpaymentcurrency(e) {
+            var linguistidinput = document.getElementById('linguistidinput');
+
+            if (linguistidinput.value != "") {
+                var stringToSend = linguistidinput.value;
+                var xhrjobitems = new XMLHttpRequest();
+                xhrjobitems.open("POST", "JobItem/CheckforPaymentCurrency", false);
+                xhrjobitems.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhrjobitems.ResponseType = 'text'
+                xhrjobitems.send(stringToSend);
+
+                if (xhrjobitems.responseText != "" && xhrjobitems.responseText != "0") {
+                    var select = document.getElementById('supplierpaymentcurrencies');
+
+                    for (var option of select.options) {
+                        if (option.value == xhrjobitems.responseText) {
+                            option.selected = true;
+                            break;
+                        }
+                    }
+
+
+                    try {
+                        event.preventDefault();
+                    } catch (er) {
+                        alert("er");
+                        alert(er);
+                    }
+                }
+            }
+        }
+        function checkforsupplierpaymentcurrencyforTPIL() {
+            
+            var supplierOrClientReviewerId = 0;
+            if ($('#internalLinguist').is(":checked")) { supplierOrClientReviewerId = 19568;}
+
+            if (supplierOrClientReviewerId != 0) {
+                var stringToSend = supplierOrClientReviewerId;
+                var xhrjobitems = new XMLHttpRequest();
+                xhrjobitems.open("POST", "JobItem/CheckforPaymentCurrency", false);
+                xhrjobitems.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhrjobitems.ResponseType = 'text'
+                xhrjobitems.send(stringToSend);
+
+                if (xhrjobitems.responseText != "" && xhrjobitems.responseText != "0") {
+                    var select = document.getElementById('supplierpaymentcurrencies');
+
+                    for (var option of select.options) {
+                        if (option.value == xhrjobitems.responseText) {
+                            option.selected = true;
+                            break;
+                        }
+                    }
+
+
+                    try {
+                        event.preventDefault();
+                    } catch (er) {
+                        alert("er");
+                        alert(er);
+                    }
+                }
+            }
+
+        }
+        function updateclsinformation(jobitemid) {
+            var errormessage = '';
+            var Markets = document.getElementById('Markets');
+            var pgdAssets = document.getElementById('pgdAssets');
+            var Assetsinput = document.getElementById('Assetsinput');
+            var CopydeckStoredinput = document.getElementById('CopydeckStoredinput');
+            var votalentinput = document.getElementById('votalentinput');
+            var BuyoutAgreementSignedinput = document.getElementById('BuyoutAgreementSignedinput');
+            var usagetypeinput = document.getElementById('usagetype');
+            var usagedurationinput = document.getElementById('usageduration');
+            var UsageStartDateinput = document.getElementById('UsageStartDateinput');
+            var UsageEndDateinput = document.getElementById('UsageEndDateinput');
+            var langservicedropdown = document.getElementById('lang-service-dropdown');
+
+            var marketlist = "";
+            for (var option of Markets.options) {
+                if (option.selected) {
+                    if (marketlist != "") {
+                        marketlist += ",";
+                    }
+
+                    marketlist += option.value;
+                }
+            }
+
+            var assets = "";
+            if (pgdAssets != null) {
+                for (var option of pgdAssets.options) {
+                    if (option.selected) {
+                        if (assets != "") {
+                            assets += ",";
+                        }
+
+                        assets += option.value;
+                    }
+                }
+            } else {
+                if (Assetsinput != null) {
+                    assets = Assetsinput.value;
+                }
+            }
+
+            var copydeckstored = false;
+            if (CopydeckStoredinput != null) {
+                copydeckstored = CopydeckStoredinput.checked;
+            }
+
+            var BuyoutAgreementSigned = false;
+            if (BuyoutAgreementSignedinput != null) {
+                BuyoutAgreementSigned = BuyoutAgreementSignedinput.checked;
+            }
+
+            var votalent = "";
+            if (votalentinput != null) {
+                votalent = votalentinput.value;
+            }
+
+            var usagetype = "";
+            if (usagetypeinput != null) {
+                usagetype = usagetypeinput.value;
+            }
+
+            var usageduration = "-1";
+            if (usagedurationinput != null) {
+                usageduration = usagedurationinput.value;
+            }
+
+            var UsageStartDate = "";
+            if (UsageStartDateinput != null) {
+                UsageStartDate = UsageStartDateinput.value;
+            }
+
+            var UsageEndDate = "";
+            if (UsageEndDateinput != null) {
+                UsageEndDate = UsageEndDateinput.value;
+            }
+
+            if (errormessage === '') {
+                var stringToSend = jobitemid + "$tp$" + marketlist + "$tp$" + langservicedropdown.options[langservicedropdown.selectedIndex].text + "$tp$" + assets + "$tp$" + copydeckstored + "$tp$" + votalent + "$tp$" + BuyoutAgreementSigned + "$tp$" + usagetype + "$tp$" + usageduration + "$tp$" + UsageStartDate + "$tp$" + UsageEndDate;
+                var xhrjobitems = new XMLHttpRequest();
+                xhrjobitems.open("POST", "JobItem/UpdateCLSItemInformation", false);
+                xhrjobitems.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhrjobitems.ResponseType = 'text'
+                xhrjobitems.send(stringToSend);
+
+                if (xhrjobitems.responseText != "") {
+                    var marketsHeader = document.getElementById('marketsHeader');
+                    var assetsHeader = document.getElementById('assetsHeader');
+
+                    marketsHeader.innerHTML = xhrjobitems.responseText.split("$")[0];
+                    assetsHeader.innerHTML = xhrjobitems.responseText.split("$")[1];
+                }
+
+                var button = document.getElementById('updateclsinfobutton');
+                button.style.backgroundColor = "lightgreen";
+                setTimeout(() => button.style.backgroundColor = 'white', 3000);
+            } else {
+                alert(errormessage);
+            }
+
+            try {
+                event.preventDefault();
+            } catch (er) {
+                alert("er");
+                alert(er);
+            }
+
+        }
+
+
+        $(document).ready(function() {
+            //var fieldsIds = '#our-deadline-datepicker,#supplier-sent-datepicker,#supplier-accepted-datepicker,#supplier-deadline-datepicker,#supplier-completed-datepicker,#air-date-datepicker,#usage-date-datepicker,#supplier-invoice-paid-datepicker'
+
+            ////console.log($(fieldsIds).val())
+
+            //$(fieldsIds).daterangepicker({
+            //    showDropdowns: true,
+            //    autoUpdateInput: false,
+            //    singleDatePicker: true,
+            //    timePicker: true,
+            //    timePicker24Hour: true,
+            //    startDate: moment().startOf('hour'),
+            //    endDate: moment().startOf('hour').add(32, 'hour'),
+            //    locale: {
+            //        format: 'DD/MM/YYYY hh:mm A',
+            //        cancelLabel: 'Clear'
+            //    }
+            //});
+            //$(fieldsIds).on('apply.daterangepicker', function (ev, picker) {
+            //    $(this).val(picker.startDate.format('DD/MM/YYYY hh:mm A'));
+            //});
+
+            //$(fieldsIds).on('cancel.daterangepicker', function (ev, picker) {
+            //    $(this).val('');
+            //});
+
+            $(function() {
+                $('.select2').select2();
+
+                $('#reviewer-input').select2({
+                    placeholder: "Please select the reviewer"
+                });
+                $('#cls-markets-select').select2({
+                    placeholder: "Select Market"
+                });
+
+                $("#ajax-search").select2({
+                    ajax: {
+                        method: 'POST',
+                        url: "api/JobItem/Search",
+                        dataType: 'json',
+                        delay: 750,
+                        tags: true,
+                        allowClear: true,
+                        data: function(params) {
+                            let term = { searchTerm: params.term };
+
+                            if (searchType == 'linguist') {
+                                let sourceLangIanaCode = $('select[name="@(nameof(Model.SourceLanguageIanacode))"]').find(':selected').val();
+                                let targetLangIanaCode = $('select[name="@(nameof(Model.TargetLanguageIanacode))"]').find(':selected').val();
+                                let onlyAllowEncryptedSuppliers = @(Json.Serialize(Model.AdditionalDetails.OrgGroupOnlyAllowEncryptedSuppliers));
+                                let orgGroupId = @Model.AdditionalDetails.OrgGroupId;
+                                data = { onlyAllowEncryptedSuppliers, orgGroupId, sourceLangIanaCode, targetLangIanaCode, searchForLinguist: true };
+                            }
+                            else { data = { searchForLinguist: false } }
+
+                            let obj = Object.assign(data, term)
+                            return obj;
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Search ...',
+                    escapeMarkup: function(markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 3,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection,
+                    processResults: function(data) {
+                        console.log(data)
+                        // Transforms the top-level key of the response object from 'items' to 'results'
+                        return {
+                            results: data
+                        };
+                    }
+                });
+
+                function formatRepo(result) {
+                    let name = "Name Not Found";
+
+                    if (result.loading) { return result.text; }
+
+                    if (result.id == 0 || result.id == null) { return; }
+
+                    if (result.uiMessage == null) { result.uiMessage = ""; }
+
+                    if (result.mainContactFirstName != "" || result.mainContactSurname != "") {
+                        name = result.mainContactFirstName + " " + result.mainContactSurname;
+                    }
+                    else { name = result.agencyOrTeamName }
+
+                    var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+                        "<div class='select2-result-repository__meta'>" +
+                        "<div class='select2-result-repository__title fs-sm fw-200'>" + result.id + " - " + name + "</div>" +
+                        "<div class='fs-xs' style='color: red;'>" + result.uiMessage + "</div>" + "</div></div>";
+                    return markup;
+                }
+
+                function formatRepoSelection(result) {
+                    if (result.agencyOrTeamName != "" && result.agencyOrTeamName != null) {
+                        linguisOrContactName = result.agencyOrTeamName;
+                        return result.agencyOrTeamName;
+                    }
+                    else {
+                        if (result.mainContactFirstName != undefined) {
+                            linguisOrContactName = result.id + " - " + result.mainContactFirstName + " " + result.mainContactSurname;
+                            return result.id + " - " + result.mainContactFirstName + " " + result.mainContactSurname;
+                        }
+                        else { return "Search ..." }
+                    }
+                }
+            });
+
+            checkSupplierRadioBtn();
+            wordCountsDinamicUpdate();
+            supplierWordCountsDinamicUpdate();
+
+            if (@(Json.Serialize(Model.LinguisticSupplierOrClientReviewerId != null && Model.SupplierIsClientReviewer == false && Model.LinguisticSupplierOrClientReviewerId == 19568))) {
+                $('#internalLinguist').prop("checked", true);
+            }
+            else { $('#internalLinguist').prop("checked", false); }
+            $('#internalLinguist').change();
+
+            if (@(Json.Serialize(Model.LinguisticSupplierOrClientReviewerId != null && Model.SupplierIsClientReviewer != null && Model.ShowSignOffComments == false))) {
+                $('#linguist-contact-details-div').show();
+            }
+            if (@(Json.Serialize(Model.SupplierOrContactName == "" || Model.SupplierOrContactName == null))) {
+                $('#linguist-contact-details-div,#column5').hide();
+            }
+        });
+
+        document.onreadystatechange = () => {
+            if (document.readyState === 'complete') {
+                setTimeout(panelsAccessibility, 5000);
+            }
+        };
+
+        $("input, textarea, select").on("input", function() {
+            $(this).parents('form').children('div.flex-row-reverse').children('button.btn-outline-default').css({ background: 'red' });
+        });
+
+        $('#usesupplierid').change(function() {
+            if ($('#usesupplierid').is(":checked")) {
+                $('#linguist-or-contact-div').hide();
+                $('#linguistid-div').show();
+            }
+            else {
+                $('#linguist-or-contact-div').show();
+                $('#linguistid-div').hide();
+            }
+        });
+
+        var buttonClicked = undefined;
+
+        // save clicked panel
+        $('.btn-outline-default').on('click', function(e) {
+            e.preventDefault();
+
+            buttonClicked = $(this);
+            let formId = $(this).parents("form").attr("id");
+
+            //let isValid = validateForms(formId, namePrefix);
+            //if (isValid == false) {
+            //    // show there was error near the button.
+            //    $('.button-error').remove();
+            //    this.insertAdjacentHTML('afterend', '<label style="color: red; padding: 2%;" class="button-error d-flex align-items-center">Please correct the errors in this panel.</label>')
+            //    return;
+            //}
+            //else { $('.button-error').remove(); }
+
+        @*let proceed = true;
+            let warning = "";
+
+            if ($('input[name="@(nameof(Model.IsCompleted))"]').prop('checked')) {
+
+            if ($('input[name="@(nameof(Model.SupplierSentWorkDateTime))"]').val() == null) {
+            warning += "- Supplier has not beem sent the work<br />";
+            }
+
+            if ($('input[name="@(nameof(Model.SupplierAcceptedWorkDateTime))"]').val() == null) {
+            warning += "- Supplier has not accepted the work<br />";
+            }
+
+            if ($('input[name="@(nameof(Model.SupplierCompletionDeadline))"]').val()) {
+            warning += "- Supplier completion deadline has not been set<br />";
+            }
+
+            if ($('input[name="@(nameof(Model.SupplierCompletedItemDateTime))"]').val()) {
+            warning += "- Supplier has not completed the work<br />";
+            }
+
+            //if (warning != "") {
+            //    proceed = false;
+            //}
+            }*@
+
+                /*  if (proceed == true) {*/
+                let supplierIsClientReviewer = null;
+            let supplierOrClientReviewerId = $('#ajax-search').find(':selected').val();
+
+            let btnVal = $('input[name=linguistRadio]:checked').val()
+            if (btnVal == 'contact' || @(Json.Serialize(Model.ShowSignOffComments))) { supplierIsClientReviewer = true; }
+            else if (btnVal == 'linguist') { supplierIsClientReviewer = false; }
+
+            if ($('#internalLinguist').is(":checked")) { supplierOrClientReviewerId = 19568; supplierIsClientReviewer = false }
+
+            if ($('#usesupplierid').is(":checked") && $('#linguistidinput').val() != "") { supplierOrClientReviewerId = $('#linguistidinput').val(); supplierIsClientReviewer = false }
+
+            if (supplierOrClientReviewerId == null && @(Json.Serialize(Model.LinguisticSupplierOrClientReviewerId)) != null) {
+                supplierOrClientReviewerId = @(Json.Serialize(Model.LinguisticSupplierOrClientReviewerId));
+            }
+
+            if (supplierIsClientReviewer == null && @(Json.Serialize(Model.SupplierIsClientReviewer)) != null) {
+                supplierIsClientReviewer = @(Json.Serialize(Model.SupplierIsClientReviewer));
+            }
+
+            let paymentToSupplierCurrencyID = $('select[name="@(nameof(Model.PaymentToSupplierCurrencyId))"]').find(':selected').val();
+            let paymentToSupplier = $('input[name="@(nameof(Model.PaymentToSupplier))"]').val();
+
+            if ($('#removesupplier').is(":checked")) { supplierOrClientReviewerId = null; $('#removesupplier').prop('checked', false); $('#linguist-contact-details-div').hide(); paymentToSupplierCurrencyID = null; paymentToSupplier = null; $('#internalLinguist').prop('checked', false); $('input[name="@(nameof(Model.MinimumSupplierChargeApplied))"]').prop('checked', false); $('select[name="@(nameof(Model.PaymentToSupplierCurrencyId))"]').val(0); $('input[name="@(nameof(Model.PaymentToSupplier))"]').val("") }
+
+
+            data = {
+                "@nameof(Model.LoggedInEmployeeId)": @Model.LoggedInEmployeeId,
+                "@nameof(Model.SectionToUpdate)": formId,
+                "Item": {
+                    //key info
+                    "@nameof(Model.Id)": @Model.Id,
+                    "@nameof(Model.IsVisibleToClient)": $('input[name="@(nameof(Model.IsVisibleToClient))"]').prop('checked'),
+                    "@nameof(Model.LanguageServiceCategoryId)": $('select[name="@(nameof(Model.LanguageServiceCategoryId))"]').find(':selected').val(),
+                    "@nameof(Model.LanguageServiceId)": $('select[name="@(nameof(Model.LanguageServiceId))"]').find(':selected').val(),
+                    "@nameof(Model.SourceLanguageIanacode)": $('select[name="@(nameof(Model.SourceLanguageIanacode))"]').find(':selected').val(),
+                    "@nameof(Model.TargetLanguageIanacode)": $('select[name="@(nameof(Model.TargetLanguageIanacode))"]').find(':selected').val(),
+                    "@nameof(Model.CustomerSpecificField)": $('input[name="@(nameof(Model.CustomerSpecificField))"]').val(),
+                    "@nameof(Model.WordCountNew)": $('input[name="@(nameof(Model.WordCountNew))"]').val(),
+                    "@nameof(Model.WordCountExact)": $('input[name="@(nameof(Model.WordCountExact))"]').val(),
+                    "@nameof(Model.WordCountRepetitions)": $('input[name="@(nameof(Model.WordCountRepetitions))"]').val(),
+                    "@nameof(Model.WordCountPerfectMatches)": $('input[name="@(nameof(Model.WordCountPerfectMatches))"]').val(),
+                    "@nameof(Model.WordCountFuzzyBand1)": $('input[name="@(nameof(Model.WordCountFuzzyBand1))"]').val(),
+                    "@nameof(Model.WordCountFuzzyBand2)": $('input[name="@(nameof(Model.WordCountFuzzyBand2))"]').val(),
+                    "@nameof(Model.WordCountFuzzyBand3)": $('input[name="@(nameof(Model.WordCountFuzzyBand3))"]').val(),
+                    "@nameof(Model.WordCountFuzzyBand4)": $('input[name="@(nameof(Model.WordCountFuzzyBand4))"]').val(),
+                    "@nameof(Model.Pages)": $('input[name="@(nameof(Model.Pages))"]').val(),
+                    "@nameof(Model.Characters)": $('input[name="@(nameof(Model.Characters))"]').val(),
+                    "@nameof(Model.Documents)": $('input[name="@(nameof(Model.Documents))"]').val(),
+                    "@nameof(Model.InterpretingExpectedHours)": $('input[name="@(nameof(Model.InterpretingExpectedHours))"]').val(),
+                    "@nameof(Model.InterpretingExpectedMinutes)": $('input[name="@(nameof(Model.InterpretingExpectedMinutes))"]').val(),
+                    "@nameof(Model.InterpretingActualHours)": $('input[name="@(nameof(Model.InterpretingActualHours))"]').val(),
+                    "@nameof(Model.InterpretingActualMinutes)": $('input[name="@(nameof(Model.InterpretingActualMinutes))"]').val(),
+                    "@nameof(Model.InterpretingLocationOrgName)": $('input[name="@(nameof(Model.InterpretingLocationOrgName))"]').val(),
+                    "@nameof(Model.InterpretingLocationAddress1)": $('input[name="@(nameof(Model.InterpretingLocationAddress1))"]').val(),
+                    "@nameof(Model.InterpretingLocationAddress2)": $('input[name="@(nameof(Model.InterpretingLocationAddress2))"]').val(),
+                    "@nameof(Model.InterpretingLocationAddress3)": $('input[name="@(nameof(Model.InterpretingLocationAddress3))"]').val(),
+                    "@nameof(Model.InterpretingLocationAddress4)": $('input[name="@(nameof(Model.InterpretingLocationAddress4))"]').val(),
+                    "@nameof(Model.InterpretingLocationCountyOrState)": $('input[name="@(nameof(Model.InterpretingLocationCountyOrState))"]').val(),
+                    "@nameof(Model.InterpretingLocationPostcodeOrZip)": $('input[name="@(nameof(Model.InterpretingLocationPostcodeOrZip))"]').val(),
+                    "@nameof(Model.InterpretingLocationCountryId)": $('select[name="@(nameof(Model.InterpretingLocationCountryId))"]').find(':selected').val(),
+                    "@nameof(Model.AudioTimeHours)": $('input[name="@(nameof(Model.AudioTimeHours))"]').val(),
+                    "@nameof(Model.AudioTimeMinutes)": $('input[name="@(nameof(Model.AudioTimeMinutes))"]').val(),
+                    "@nameof(Model.WorkTimeHours)": $('input[name="@(nameof(Model.WorkTimeHours))"]').val(),
+                    "@nameof(Model.WorkTimeMinutes)": $('input[name="@(nameof(Model.WorkTimeMinutes))"]').val(),
+                    "@nameof(Model.OurCompletionDeadline)": $('input[name="@(nameof(Model.OurCompletionDeadline))"]').val(),
+                    "@nameof(Model.IsCompleted)": $('input[name="@(nameof(Model.IsCompleted))"]').prop('checked'),
+                    "@nameof(Model.ChargeToClient)": $('input[name="@(nameof(Model.ChargeToClient))"]').val(),
+                    // supplier info
+                    "@nameof(Model.LinguisticSupplierOrClientReviewerId)": supplierOrClientReviewerId,
+                    "@nameof(Model.DescriptionForSupplierOnly)": $('textarea[name="@(nameof(Model.DescriptionForSupplierOnly))"]').val(),
+                    "@nameof(Model.TranslationMemoryRequired)": $('select[name="@(nameof(Model.TranslationMemoryRequired))"]').find(':selected').val(),
+                    "@nameof(Model.SupplierWordCountNew)": $('input[name="@(nameof(Model.SupplierWordCountNew))"]').val(),
+                    "@nameof(Model.SupplierWordCountExact)": $('input[name="@(nameof(Model.SupplierWordCountExact))"]').val(),
+                    "@nameof(Model.SupplierWordCountRepetitions)": $('input[name="@(nameof(Model.SupplierWordCountRepetitions))"]').val(),
+                    "@nameof(Model.SupplierWordCountPerfectMatches)": $('input[name="@(nameof(Model.SupplierWordCountPerfectMatches))"]').val(),
+                    "@nameof(Model.SupplierWordCountFuzzyBand1)": $('input[name="@(nameof(Model.SupplierWordCountFuzzyBand1))"]').val(),
+                    "@nameof(Model.SupplierWordCountFuzzyBand2)": $('input[name="@(nameof(Model.SupplierWordCountFuzzyBand2))"]').val(),
+                    "@nameof(Model.SupplierWordCountFuzzyBand3)": $('input[name="@(nameof(Model.SupplierWordCountFuzzyBand3))"]').val(),
+                    "@nameof(Model.SupplierWordCountFuzzyBand4)": $('input[name="@(nameof(Model.SupplierWordCountFuzzyBand4))"]').val(),
+                    "@nameof(Model.SupplierSentWorkDateTime)": $('input[name="@(nameof(Model.SupplierSentWorkDateTime))"]').val(),
+                    "@nameof(Model.SupplierAcceptedWorkDateTime)": $('input[name="@(nameof(Model.SupplierAcceptedWorkDateTime))"]').val(),
+                    "@nameof(Model.SupplierCompletionDeadline)": $('input[name="@(nameof(Model.SupplierCompletionDeadline))"]').val(),
+                    "@nameof(Model.SupplierCompletedItemDateTime)": $('input[name="@(nameof(Model.SupplierCompletedItemDateTime))"]').val(),
+                    "@nameof(Model.PaymentToSupplierCurrencyId)": paymentToSupplierCurrencyID,
+                    "@nameof(Model.PaymentToSupplier)": paymentToSupplier,
+                    "@nameof(Model.MinimumSupplierChargeApplied)": $('input[name="@(nameof(Model.MinimumSupplierChargeApplied))"]').prop('checked'),
+                    "@nameof(Model.SupplierInvoicePaidDate)": $('input[name="@(nameof(Model.SupplierInvoicePaidDate))"]').val(),
+                    "@nameof(Model.SupplierInvoicePaidMethodId)": $('select[name="@(nameof(Model.SupplierInvoicePaidMethodId))"]').find(':selected').val(),
+                    "@nameof(Model.SupplierIsClientReviewer)": supplierIsClientReviewer,
+                    "@nameof(Model.ExtranetSignoffComment)": $('input[name="@(nameof(Model.ExtranetSignoffComment))"]').val()
+                }
+            };
+
+            $.ajax({
+                url: "api/JobItem/Update",
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function(data) {
+                    if (data == 1) {
+                        window.location.href = "https://myplus.publicisgroupe.net/RateTheLinguist.aspx?JobItemID=" + @Model.Id;
+                    }
+                    if (data == 3) {
+                        warning = "This job item cannot be completed as the supplier has not completed the work";
+                        Swal.fire("Warning!", warning, "error");
+                        $('input[name="@(nameof(Model.IsCompleted))"]').prop('checked', false);
+                        $('.error-span').remove();
+                        buttonClicked.css({ background: 'white' });
+                    }
+                    if (data == 4) {
+                        warning = "This job item cannot be completed as the buyout agreement has not been signed";
+                        Swal.fire("Warning!", warning, "error");
+                        $('input[name="@(nameof(Model.IsCompleted))"]').prop('checked', false);
+                        $('.error-span').remove();
+                        buttonClicked.css({ background: 'white' });
+                    }
+                    if (data == 5) {
+                        warning = "This job item cannot be completed as the copydeck has not been stored";
+                        Swal.fire("Warning!", warning, "error");
+                        $('input[name="@(nameof(Model.IsCompleted))"]').prop('checked', false);
+                        $('.error-span').remove();
+                        buttonClicked.css({ background: 'white' });
+                    }
+                    if (data == 6) {
+                        warning = "This supplier has not signed an NDA, so they cannot currently be used.";
+                        Swal.fire("Warning!", warning, "error");
+                        $('input[name="@(nameof(Model.IsCompleted))"]').prop('checked', false);
+                        $('.error-span').remove();
+                        buttonClicked.css({ background: 'white' });
+                    }
+                    if (data == 7) {
+                        warning = "This supplier has not signed a contract/service agreement, so they cannot currently be used.";
+                        Swal.fire("Warning!", warning, "error");
+                        $('input[name="@(nameof(Model.IsCompleted))"]').prop('checked', false);
+                        $('.error-span').remove();
+                        buttonClicked.css({ background: 'white' });
+                    }
+                    if (data == 8) {
+                        warning = "Please select a Language Service.";
+                        Swal.fire("Warning!", warning, "error");
+                        $('input[name="@(nameof(Model.IsCompleted))"]').prop('checked', false);
+                        $('.error-span').remove();
+                        buttonClicked.css({ background: 'white' });
+                    }
+                    else {
+                        $('.error-span').remove();
+                        buttonClicked.css({ background: 'lightgreen' });
+                        setTimeout(function() { buttonClicked.css({ background: 'white' }); }, 2500);
+                        if (formId == '@(Model.supplierInfoSection)') {
+                            if (linguisOrContactName != undefined) {
+                                $('#linguist-contact-details').show();
+                                $('#linguist-contact-details').text(linguisOrContactName);
+                            }
+                        }
+                        else if (formId == '@(Model.keyInfoSection)') {
+                            configureFolders(@Model.Id);
+                            if (shouldReloadPage == true) { location.reload(); }
+                        }
+                    }
+
+                },
+                error: function(err) {
+                    alert('error');
+                    alert(data);
+                    alert(err);
+                    //alert('ERROR');
+                    console.log(err);
+                    Swal.fire("Oops!", "There was an error while trying to update the panel.", "error");
+                },
+            });
+        @*}
+            else {
+            warning = "This job item cannot be completed due to: <br /><br />" + warning;
+            Swal.fire("Warning!", warning, "error");
+            $('input[name="@(nameof(Model.IsCompleted))"]').prop('checked', false);
+            $('.error-span').remove();
+            buttonClicked.css({ background: 'white' });
+            }*@
+                });
+
+        $('#additional-details-link').click(function(e) {
+            e.preventDefault();
+            $('#details').slideToggle("slow");
+        })
+
+        $('#generate-brief-btn').click(function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                url: "api/JobItem/GenerateBrief",
+                method: 'POST',
+                dataType: 'json',
+                data: { itemId: @Model.Id},
+                success: function(data) {
+                    console.log(data);
+                    if (data == "Job brief successfully created.") {
+                        Swal.fire("Yaay!", data, "success");
+                    }
+                    else {
+                        Swal.fire("Oops!", data, "error");
+                    }
+                },
+                error: function(err) {
+                    console.log(err);
+                    if (err.responseText == "Job brief successfully created.") {
+                        Swal.fire("Yaay!", err.responseText, "success");
+                    }
+                    else {
+                        Swal.fire("Oops!", err.responseText, "error");
+                    }
+                },
+            });
+        })
+
+        $('#internalLinguist').change(function() {
+
+            if ($('#internalLinguist').is(":checked")) {
+                $('#linguist-or-contact-div').show();
+                $('#internal-linguist-div').hide();
+            }
+            else {
+                if (@(Json.Serialize(Model.SupplierInvoiceFieldsEnabled)) == false) {
+                    $('#linguist-or-contact-div').show();
+                }
+                else {
+                    if (@Json.Serialize(Model.LinguisticSupplierOrClientReviewerId == null)) {
+                        $('#linguist-contact-details-div,#column5').hide();
+                    }
+                }
+                $('#internal-linguist-div').hide();
+            }
+        })
+
+        $('input[name=linguistRadio]').change(function() {
+            searchType = $('input[name=linguistRadio]:checked').val()
+            let isClientReview = @(Json.Serialize(Model.ShowSignOffComments));
+
+            if (searchType == 'contact') {
+                $('#supplier-panel-heading').text('Contact Information')
+                $('#supplier-info').html('(As this job item will be carried out in-house by the client, the "supplier" below is a <b>client contact</b>, and not one of our linguistic suppliers)')
+                $('#supplier-id-label').text('Client contact');
+                $('#supplier-description').text('Our description to the client contact');
+                $('#sent-to-label').text('Sent to client contact');
+                $('#accepted-by-label').text('Accepted by client contact');
+                $('#deadline-label').text('Client contact\'s deadline');
+                $('#completed-by-label').text('Completed by client contact on');
+                $('#payment-currency-label').text('Client contact payment currency');
+                $('#payment-to-label').text('Payment to client contact');
+                $('#invoice-label').text('Client contact invoice paid');
+                $('#invoice-payment-method-label').text('Client contact invoice payment method');
+                $('#ajax-search').empty();
+                $('#internalLinguist').prop('checked', false);
+                $('#internal-linguist-row').hide();
+            }
+            else if (searchType == 'linguist') {
+                $('#supplier-panel-heading').text('Supplier Information')
+                $('#supplier-info').html('(This information should <b>not normally be shared with the client</b>)')
+                $('#supplier-id-label').text('Linguistic supplier');
+                $('#supplier-description').text('Our description to the supplier');
+                $('#sent-to-label').text('Sent to supplier');
+                $('#accepted-by-label').text('Accepted by supplier');
+                $('#deadline-label').text('Supplier\'s deadline');
+                $('#completed-by-label').text('Completed by supplier on');
+                $('#payment-currency-label').text('Supplier payment currency');
+                $('#payment-to-label').text('Payment to supplier');
+                $('#invoice-label').text('Supplier invoice paid');
+                $('#invoice-payment-method-label').text('Supplier invoice payment method');
+                $('#ajax-search').empty();
+                $('#internal-linguist-row').show();
+            }
+            else if (isClientReview) {
+                $('#supplier-panel-heading').text('Client Reviewer Information')
+                $('#supplier-radio-buttons').hide();
+                $('#supplier-info').html('(As this is a client review job item, the "supplier" below is a <b>client contact</b>, and not one of our linguistic suppliers)')
+                $('#supplier-id-label').text('Client reviewer');
+                $('#supplier-description').text('Our description to the reviewer');
+                $('#sent-to-label').text('Sent to reviewer');
+                $('#accepted-by-label').text('Accepted by reviewer');
+                $('#deadline-label').text('Reviewer\'s deadline');
+                $('#completed-by-label').text('Completed by reviewer on');
+                $('#payment-currency-label').text('Reviewer payment currency');
+                $('#payment-to-label').text('Payment to reviewer');
+                $('#invoice-label').text('Reviewer invoice paid');
+                $('#invoice-payment-method-label').text('Reviewer invoice payment method');
+                $('#internal-linguist-row').hide();
+                $('#internalLinguist').prop('checked', false);
+
+                if (@(Json.Serialize(Model.LinguisticSupplierOrClientReviewerId != null && Model.SupplierIsClientReviewer == false))) {
+                    $('#linguist-contact-details-div').hide();
+                }
+
+                let showAjaxSearchDropdown = @(Json.Serialize(Model.ClientReviewers != null && Model.ClientReviewers.Count() > 0));
+                if (showAjaxSearchDropdown) {
+                    $('#linguist-or-contact-div').hide();
+                }
+                $('#reviewer-input').show();
+            }
+            if (isClientReview == false) {
+                $('#reviewer-div').hide();
+            }
+        })
+
+        $('#lang-service-dropdown').change(function() {
+            serviceTypeId = $('#lang-service-dropdown').find(':selected').val()
+            let wasClientReview = @(Json.Serialize(Model.ShowSignOffComments));
+
+            if (wasClientReview == true) {
+                if (serviceTypeId != 21 || serviceTypeId != 67) { shouldReloadPage = true; }
+            }
+            else {
+                if (serviceTypeId == 21 || serviceTypeId == 67) { shouldReloadPage = true; }
+            }
+        })
+
+        function checkSupplierRadioBtn() {
+            let notCLSJob = @(Json.Serialize(Model.AdditionalDetails.IsCLSJob == false));
+            if (notCLSJob) {
+                //let linguistChecked = @(Json.Serialize(Model.SupplierIsClientReviewer == null || Model.SupplierIsClientReviewer == true ? true : false));
+                let contactChecked = @(Json.Serialize(Model.SupplierIsClientReviewer == true && Model.LanguageServiceId == 1 ? true : false));
+                let isClientReview = @(Json.Serialize(Model.ShowSignOffComments));
+
+                if (isClientReview) {
+                    $('#contactID').change();
+                }
+                else if (contactChecked) {
+                    $('#contactID').prop("checked", true);
+                    $('#contactID').change();
+                }
+                else {
+                    $('#linguistID').prop("checked", true);
+                    $('#linguistID').change();
+                }
+            }
+        }
+
+        function wordCountsDinamicUpdate() {
+            $('input[name="@(nameof(Model.WordCountNew))"], input[name="@(nameof(Model.WordCountExact))"], input[name="@(nameof(Model.WordCountRepetitions))"], input[name="@(nameof(Model.WordCountPerfectMatches))"], input[name="@(nameof(Model.WordCountFuzzyBand1))"], input[name="@(nameof(Model.WordCountFuzzyBand2))"], input[name="@(nameof(Model.WordCountFuzzyBand3))"], input[name="@(nameof(Model.WordCountFuzzyBand4))"]').on('input', function() {
+
+                let counts = {
+                    "@nameof(Model.WordCountNew)": $('input[name="@(nameof(Model.WordCountNew))"]').val(),
+                    "@nameof(Model.WordCountExact)": $('input[name="@(nameof(Model.WordCountExact))"]').val(),
+                    "@nameof(Model.WordCountRepetitions)": $('input[name="@(nameof(Model.WordCountRepetitions))"]').val(),
+                    "@nameof(Model.WordCountPerfectMatches)": $('input[name="@(nameof(Model.WordCountPerfectMatches))"]').val(),
+                    "@nameof(Model.WordCountFuzzyBand1)": $('input[name="@(nameof(Model.WordCountFuzzyBand1))"]').val(),
+                    "@nameof(Model.WordCountFuzzyBand2)": $('input[name="@(nameof(Model.WordCountFuzzyBand2))"]').val(),
+                    "@nameof(Model.WordCountFuzzyBand3)": $('input[name="@(nameof(Model.WordCountFuzzyBand3))"]').val(),
+                    "@nameof(Model.WordCountFuzzyBand4)": $('input[name="@(nameof(Model.WordCountFuzzyBand4))"]').val()
+                };
+
+                let total = 0;
+                for (var key in counts) {
+                    if (counts.hasOwnProperty(key)) {
+                        if (counts[key] != undefined) {
+                            total += Number(counts[key]);
+                        }
+                    }
+                }
+
+                $('#total-word-count').text(total);
+            });
+
+        }
+
+        function supplierWordCountsDinamicUpdate() {
+            $('input[name="@(nameof(Model.SupplierWordCountNew))"], input[name="@(nameof(Model.SupplierWordCountExact))"], input[name="@(nameof(Model.SupplierWordCountRepetitions))"], input[name="@(nameof(Model.SupplierWordCountPerfectMatches))"], input[name="@(nameof(Model.SupplierWordCountFuzzyBand1))"], input[name="@(nameof(Model.SupplierWordCountFuzzyBand2))"], input[name="@(nameof(Model.SupplierWordCountFuzzyBand3))"], input[name = "@(nameof(Model.SupplierWordCountFuzzyBand4))"]').on('input', function() {
+                let counts = {
+                    "@nameof(Model.SupplierWordCountNew)": $('input[name="@(nameof(Model.SupplierWordCountNew))"]').val(),
+                    "@nameof(Model.SupplierWordCountExact)": $('input[name="@(nameof(Model.SupplierWordCountExact))"]').val(),
+                    "@nameof(Model.SupplierWordCountRepetitions)": $('input[name="@(nameof(Model.SupplierWordCountRepetitions))"]').val(),
+                    "@nameof(Model.SupplierWordCountPerfectMatches)": $('input[name="@(nameof(Model.SupplierWordCountPerfectMatches))"]').val(),
+                    "@nameof(Model.SupplierWordCountFuzzyBand1)": $('input[name="@(nameof(Model.SupplierWordCountFuzzyBand1))"]').val(),
+                    "@nameof(Model.SupplierWordCountFuzzyBand2)": $('input[name="@(nameof(Model.SupplierWordCountFuzzyBand2))"]').val(),
+                    "@nameof(Model.SupplierWordCountFuzzyBand3)": $('input[name="@(nameof(Model.SupplierWordCountFuzzyBand3))"]').val(),
+                    "@nameof(Model.SupplierWordCountFuzzyBand4)": $('input[name="@(nameof(Model.SupplierWordCountFuzzyBand4))"]').val()
+                }
+
+                let total = 0;
+                for (var key in counts) {
+                    if (counts.hasOwnProperty(key)) {
+                        if (counts[key] != undefined) {
+                            total += Number(counts[key]);
+                        }
+                    }
+                }
+
+                $('#supplier-total-word-count').text(total);
+            });
+        }
+
+        function panelsAccessibility() {
+
+            var isItemEditable = @(Json.Serialize(Model.EditPageEnabled));
+
+            var keyInfo = '#' + @Html.Raw(Json.Serialize(Model.keyInfoSection)) + ' :input';
+            var supplierInfo = '#' + @Html.Raw(Json.Serialize(Model.supplierInfoSection)) + ' :input';
+            var profitabilityInfo = '#' + @Html.Raw(Json.Serialize(Model.profitabilitySection)) + ' :input';
+            //var CLSInfo = '#' + Html.Raw(Json.Serialize(Model.generalInfoSection)) + ' :input';
+
+            if (isItemEditable == false) {
+                $(keyInfo).attr("disabled", true);
+                $(profitabilityInfo).attr("disabled", true);
+                $(supplierInfo).attr("disabled", true);
+                //alert('DISABLED FORMS - ' + supplierInfo)
+            }
+        }
+
+        function importJobItemWordCounts(jobItemID) {
+            //debugger;
+
+            document.getElementById('folderPathRequired-JobItem').hidden = true;
+            var errorCount = 0;
+            var importRadio = null;
+            var filePath = document.getElementById('jobItem-file-path').value;
+            var wordCountsImport = document.getElementsByName('jobItemWordCountsImport');
+            if (filePath == '') {
+                document.getElementById('folderPathRequired-JobItem').hidden = false;
+                errorCount++;
+            }
+            if (wordCountsImport[0].checked == true) {
+                importRadio = 2;
+            }
+            else if (wordCountsImport[1].checked == true) {
+                importRadio = 1;
+            }
+            else if (wordCountsImport[2].checked == true) {
+                importRadio = 0;
+            }
+            if (errorCount == 0) {
+                var stringToSend = filePath + '$' + importRadio + '$' + jobItemID;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "JobItem/ImportWordCounts", true);
+                xhr.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+
+                        //debugger;
+
+
+                        //show job item creation successful modal
+                        var response = xhr.responseText;
+                        var headerText = response.split("$")[0];
+                        document.getElementById('header-text').innerText = headerText;
+                        if (headerText == "Success") {
+
+                            document.getElementById('job-item-word-counts-success-string').hidden = false;
+                            document.getElementById('job-item-word-counts-success-string').textContent = "";
+                            document.getElementById('job-item-word-counts-success-dates').innerText = response.split("$")[1];
+                            document.getElementById('job-item-word-counts-warning-string').innerText = "";
+                        }
+                        else {
+
+                            document.getElementById('job-item-word-counts-success-dates').innerText = "";
+                            document.getElementById('job-item-word-counts-warning-string').innerText = response.split("$")[1];
+                        }
+                        $('#job-item-word-counts-modal').modal("show");
+                        document.getElementById('jobItem-file-path').value = '';
+
+                    }
+                    else {
+
+                    }
+                };
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(stringToSend);
+            }
+        }
+
+        function refreshPage(jobItemID) {
+            window.location.href = `JobItem/Index?id=${jobItemID}`;
+        }
+
+        function onCategorySelect(selectObject) {
+            var selectId = selectObject.id;
+            var values = $('#' + selectId).val();
+            var hiddenId = "hidden" + selectId;
+            $('#' + hiddenId + 'Values').val(values);
+
+            $.ajax({
+                beforeSend: function() {
+                    // add loading spinner
+                },
+                url: "api/GetServices",
+                method: 'POST',
+                dataType: 'json',
+                data: { 'SelectedField': values },
+                success: function(data) {
+                    //confirm update was successfull
+
+                    var select = $("#lang-service-dropdown");
+                    select.empty();
+                    select.append("<option value=''>(Please select)</option>"); // add "Please select" option
+                    for (let index = 0; index < data.length; ++index) {
+                        const element = data[index];
+                        var opt = document.createElement('option');
+
+                        opt.value = element.id;
+                        opt.innerHTML = element.name;
+                        select.append(opt);
+                        // ...use `element`...
+                    }
+                    select.val(null);
+
+                },
+                error: function(err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function() {
+                    // remove the spinner
+                }
+            });
+        }
+        function configureFolders(jobitemToSend) {
+            //debugger;
+            $.ajax({
+                url: 'JobItem/UpdateNetworkFolder?jobItemID=' + jobitemToSend,
+                success: function(data) {
+                    console.log("ajax is executed");
+
+                }
+            });
+        }
+
+    </script>
+}

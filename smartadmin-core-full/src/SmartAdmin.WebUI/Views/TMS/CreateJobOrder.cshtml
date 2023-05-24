@@ -1,0 +1,572 @@
+﻿@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+    <style>
+        div.tooltip-inner {
+            max-width: 900px;
+            text-align: left;
+        }
+    </style>
+}
+
+@{ ViewData["Title"] = "Job Order";
+    //ViewData["PageName"] = "datatables_basic";
+    ViewData["Category1"] = "Contact";
+    //ViewData["Heading"] = "<i class='far fa-ballot-check'></i> Job Order";
+    //ViewData["PageDescription"] = "Create headache free searching, sorting and pagination tables without any complex configuration";
+}
+
+@{
+    @using System.Text.Json;
+    @model ViewModels.JobOrder.JobOrderCreationViewModel;
+
+}
+
+
+
+@section ScriptsBlock {
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script>
+
+        var controls = {
+			leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+			rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+		}
+		var runDatePicker = function () {
+			// orientation
+            $('.delivery-datepicker').datepicker({
+				orientation: "top left",
+				todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+                startDate: new Date()
+			});
+        }
+        function onChange() {
+
+            if (document.getElementById('type-of-order-select').value != "0") {
+                document.getElementById('serviceRequired').hidden = true;
+                }
+            if (document.getElementById('job-order-channel-input').value != "0") {
+                document.getElementById('jobOrderChannelRequired').hidden = true;
+                }
+            if (document.getElementById('job-name-input').value != "") {
+                document.getElementById('jobNameRequired').hidden = true;
+               }
+            if (document.getElementById('project-manager-select').value != "0") {
+                document.getElementById('projectManagerRequired').hidden = true;
+                }
+            if (document.getElementById('deadline-input').value != "") {
+                document.getElementById('deadlineRequired').hidden = true;
+                }
+            if (document.getElementById('currency-select').value != "0") {
+                document.getElementById('currencyRequired').hidden = true;
+            }
+            if (document.getElementById('template-select').value != "0") {
+                document.getElementById('templateRequired').hidden = true;
+            }
+        }
+        function returnPage() {
+            var contactId = @Html.Raw(JsonSerializer.Serialize(Model.ContactId));
+            window.location.href = `Contact/?contactid=${contactId}`;
+        }
+        function viewPage() {
+            var jobOrderId = document.getElementById('created-job-order-id').value
+            window.location.href = `tmsjoborder/joborder?joborderid=${jobOrderId}`;
+        }
+        function createJobOrder() {
+            //debugger;
+            var count = 0;
+            var contactID = @Html.Raw(JsonSerializer.Serialize(Model.ContactId));
+            var typeOfOrder = document.getElementById('type-of-order-select').value;
+            var channelID = document.getElementById('job-order-channel-input').value;
+                var jobName = document.getElementById('job-name-input').value;
+                var projectManager = document.getElementById('project-manager-select').value;
+                var overallDeadline = document.getElementById('deadline-input').value;
+                var currency = document.getElementById('currency-select').value;
+                var isTrial = document.getElementById('trial-test-checkbox').checked;
+                //var surcharge = document.getElementById('surcharge-select').value;
+                //var discount = document.getElementById('discount-select').value;
+                var surcharge = "";
+                var discount = "";
+                var poNumber = document.getElementById('po-number-input').value;
+                var clientNote = document.getElementById('client-notes-textarea').value;
+                var internalNote = document.getElementById('internal-notes-textarea').value;
+                var isPrinting = document.getElementById('printing-checkbox').checked;
+                var priority = document.getElementById('priority-select').value;
+                var sensitivity = document.getElementById('sensitivity-checkbox').checked;
+            var linkedOrder = document.getElementById('linked-job-order-number-input').value;
+            var folderTemplate = document.getElementById('template-select').value;
+
+            if (typeOfOrder == "0") {
+                document.getElementById('serviceRequired').hidden = false;
+                count++;
+            }
+            if (channelID == "0") {
+                document.getElementById('jobOrderChannelRequired').hidden = false;
+                count++;
+            }
+            if (jobName == "") {
+                document.getElementById('jobNameRequired').hidden = false;
+                count++;
+            }
+            if (projectManager == "0") {
+                document.getElementById('projectManagerRequired').hidden = false;
+                count++;
+            }
+            if (overallDeadline == "") {
+                document.getElementById('deadlineRequired').hidden = false;
+                count++;
+            }
+            if (currency == "0") {
+                document.getElementById('currencyRequired').hidden = false;
+                count++;
+            }
+            if (folderTemplate == "0") {
+                document.getElementById('templateRequired').hidden = false;
+                count++;
+            }
+            if (count > 0) {
+                $(window).scrollTop(0);
+                return;
+            }
+            else {
+
+                document.getElementById('create-job-order-button').disabled = true;
+                var stringToSend = contactID + '$' + typeOfOrder + '$' + channelID + '$' + jobName + '$' + projectManager + '$' + overallDeadline + '$' + currency + '$' + isTrial + '$' + surcharge + '$' + discount + '$' + poNumber + '$' + clientNote + '$' + internalNote + '$' + isPrinting + '$' + priority + '$' + sensitivity + '$' + linkedOrder + '$' + folderTemplate ;
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "TMSJobOrder/CreateJobOrder", true);
+                xhr.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+
+                        //debugger;
+
+
+                        //show job order creation successful modal
+
+                        var response = xhr.responseText;
+                        var headerText = response.split("$")[0];
+                        document.getElementById('header-text').innerText = headerText;
+                        if (headerText == "Success") {
+                            var dataToSend = response.split("$")[2] + '$' + response.split("$")[3];
+                            $.ajax({
+                                url: 'TMSJobOrder/ConfigureNetworkFolders',
+                                type: 'POST',
+                                data: dataToSend,
+                                contentType: 'application/x-www-form-urlencoded',
+                                success: function (data) {
+                                    console.log("ajax is executed");
+
+                                }
+                            });
+                            document.getElementById('job-order-creation-success-string').hidden = false;
+                            document.getElementById('job-order-creation-success-string').textContent = "";
+                            document.getElementById('job-order-creation-success-dates').innerText = response.split("$")[1];
+                            document.getElementById('job-order-creation-warning-string').innerText = "";
+                            document.getElementById('created-job-order-id').value = response.split("$")[2];
+                        }
+                        else {
+                            document.getElementById('job-order-creation-success-string').hidden = true;
+                            document.getElementById('job-order-creation-success-dates').innerText = "";
+                            document.getElementById('job-order-creation-warning-string').innerText = response.split("$")[1];
+                        }
+                        $('#job-order-creation-result-modal').modal("show");
+
+
+                    }
+                    else {
+                        //if the job order could not be added ok, then notify the user
+                    }
+                };
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(stringToSend);
+            }
+        }
+
+
+
+
+        $(document).ready(function () {
+            $("#deadline-input").focus(function () {
+                $(this).attr({ type: 'datetime-local' });
+            });
+
+            $(function () {
+                runDatePicker();
+                $('.select2').select2();
+				$(".select2-placeholder-multiple").select2({
+					placeholder: "Select State"
+                });
+				$(".js-hide-search").select2({
+					minimumResultsForSearch: 1 / 0
+				});
+				$(".js-max-length").select2({
+					maximumSelectionLength: 2,
+					placeholder: "Select maximum 2 items"
+				});
+				$(".select2-placeholder").select2({
+					placeholder:"Select a state",
+					allowClear: true
+				});
+				$(".js-select2-icons").select2({
+					minimumResultsForSearch: 1 / 0,
+					templateResult: icon,
+					templateSelection: icon,
+					escapeMarkup: function (elm) {
+						return elm
+					}
+				});
+				function icon(elm) {
+					elm.element;
+					return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+				}
+
+            });
+
+
+        });
+
+
+    </script>
+}
+
+<div class="row justify-content-between px-5">
+    <div class="col-lg-6 mb-3 text-center">
+        <div class="row">
+            <label class="form-label col-lg-3 d-flex align-items-center px-0">Contact</label>
+            <div class="col text-left">
+                <a target="_blank" style="text-decoration: none !important;" asp-controller="Contact" asp-action="Index" asp-route-ContactID="@Model.ContactId">
+                    @(Model.ContactId +" - "+ Model.ContactName)
+                </a>
+            </div>
+        </div>
+        <div class="row">
+            <label class="form-label col-lg-3 d-flex align-items-center px-0">Organisation</label>
+            <div class="col text-left">
+                <a target="_blank" style="text-decoration: none !important;" asp-controller="Organisation" asp-action="Index" asp-route-Id="@Model.OrgId">
+                    @(Model.OrgId +" - "+ Model.OrgName)
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<form enctype="multipart/form-data" id="create-request-form" method="post">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <i class="fal fa-info-circle fa-2x color-black color-black"></i> &nbsp; &nbsp;
+                    <h2>Key Information</h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                    </div>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label" for="jtype-of-order-input">Type of Order:</label>
+                                        <select id="type-of-order-select" class="select2 form-control" onchange="onChange();">
+                                            <option value="0">(Please Select)</option>
+                                            <option value="2">External Clients - General Linguistic Service</option>
+                                            <option value="3">External Clients - Creative Language Services</option>
+                                            <option value="4">Internal (PGD) Clients - Creative Language Services</option>
+                                            <option value="5">Internal (PGD) Clients - General Linguistic Service</option>
+                                        </select>
+                                        <label id="serviceRequired" class="text-danger" hidden>Specify the type of order</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label" for="job-order-channel-input">How we received this order:</label>
+                                        <select id="job-order-channel-input" class="select2 form-control w-200" onchange="onChange();">
+                                            <option value="0">(Please Select)</option>
+                                            @for (var c = 0; c < Model.JobOrdeChannels.Count(); c++)
+                                            {
+                                                <option value="@Model.JobOrdeChannels.ElementAt(c).Id">@Model.JobOrdeChannels.ElementAt(c).Name</option>
+                                            }
+                                        </select>
+                                        <label id="jobOrderChannelRequired" class="text-danger" hidden>Specify how we received this order</label>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <br />
+                            <br />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label" for="job-name-input">Name of this job:</label>
+                                        <textarea class="form-control" id="job-name-input" style="height:39px" onchange="onChange();"></textarea>
+                                        <label id="jobNameRequired" class="text-danger" hidden>You must provide a name for this job</label>
+                                    </div>
+
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label" for="project-manger-input">Project Manager:</label>
+                                        <select id="project-manager-select" class="select2 form-control w-200" onchange="onChange();">
+                                            <option value="0">Select Project Manager</option>
+                                            @for (var c = 0; c < Model.ListOfEmployees.Count(); c++)
+                                            {
+                                                <option value="@Model.ListOfEmployees.ElementAt(c).Id" selected="@(Model.ListOfEmployees.ElementAt(c).Id==(@Model.Ownership))">@Model.ListOfEmployees.ElementAt(c).FirstName @Model.ListOfEmployees.ElementAt(c).Surname</option>
+                                            }
+                                        </select>
+                                        <label id="projectManagerRequired" class="text-danger" hidden>Specify the project manager</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <br />
+                            <div id="job-order-div">
+                                <div id="deadline-div">
+                                    <div class="row" id="datepicker-div">
+                                        <div class="col-md-6">
+                                            <div class="form-group validate-me">
+                                                <label class="form-label">Overall deadline date:</label>
+                                                <input type="text" class="form-control form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" id="deadline-input" onchange="onChange();">
+                                                <label id="deadlineRequired" class="text-danger" hidden>Specify the delivery deadline</label>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="col-md-6">
+                                            <label class="form-label">
+                                                Client currency:
+                                            </label>
+                                            <select id="currency-select" class="select2 form-control w-200" onchange="onChange();">
+                                                <option value="0">Select Currency</option>
+                                                @for (var c = 0; c < Model.AllAvailableCurrencies.Count(); c++)
+                                                {
+                                                    <option value="@Model.AllAvailableCurrencies.ElementAt(c).Id" selected="@(Model.AllAvailableCurrencies.ElementAt(c).Id==(Convert.ToInt32(@Model.InvoiceCurrencyId)))">@Model.AllAvailableCurrencies.ElementAt(c).Name (@Model.AllAvailableCurrencies.ElementAt(c).StringValue)</option>
+                                                }
+                                            </select>
+                                            <label id="currencyRequired" class="text-danger" hidden>You must specify a currency</label>
+                                        </div>
+
+                                    </div>
+                                    <br />
+                                    <br />
+                                    <div class="row" id="translate-online-div">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Trial/test project?</label>
+                                            <br />
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="trial-test-checkbox">
+                                                <label class="custom-control-label" for="trial-test-checkbox">This is a trial project/test piece which the client will be using to evaluate our services</label>
+                                            </div>
+                                            <br /><br />
+                                        </div>
+                                    </div>
+
+                                    @*<div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group validate-me">
+                                                    <label class="form-label" for="surcharge-input">Surcharge:</label>
+                                                    <select id="surcharge-select" class="select2 form-control w-200">
+                                                        <option value="0">No Surcharge</option>
+                                                        @for (var c = 0; c < Model.SurchargesCategories.Count(); c++)
+                                                        {
+                                                            <option value="@Model.SurchargesCategories.ElementAt(c).Id">@Model.SurchargesCategories.ElementAt(c).DiscountOrSurchargeCategory</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group validate-me">
+                                                    <label class="form-label" for="discount-input">Discount:</label>
+                                                    <select id="discount-select" class="select2 form-control w-200">
+                                                        <option value="0">No Discount</option>
+                                                        @for (var c = 0; c < Model.DiscountCategories.Count(); c++)
+                                                        {
+                                                            <option value="@Model.DiscountCategories.ElementAt(c).Id">@Model.DiscountCategories.ElementAt(c).DiscountOrSurchargeCategory</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <br />
+                                        <br />*@
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <label class="form-label">
+                                                Job folder template:
+                                            </label>
+                                            <select id="template-select" class="select2 form-control w-200" onchange="onChange();">
+                                                <option value="0">(Please Select)</option>
+                                                <option value="Transcreation - complex">Transcreation - complex</option>
+                                                <option value="Transcreation - with DTP">Transcreation - with DTP</option>
+                                                <option value="Interpreting - standard">Interpreting - standard</option>
+                                                <option value="Translation - with DTP + client review">Translation - with DTP + client review</option>
+                                                <option value="Translation - standard">Translation - standard</option>
+                                                <option value="Translation - with client review">Translation - with client review</option>
+                                                <option value="Transcription">Transcription</option>
+                                                <option value="QA (client-specific) - MoJ">QA (client-specific) - MoJ</option>
+                                                <option value="Transcreation - standard">Transcreation - standard</option>
+                                                <option value="Translation (client-specific) - SkillOnNet">Translation (client-specific) - SkillOnNet</option>
+                                                <option value="Translation - with DTP">Translation - with DTP</option>
+                                                <option value="Proofreading only">Proofreading only</option>
+                                            </select>
+                                            <label id="templateRequired" class="text-danger" hidden>You must specify a folder template</label>
+                                        </div>
+
+                                    </div>
+                                    <br />
+                                    <br />
+                                </div>
+                                <br /><br />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <i class="fal fa-tools fa-2x color-black"></i> &nbsp; &nbsp;
+                    <h2>
+                        Optional Information
+                    </h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                    </div>
+                </div>
+                <div class="panel-container expanded">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label class="form-label" for="po-number-input">PO Number</label>
+                                        <input type="text" id="po-number-input" placeholder="Purchase order no." class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="form-label" for="client-notes-textarea">Client Notes:</label><br />(Be aware that these notes will be visible in <strong>i plus</strong> and on invoices.)
+                                        <textarea class="form-control" id="client-notes-textarea" placeholder="Notes or additional information" rows="5"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="form-label" for="internal-notes-textarea">Internal Notes:</label><br />(These notes will not be visible in <strong>i plus</strong> or on invoices.)
+                                        <textarea class="form-control" id="internal-notes-textarea" placeholder="Notes or additional information" rows="5"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="printing-packaging--div">
+                                <div class="row" id="translate-online-div">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Printing/packaging project?</label>
+                                        <br />
+                                        <br />
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="printing-checkbox">
+                                            <label class="custom-control-label" for="printing-checkbox">This is a printing/packaging project, and the relevant workflow stated in the Operations Guidebook must be followed at all times.</label>
+                                        </div>
+                                        <br /><br />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Additional options</label>
+                                    <br />
+                                    
+                                    <div class="form-group">
+                                        Please specify the level of priority if applicable:
+                                        <select id="priority-select" class="select2 form-control">
+                                            <option value="0">(None selected)</option>
+                                            <option value="1">High</option>
+                                            <option value="2">Medium</option>
+                                            <option value="2">Low</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="sensitivity-checkbox">
+                                            <label class="custom-control-label" for="sensitivity-checkbox"><strong>Sensitivity</strong> - Confidential</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label" for="linked-job-order-number-input">Linked to job order:</label>
+                                        <input type="text" id="linked-job-order-number-input" placeholder="Job Order" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>
+<div class="row">
+    <div class="col-lg-12 text-center">
+        <button class="btn btn-success" type="submit" id="create-job-order-button" onclick="createJobOrder()">Create Job Order</button>&nbsp;&nbsp;
+        <button class="btn btn-default" type="submit" onclick="returnPage()">Cancel</button>
+    </div>
+</div>
+<div class="modal modal-alert fade" id="job-order-creation-result-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><label id="header-text"></label></h5>
+                @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                    </button>*@
+            </div>
+            <div class="modal-body">
+                <label id="job-order-creation-success-string"></label>&nbsp;<label class="text-success md-header" id="job-order-creation-success-dates"></label>
+                <label class="text-warning md-header" id="job-order-creation-warning-string"></label>
+                <div id="created-job-order-id" hidden></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="returnPage()">Return to Contact</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="viewPage()">View Job Order</button>
+
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+

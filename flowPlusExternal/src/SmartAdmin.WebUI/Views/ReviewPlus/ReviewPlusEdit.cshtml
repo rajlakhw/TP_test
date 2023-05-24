@@ -1,0 +1,1018 @@
+﻿@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-brands.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/flowPlusStyle.css" />
+    <link rel="stylesheet" media="screen, print" href="~/css/theme-demo.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/fixedheader/3.1.2/css/fixedHeader.dataTables.min.css">
+}
+
+
+@{ ViewData["Title"] = "Review translations";
+    //ViewData["PageName"] = "datatables_basic";
+    ViewData["Category1"] = "review plus";
+    //ViewData["Heading"] = "Project Status";
+    //ViewData["PageDescription"] = "Create headache free searching, sorting and pagination tables without any complex configuration";
+}
+@{
+    @using ViewModels.flowPlusExternal.ReviewPlus;
+    @model ReviewEditModel;
+    @using Global_Settings;
+}
+
+<style>
+    .list {
+        display: inline;
+        list-style-type: none;
+    }
+
+    .select2-container {
+        z-index: 5000;
+    }
+
+    body.modal-open {
+        overflow: visible;
+    }
+
+    .was-validated .custom-select:invalid + .select2 .select2-selection {
+        border-color: #fd3995;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23fd3995' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23fd3995' stroke='none'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:invalid:focus + .select2 .select2-selection:invalid:focus {
+        border-color: #fd3995;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(253, 57, 149, 0.25);
+    }
+
+
+    .was-validated .custom-select:valid + .select2 .select2-selection {
+        border-color: #1dc9b7 !important;
+        padding-right: calc(0.75em + 2.625rem);
+        background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e") no-repeat right 0.875rem center/8px 10px, url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%231dc9b7' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") #fff no-repeat center right 1.875rem/calc(0.735em + 0.5rem) calc(0.735em + 0.5rem);
+    }
+
+    .was-validated .custom-select:valid:focus + .select2 .select2-selection:valid:focus {
+        border-color: #1dc9b7;
+        -webkit-box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+        box-shadow: 0 0 0 0.2rem rgba(29, 201, 183, 0.25);
+    }
+
+    mark {
+        padding: 0px;
+        background: yellow;
+    }
+
+    .dataTable > thead > tr > th[class*=sort]:after {
+        display: none;
+    }
+
+    .dataTable > thead > tr > th[class*=sort]:before {
+        display: none;
+    }
+</style>
+
+@section ScriptsBlock {
+    <script src="~/js/statistics/peity/peity.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/mark.js/8.6.0/jquery.mark.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/datatables.mark.js/2.0.0/datatables.mark.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/3.1.2/js/dataTables.fixedHeader.min.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        $('#defaultIndeterminate').prop('indeterminate', true)
+        var toggleCheckbox = function () {
+            $('#js-checkbox-toggle').toggleText('Change to CIRCLE', 'Change back to default');
+            $('.frame-wrap .custom-checkbox').toggleClass('custom-checkbox-circle');
+        }
+        var toggleRadio = function () {
+            $('#js-radio-toggle').toggleText('Change to ROUNDED', 'Change back to default');
+            $('.frame-wrap .custom-radio').toggleClass('custom-radio-rounded');
+        }
+    </script>
+
+    <script>
+
+        var showTagVal = "collapsed";
+        var allUnsavedRows = new Array();
+        var pageIndex = 1;
+        var lastModifiedRvTranslationId = @ViewBag.LastModifiedRvTranslationId;
+        $(document).ready(function () {
+
+            //initializeJobItemTranslation();
+
+            var controls = {
+                leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+                rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+            }
+
+            //$(document).ready(function () {
+                var segmentId = @ViewBag.LastModifiedSegId;
+
+                var orgId = @ViewBag.OrgId;
+
+                if (orgId == 68268) {
+                    segmentId = segmentId / 2;
+                }
+
+                var reviewTable = $('#dt-basic-example').DataTable();
+                var pageSize = reviewTable.page.info().length;
+
+
+                //calculating table page index taking into account the page size and the last modified tranlsation unit.
+                if (segmentId % pageSize == 0) {
+                    pageIndex = (segmentId / pageSize);
+                }
+                else {
+                    pageIndex = Math.trunc(segmentId / pageSize) + 1;
+                }
+
+
+            //reviewTable.page('next').draw('page');
+            initializeJobItemTranslation();
+                //var reviewTable1 = $('#dt-basic-example').dataTable();
+                //reviewTable.fnPageChange(pageIndex - 1, true);
+
+
+                //$('#dt-basic-example').DataTable().page(1).draw('page');
+
+                //reviewTable.fnPageChange('next', true);
+                //reviewTable1.page(1).draw(true);
+                //reviewTable.iDisplayIndex = 1;
+
+            $('#datepicker-4-3').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy"
+            });
+
+            $('#datepicker-4-3-edit').datepicker({
+                todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+            });
+
+            $(function () {
+                $('.select2').select2();
+                $(".select2-placeholder-multiple").select2({
+                    placeholder: "(Select office)"
+                });
+                $(".js-hide-search").select2({
+                    minimumResultsForSearch: 1 / 0
+                });
+                $(".js-max-length").select2({
+                    maximumSelectionLength: 2,
+                    placeholder: "Select maximum 2 items"
+                });
+                //$(".select2-placeholder").select2({
+                //    placeholder: "Select a state",
+                //    allowClear: true
+                //});
+                $(".js-select2-icons").select2({
+                    minimumResultsForSearch: 1 / 0,
+                    templateResult: icon,
+                    templateSelection: icon,
+                    escapeMarkup: function (elm) {
+                        return elm
+                    }
+                });
+                function icon(elm) {
+                    elm.element;
+                    return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+                }
+                $(".js-data-example-ajax").select2({
+                    ajax: {
+                        url: "https://api.github.com/search/repositories",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term, // search term
+                                page: params.page
+                            };
+                        },
+                        processResults: function (data, params) {
+                            // parse the results into the format expected by Select2
+                            // since we are using custom formatting functions we do not need to
+                            // alter the remote JSON data, except to indicate that infinite
+                            // scrolling can be used
+                            params.page = params.page || 1;
+                            return {
+                                results: data.items,
+                                pagination: {
+                                    more: (params.page * 30) < data.total_count
+                                }
+                            };
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Search for a repository',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 1,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+                        "<div class='select2-result-repository__avatar mr-2'><img src='" + repo.owner.avatar_url + "' class='width-2 height-2 mt-1 rounded' /></div>" +
+                        "<div class='select2-result-repository__meta'>" +
+                        "<div class='select2-result-repository__title fs-lg fw-500'>" + repo.full_name + "</div>";
+                    if (repo.description) {
+                        markup += "<div class='select2-result-repository__description fs-xs opacity-80 mb-1'>" + repo.description + "</div>";
+                    }
+                    markup += "<div class='select2-result-repository__statistics d-flex fs-sm'>" +
+                        "<div class='select2-result-repository__forks mr-2'><i class='@(Settings.Theme.IconPrefix) fa-lightbulb'></i> " + repo.forks_count + " Forks</div>" +
+                        "<div class='select2-result-repository__stargazers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+                        "<div class='select2-result-repository__watchers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+                        "</div>" +
+                        "</div></div>";
+                    return markup;
+                }
+                function formatRepoSelection(repo) {
+                    return repo.full_name || repo.text;
+                }
+            });
+
+            $(function() {
+
+                $('#datepicker-4-3').datepicker({
+                    orientation: "bottom left",
+                    todayHighlight: true,
+                    templates: controls,
+                    format: 'dd/mm/yyyy'
+                });
+
+                $('#datepicker-4-3-edit').datepicker({
+                    orientation: "bottom left",
+                    todayHighlight: true,
+                    templates: controls,
+                    format: 'dd/mm/yyyy'
+                });
+
+            });
+
+
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.checkValidity() === false) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+
+            //});
+
+            // Setup - add a text input to each footer cell
+
+        });
+
+        function getActionDOMData(row, rowIndex) {
+            return `<div class="row">
+                <div class="col">
+                <a href="javascript:saveEdit(${row.segment}, ${rowIndex})" title="Save" id="save-button" hidden><i class="fal fa-save fa-2x"></i></a>&nbsp;&nbsp;
+                <a href="javascript:revertEdit(${row.segment}, ${rowIndex})" title="Reset" id="revert-button" hidden><i class="far fa-undo-alt fa-2x"></i></a>
+                </div>
+            </div>`;
+        }
+
+        function revertEdit(segment, rowIndex) {
+            var allrows = document.getElementById('dt-basic-example').rows;
+            var showCollapsed = true;
+            var colLength = allrows[0].cells.length;
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var jSonObj = JSON.parse(response);
+
+                    if (allUnsavedRows.includes(rowIndex) == true) {
+                        allUnsavedRows.splice(allUnsavedRows.indexOf(rowIndex), 1);
+                    }
+
+                    if (allUnsavedRows.length == 0) {
+                        document.getElementsByClassName("saveall")[0].hidden = true;
+                        document.getElementsByClassName("saveall")[1].hidden = true;
+
+                        document.getElementsByClassName("revertall")[0].hidden = true;
+                        document.getElementsByClassName("revertall")[1].hidden = true;
+
+                    }
+
+                    allrows[rowIndex + 1].cells[2].firstElementChild.value = jSonObj.targetText;
+                    allrows[rowIndex + 1].cells[3].firstElementChild.value = jSonObj.commentText;
+
+                    var saveButton = allrows[rowIndex + 1].cells[colLength - 1].children[0].children[0].children[0];
+                    saveButton.hidden = true;
+
+                    var revertButton = allrows[rowIndex + 1].cells[colLength - 1].children[0].children[0].children[1];
+                    revertButton.hidden = true;
+
+                    allrows[rowIndex + 1].cells[2].children[1].innerText = "";
+                    allrows[rowIndex + 1].cells[2].children[1].hidden = true;
+
+                }
+            }
+            xhr.open("POST", "ReviewPlus/GetSegmentDetails", true);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            var dataToSend = {
+                "jobItemId": @Model.JobItemId,
+                "segment": segment,
+                "showCollapsedTag": showCollapsed
+            }
+            xhr.send(JSON.stringify(dataToSend));
+        }
+
+        function saveEdit(segment, rowIndex) {
+            var allrows = document.getElementById('dt-basic-example').rows;
+            var targetText = allrows[rowIndex + 1].cells[2].firstElementChild.value;
+            var comment = allrows[rowIndex + 1].cells[3].firstElementChild.value
+            var showCollapsed = true;
+            var autoSaveEnabled = document.getElementById('auto-save-checkbox').checked;
+            var colLength = allrows[0].cells.length;
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    if (allUnsavedRows.includes(rowIndex) == true) {
+                        allUnsavedRows.splice(allUnsavedRows.indexOf(rowIndex), 1);
+                    }
+
+                    if (allUnsavedRows.length == 0) {
+                        document.getElementsByClassName("saveall")[0].hidden = true;
+                        document.getElementsByClassName("saveall")[1].hidden = true;
+
+                        document.getElementsByClassName("revertall")[0].hidden = true;
+                        document.getElementsByClassName("revertall")[1].hidden = true;
+                    }
+
+                    if (response != "") {
+                        allrows[rowIndex + 1].cells[2].children[1].innerText = response;
+                        allrows[rowIndex + 1].cells[2].children[1].hidden = false;
+                    }
+                    else {
+
+                        allrows[rowIndex + 1].cells[2].children[1].innerText = "";
+                        allrows[rowIndex + 1].cells[2].children[1].hidden = true;
+                        var saveButton = allrows[rowIndex + 1].cells[colLength - 1].children[0].children[0].children[0];
+                        saveButton.hidden = true;
+
+                        var revertButton = allrows[rowIndex + 1].cells[colLength - 1].children[0].children[0].children[1];
+                        revertButton.hidden = true;
+
+                        var alreadySelectedRow = document.getElementsByClassName('selected');
+                        alreadySelectedRow[0].className = alreadySelectedRow[0].className.replace(' selected', '');
+
+                        allrows[rowIndex + 1].className = allrows[rowIndex + 1].className + " selected";
+
+                        var xhr1 = new XMLHttpRequest();
+                            xhr1.onreadystatechange = function () {
+                                if (this.readyState == 4 && this.status == 200) {
+                                    var response = xhr1.responseText;
+                                    var jSonObj = JSON.parse(response);
+
+                                    lastModifiedRvTranslationId = jSonObj.reviewTranslationId;
+
+                                    if (allrows[rowIndex + 1].cells.length == 6) {
+                                        var control1 = allrows[0].cells[4].children[0];
+
+                                        if (control1.id == "last-modified-by") {
+                                            allrows[rowIndex + 1].cells[4].innerText = jSonObj.lastModifiedBy;
+                                        }
+                                        else if (control1.id == "last-modified-date") {
+                                            allrows[rowIndex + 1].cells[4].innerText = getDateString(jSonObj.lastModifiedDateTime);
+                                        }
+                                    }
+
+                                    if (allrows[rowIndex + 1].cells.length == 7) {
+                                        var control1 = allrows[0].cells[4].children[0];
+                                        var control2 = allrows[0].cells[5].children[0];
+
+                                        if (control1.id == "last-modified-by") {
+                                            allrows[rowIndex + 1].cells[4].innerText = jSonObj.lastModifiedBy;
+                                        }
+
+                                        if (control2.id == "last-modified-date") {
+                                            allrows[rowIndex + 1].cells[5].innerText = getDateString(jSonObj.lastModifiedDateTime);
+                                        }
+                                    }
+
+                                    //if ()
+                                    //allrows[rowIndex + 1].cells[4]
+
+
+
+                                }
+                            }
+                        xhr1.open("POST", "ReviewPlus/GetSegmentDetails", true);
+                        xhr1.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+                        var dataToSend = {
+                                "jobItemId": @Model.JobItemId,
+                                "segment": segment,
+                                "showCollapsedTag": showCollapsed
+                            }
+                        xhr1.send(JSON.stringify(dataToSend));
+                    }
+
+
+                }
+            }
+            xhr.open("POST", "ReviewPlus/UpdateSegment", true);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            var dataToSend = {
+                "jobItemId": @Model.JobItemId,
+                "segment": segment,
+                "targetText": targetText,
+                "commentText": comment,
+                "showCollapsedTag": showCollapsed,
+                "autoSave": autoSaveEnabled
+            }
+            xhr.send(JSON.stringify(dataToSend));
+        }
+
+        function saveAllUnsavedChanges() {
+
+            if (allUnsavedRows.length > 0) {
+                var allrows = document.getElementById('dt-basic-example').rows;
+
+                for (i = 0; i < allUnsavedRows.length; i++) {
+                    rowIndex = allUnsavedRows[i];
+                    var segmentId = parseInt(allrows[rowIndex + 1].cells[0].innerText);
+
+                    //save the update
+                    saveEdit(segmentId, rowIndex);
+                }
+
+                allUnsavedRows = [];
+                document.getElementsByClassName("saveall")[0].hidden = true;
+                document.getElementsByClassName("saveall")[1].hidden = true;
+
+                document.getElementsByClassName("revertall")[0].hidden = true;
+                document.getElementsByClassName("revertall")[1].hidden = true;
+            }
+
+
+        }
+
+        function revertAllUnsavedChanges() {
+
+            if (allUnsavedRows.length > 0) {
+                var allrows = document.getElementById('dt-basic-example').rows;
+
+                for (i = 0; i < allUnsavedRows.length; i++) {
+                    rowIndex = allUnsavedRows[i];
+                    var segmentId = parseInt(allrows[rowIndex + 1].cells[0].innerText);
+
+                    //save the update
+                    revertEdit(segmentId, rowIndex);
+                }
+
+                allUnsavedRows = [];
+                document.getElementsByClassName("saveall")[0].hidden = true;
+                document.getElementsByClassName("saveall")[1].hidden = true;
+
+                document.getElementsByClassName("revertall")[0].hidden = true;
+                document.getElementsByClassName("revertall")[1].hidden = true;
+            }
+
+            $('#confirm-revert-all-updates-modal').modal('hide');
+        }
+
+        function getJobItemIdFromUrl() {
+            var url = window.location.href;
+            var jobItemId = url.split('ReviewPlusEdit/')[1];
+            return jobItemId;
+        }
+
+        function checkForAnyUnsavedChanges(e) {
+            if (allUnsavedRows.length > 0) {
+                $('#unsaved-changes-modal').modal('show');
+                //e.preventDefault;
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+        function showTags(value, e){
+            showTagVal = value;
+            initializeJobItemTranslation();
+            e.preventDefault();
+        }
+
+        function showTargetData(data, cssClass, rowIndex) {
+            return `<textarea class="form-control ${getCSSClass(cssClass)}" rows="3" onkeydown="showSaveButton(${rowIndex})" id="target-text" style="width:100%;">${data}</textarea>
+                    <label class="text-danger" hidden id="target-text-invalid"></label>`;
+        }
+
+        function showSaveButton(rowIndex) {
+
+            var allrows = document.getElementById('dt-basic-example').rows;
+            var colLength = allrows[0].cells.length;
+
+            var saveButton = allrows[rowIndex + 1].cells[colLength - 1].children[0].children[0].children[0];
+            saveButton.hidden = false;
+
+            var revertButton = allrows[rowIndex + 1].cells[colLength - 1].children[0].children[0].children[1];
+            revertButton.hidden = false;
+
+            if (allUnsavedRows.includes(rowIndex) == false) {
+                allUnsavedRows.push(rowIndex);
+            }
+
+            if (allUnsavedRows.length > 1) {
+                document.getElementsByClassName("saveall")[0].hidden = false;
+                document.getElementsByClassName("saveall")[1].hidden = false;
+
+                document.getElementsByClassName("revertall")[0].hidden = false;
+                document.getElementsByClassName("revertall")[1].hidden = false;
+            }
+
+
+
+        }
+
+        function getCSSClass(cssClass) {
+
+            if ("@ViewBag.TargetIANACode".startsWith("he") == true || "@ViewBag.TargetIANACode".startsWith("ar") ||
+                "@ViewBag.TargetIANACode".startsWith("ur") || "@ViewBag.TargetIANACode".startsWith("persian")) {
+                if (cssClass.endsWith("RTL") == false) {
+                    return cssClass + "RTL";
+                }
+                else {
+                    return cssClass;
+                }
+            }
+            else {
+                return cssClass;
+            }
+        }
+
+        function showCommentData(data, rowIndex) {
+            return `<textarea class="form-control" id="cancel-joborder" onkeydown="showSaveButton(${rowIndex})" rows="3" style="width:100%;">${data}</textarea>`;
+        }
+
+        function getDateString(date) {
+            var dataObj = new Date(date);
+            var dayofweek = dataObj.toLocaleString('default', { weekday: 'short' });
+            var month = dataObj.toLocaleString('default', { month: 'long' });
+            var day = dataObj.getUTCDate();
+            var year = dataObj.getUTCFullYear();
+            var hour = dataObj.getHours();
+            var minute = dataObj.getMinutes();
+            if (hour < 10) { hour = '0' + hour; }
+            if (minute < 10) { minute = '0' + minute; }
+            return dayofweek + " " + day + " " + month + " " + year + " " + hour + ":" + minute;
+
+        }
+
+        function initializeJobItemTranslation() {
+
+            var dataObjectId = @ViewBag.DataObjectID;
+            var dataTypeId = @ViewBag.DataObjectTypeId;
+            var jobItemId = @Model.JobItemId;
+
+
+            if ($('#dt-basic-example thead tr').length == 1) {
+                $('#dt-basic-example thead tr').clone(true).appendTo('#dt-basic-example thead');
+
+
+
+                $('#dt-basic-example thead tr:eq(1) th').each(function (i) {
+                    var title = $(this).text();
+                    if (i == 1 || i == 2) {
+                        if (i == 1) {
+
+                            $(this).html('<input type="search" class="form-control form-control-sm" placeholder="Search source..." />');
+                        }
+                        else {
+                            $(this).html('<input type="search" class="form-control form-control-sm" placeholder="Search target..." />');
+                        }
+
+                        $('input', this).on('keyup change', function () {
+
+                            if (reviewTable.column(i).search() !== this.value) {
+
+                                reviewTable
+                                    .column(i)
+                                    .search(this.value)
+                                    .draw(true);
+
+                            }
+                        });
+                    }
+                    else {
+                        $(this).html('');
+                    }
+                });
+            }
+
+
+
+             var reviewTable = $('#dt-basic-example').DataTable(
+                 {
+                     destroy: true,
+                     "bFilter": true,
+                     processing: true,
+                     serverSide: true,
+                     responsive: true,
+                     pageLength: 10,
+                     orderCellsTop: true,
+                     fixedHeader: true,
+                     pagination: true,
+                     "ordering" : false,
+                    //searching: false,
+
+                    ajax: {
+                        contentType: "application/json; charset=utf-8",
+                        url: `/ReviewPlus/GetReviewDataTable`,
+                        type: 'POST',
+                        data: function (d) {
+                         return JSON.stringify({ parameters: d, dataObjectId, dataTypeId, jobItemId, showTagVal });
+                        }
+                    },
+                    lengthMenu: [10, 20, 50, 100, 200],
+                    columns: [
+                        {
+                            "data": "segment",
+                            orderable: false,
+                            className: 'noVis'
+
+                        },
+                        {
+                            "data": "translationBeforeReviewCollapsedTags",
+                            orderable: false,
+                            className: 'noVis'
+                        },
+                        {
+                            "data": "translationDuringReview",
+                            orderable: false,
+                            mRender: function (data, type, row, meta) {
+                                return showTargetData(row.translationDuringReview, row.originalMatchPercentCSSClass, meta.row + 1);
+                            },
+                            className: 'noVis'
+                        },
+                        {
+                            "data": "comments",
+                            orderable: false,
+                            mRender: function (data, type, row, meta) {
+                                return showCommentData(row.comments, meta.row + 1);
+                            },
+                            className: 'noVis'
+                        },
+                        {
+                            "data": "lastModifiedBy",
+                            orderable: true,
+                            "visible": false
+                        },
+                        {
+                            "data": "lastModifiedDateTime",
+                            orderable: true,
+                            render: function (data, type, row, meta) {
+                                if (!data) {
+                                    return "";
+                                }
+                                else {
+                                    return getDateString(data);
+                                }
+
+                            },
+                            "visible": false
+                        },
+                        //{
+                        //    "data" : "comments",
+                        //    orderable : false
+                        //},
+                        {
+                            /* To take action against specific joborder Id */
+                            "data": "segment",
+                            orderable: false,
+                            "className": "text-center",
+                            mRender: function (data, type, row, meta) {
+                                return getActionDOMData(row, meta.row + 1);
+                            },
+                            className: 'noVis'
+                        }
+                    ],
+                    "fnRowCallback": function (row, data, iDisplayIndex) {
+
+                        if (lastModifiedRvTranslationId == data.reviewTranslationId) {
+                            //row.addClass("selected");
+                            row.className = row.className + " selected";
+
+                        }
+
+                        //$(nRow).addClass(aData[aData.length - 1]);
+                     },
+                     "fnDrawCallback": function (oSettings) {
+
+                         document.getElementsByClassName("saveall")[0].hidden = true;
+                             document.getElementsByClassName("saveall")[1].hidden = true;
+
+                             document.getElementsByClassName("revertall")[0].hidden = true;
+                             document.getElementsByClassName("revertall")[1].hidden = true;
+
+                             allUnsavedRows = [];
+
+                     },
+                     //"initComplete": function (oSettings) {
+                     //    //alert("init complete");
+                     //    var oTable = this;
+                     //    var totalRows = oTable.fnGetData().length;
+
+                     //    //oTable.pageIndex = 1;
+                     //    oTable.fnPageChange(1, true);
+                     //    //$('#dt-basic-example').DataTable().ajax.reload();
+                     //    //debugger;
+                     //    //page = Math.ceil(oSettings._iDisplayStart / oSettings._iDisplayLength);
+                     //},
+
+                    dom:
+                        "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                    buttons: [
+                        //{
+                        //    text: 'Approve this document',
+                        //    action: function ( e, dt, node, config ) {
+                        //        window.location = `/ReviewPlus/ReviewPlusSignOff/${jobItemId}`;
+                        //    },
+                        //    className: 'btn-outline-default'
+                        //},
+                        //{
+                        //    text: 'Filter',u
+                        //    //action: function ( e, dt, node, config ) {
+                        //    //    $('#daterange-modal').modal("show");
+                        //    //},
+                        //    className: 'btn-outline-default'
+                        //},
+                        {
+                            text: 'Color coding information',
+                            action: function (e, dt, node, config) {
+                                $('#color-coding-modal').modal("show");
+                            },
+                            className: 'btn-outline-default'
+
+                        },
+                        {
+                            extend: 'pageLength',
+                            className: 'btn-outline-default'
+                        },
+                        {
+                            extend: 'colvis',
+                            text: 'Show more columns',
+                            titleAttr: 'Col visibility',
+                            className: 'btn-outline-default visButton',
+                            columns: ':not(.noVis)'
+                        }
+                    ]
+                }
+            );
+
+
+            //reviewTable.on('preXhr.dt', function () {
+            //    alert("preXhr");
+            //});
+
+
+            reviewTable.on('preDraw', function (e) {
+                if (allUnsavedRows.length > 0) {
+                    e.preventDefault;
+                    $('#unsaved-changes-modal').modal('show');
+                    return false;
+                }
+            });
+
+            var colVisibilityButton = document.getElementsByClassName("visButton")[0];
+            colVisibilityButton.addEventListener('click', function () {
+                var pageNum = reviewTable.page.info().page;
+                reviewTable.page(pageNum).draw(true);
+            });
+
+
+            //reviewTable.on('draw', function (e) {
+            //    debugger;
+            //    if (allUnsavedRows.length > 0) {
+            //        //show an alert
+            //        debugger;
+            //        $('#unsaved-changes-modal').show();
+            //        e.preventDefault();
+            //    }
+            //})
+           //var table = $('#dt-basic-example').DataTable();
+
+            //reviewTable.on('page.dt', function () { alert("page changed"); })
+
+
+            //reviewTable.column(1).search('easily').draw();
+
+            //
+
+        }
+
+
+    </script>
+}
+<h3><img src="~/img/review-plus-logo.jpg" style="width:35px;height:32px;"> review plus: Review and approve translations</h3>
+
+<br />
+<div class="row">
+    <div class="col-lg-12">
+        <div class="form-group">
+            <label class="form-label" for="file-name">Reviewing document:</label>
+            <label id="file-name">@Model.FileName.Replace(".sdlxliff", "")</label>
+        </div>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-lg-12">
+        <a id="approve-button" class="btn btn-success text-white" onclick="return checkForAnyUnsavedChanges(event)" href="/ReviewPlus/ReviewPlusSignOff/@Model.JobItemId">Approve this document</a>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12" style="text-align:right;">
+        <i>The highlighted row is the last sentence which you edited</i>&nbsp;&nbsp;
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div id="panel-4" class="panel">
+            <div class="panel-hdr">
+                <i class="fal fa-tools fa-2x color-black"></i> &nbsp; &nbsp;
+                <h2>
+                    Review translations
+                </h2>
+                <div class="panel-toolbar">
+                    @*<button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand" title="Collapse/Expand"></button>*@
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen" title="Fullscreen"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+
+                <div class="panel-content col-lg-6" style="float:left; text-align: left;">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="auto-save-checkbox" checked="">
+                        <label class="custom-control-label" for="auto-save-checkbox">Auto-update</label>&nbsp;<a href="#" id="most-used-lang-info-icon" onclick="return false;" data-html="true" data-container="body" data-toggle="tooltip" data-placement="right" title="When I make changes to a translation, automatically update all other target segments where the source text is identical"><i class="fal fa-info-circle fa-1x text-success"></i></a>
+                    </div>
+                </div>
+
+                <div class="panel-content" style="float:inherit;text-align:right;">
+                    &nbsp;
+                    <button type="button" class="btn btn-success text-white saveall" hidden onclick="saveAllUnsavedChanges()">
+                        <span class="@(Settings.Theme.IconPrefix) fa-save mr-1"></span>
+                        Save all
+                    </button>
+                    &nbsp;&nbsp;
+                    <button type="button" class="btn btn-secondary text-white revertall" hidden data-target="#confirm-revert-all-updates-modal" data-toggle="modal">
+                        <span class="@(Settings.Theme.IconPrefix) fa-undo-alt mr-1"></span>
+                        Revert all unsaved changes
+                    </button>
+                    @*<div class="frame-wrap">
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" class="custom-control-input" id="collapsedCheckBox" name="showCollapsedTag" checked="" onchange="showTags('collapsed', event)">
+                                <label class="custom-control-label" for="collapsedCheckBox">Show collapsed tags</label>
+                            </div>
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" class="custom-control-input" id="expandedCheckBox" name="showCollapsedTag" onchange="showTags('expanded', event)">
+                                <label class="custom-control-label" for="expandedCheckBox">Show expanded tags</label>
+                            </div>
+
+                        </div>*@
+
+                </div>
+
+                <table id="dt-basic-example" class="table table-bordered table-hover table-striped w-100">
+                    <thead class="bg-warning-200">
+                        <tr>
+                            <th style="width:3%;text-align:center;">ID</th>
+                            <th style="width:25%;text-align:center;">Source: @Model.SourceLang</th>
+                            <th style="width:25%;text-align:center;">Target: @Model.TargetLang</th>
+                            @*<th>Comment(s) from translator</th>*@
+                            <th style="width:15%;text-align:center;">Comments</th>
+                            <th style="width:10%;text-align:center;">Last modified by<input type="hidden" id="last-modified-by"></th>
+                            <th style="width:15%;text-align:center;">Last modified on (@ViewBag.extranetUserTimeZone)<input type="hidden" id="last-modified-date"></th>
+                            <th style="width:50px;text-align:center;">Action</th>
+                        </tr>
+                        @*                        </thead>*@
+                        @*                        <tbody>
+                                @for (var i = 0; i < Model.Count(); i++)
+                                {
+                                    <tr id="jobitem-row">
+                                        <td>@Model.ElementAt(i).Segment</td>
+                                        <td>@Model.ElementAt(i).TranslationBeforeReviewCollapsedTags</td>
+                                        <td>@Model.ElementAt(i).TranslationDuringReviewCollapsedTags</td>
+                                        <td>@Model.ElementAt(i).Comments</td>
+                                        <td>@Model.ElementAt(i).Comments</td>
+                                        <td>@Model.ElementAt(i).Segment</td>
+                                    </tr>
+                                }
+                            </tbody>*@
+                </table>
+                <div class="panel-content" style="float:inherit;text-align:right;">
+                    <button type="button" class="btn btn-success text-white saveall" hidden onclick="saveAllUnsavedChanges()">
+                        <span class="@(Settings.Theme.IconPrefix) fa-save mr-1"></span>
+                        Save all
+                    </button>
+                    &nbsp;&nbsp;
+                    <button type="button" class="btn btn-secondary text-white revertall" hidden data-target="#confirm-revert-all-updates-modal" data-toggle="modal">
+                        <span class="@(Settings.Theme.IconPrefix) fa-undo-alt mr-1"></span>
+                        Revert all unsaved changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="color-coding-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Color coding information</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-success" role="alert">
+                    <span class="reviewplusnewmatch" style="border: solid 1px;">&nbsp;@ViewBag.NewTextColorCoding&nbsp;</span> @ViewBag.NewTextColorCodingInfo
+                </div>
+                <div class="alert alert-success" role="alert">
+                    <span class="reviewplusfuzzymatch" style="border: solid 1px;">&nbsp;@ViewBag.FuzzyColorCoding&nbsp;</span> @ViewBag.FuzzyColorCodingInfo
+                </div>
+                <div class="alert alert-success" role="alert">
+                    <span style="border: solid 1px;">&nbsp;@ViewBag.ExactMatchColorCoding&nbsp;</span> @ViewBag.ExactMatchColorCodingInfo
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade example-modal-centered-transparent" id="unsaved-changes-modal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-transparent" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title text-white">
+                    Warning!
+                </h4>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label class="m-0 text-white opacity-70">
+                    You have one or more unsaved changes on the current page.<br />Please save or revert the updates on the current page in order to proceed.
+                </label>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade example-modal-centered-transparent" id="confirm-revert-all-updates-modal" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-transparent" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title text-white">
+                    Warning!
+                </h4>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true"><i class="@(Settings.Theme.IconPrefix) fa-times"></i></span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label class="m-0 text-white opacity-70">
+                    Are you sure you want to revert all unsaved changes made to this file?<br /><br /> Please note that once you do this, we will not be able to retrieve these updates again.
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" onclick="revertAllUnsavedChanges()">Revert all unsaved updates</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+

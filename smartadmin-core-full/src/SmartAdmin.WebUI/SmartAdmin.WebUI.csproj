@@ -1,0 +1,369 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <UserSecretsId>aspnet-SmartAdmin.WebUI-1757DFEF-8A50-4CF6-A39D-79B9DFFE19FC</UserSecretsId>
+    <StartupObject>SmartAdmin.WebUI.Program</StartupObject>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>0</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="AccessControl.cs" />
+    <Compile Remove="AccountsOverview.cs" />
+    <Compile Remove="AccountsStat.cs" />
+    <Compile Remove="AltairCorporateGroupe.cs" />
+    <Compile Remove="AltairRegion.cs" />
+    <Compile Remove="ApprovedOrBlockedLinguisticSupplier.cs" />
+    <Compile Remove="AutoClientInvoicingSetting.cs" />
+    <Compile Remove="BankHoliday.cs" />
+    <Compile Remove="BestsellerDetailsTemp.cs" />
+    <Compile Remove="BestsellerDetailsTempSecond.cs" />
+    <Compile Remove="BestsellerParagraphsToExclude.cs" />
+    <Compile Remove="BetssonTranslationFlowFile.cs" />
+    <Compile Remove="BetssonTranslationFlowRequest.cs" />
+    <Compile Remove="BetssonTranslationFlowSuggestion.cs" />
+    <Compile Remove="BetssonTranslationFlowText.cs" />
+    <Compile Remove="BirthdayComment.cs" />
+    <Compile Remove="BirthdayLike.cs" />
+    <Compile Remove="BirthdayWish.cs" />
+    <Compile Remove="Brand.cs" />
+    <Compile Remove="CallDataRecord.cs" />
+    <Compile Remove="ChatLog.cs" />
+    <Compile Remove="ChatSession.cs" />
+    <Compile Remove="ChatSession1.cs" />
+    <Compile Remove="ClientDecisionReason.cs" />
+    <Compile Remove="ClientDesignFile.cs" />
+    <Compile Remove="ClientInvoice.cs" />
+    <Compile Remove="ClientPriceList.cs" />
+    <Compile Remove="ClientPriceListRate.cs" />
+    <Compile Remove="ClientPriceListsHistoricalDatum.cs" />
+    <Compile Remove="ClientSpecificChecklist.cs" />
+    <Compile Remove="ClientSpecificXmltagMapping.cs" />
+    <Compile Remove="ClientTechnology.cs" />
+    <Compile Remove="Conference.cs" />
+    <Compile Remove="Contact.cs" />
+    <Compile Remove="ContactsTemp.cs" />
+    <Compile Remove="Country.cs" />
+    <Compile Remove="CsiGon.cs" />
+    <Compile Remove="Currency.cs" />
+    <Compile Remove="CustomFiltersForOrderStatusPage.cs" />
+    <Compile Remove="DataObjectType.cs" />
+    <Compile Remove="DeadlineChangeReason.cs" />
+    <Compile Remove="DecisionReason.cs" />
+    <Compile Remove="DesignPlusComment.cs" />
+    <Compile Remove="DesignPlusDocumentLayer.cs" />
+    <Compile Remove="DesignPlusFileDownload.cs" />
+    <Compile Remove="DesignPlusFolder.cs" />
+    <Compile Remove="DesignPlusLinksPath.cs" />
+    <Compile Remove="DesignPlusPortCount.cs" />
+    <Compile Remove="DesignPlusProject.cs" />
+    <Compile Remove="DesignPlusReviewJob.cs" />
+    <Compile Remove="DesignPlusStickyNote.cs" />
+    <Compile Remove="DesignPlusTag.cs" />
+    <Compile Remove="DesignPlusTextChange.cs" />
+    <Compile Remove="DesignPlusTextFrameLog.cs" />
+    <Compile Remove="Employee.cs" />
+    <Compile Remove="EmployeeAccessMatrix.cs" />
+    <Compile Remove="EmployeeAccessMatrixControl.cs" />
+    <Compile Remove="EmployeeAnnualRevenueTargetsAndThreshold.cs" />
+    <Compile Remove="EmployeeDepartment.cs" />
+    <Compile Remove="EmployeeExpenseClaim.cs" />
+    <Compile Remove="EmployeeExpenseClaimsMaster.cs" />
+    <Compile Remove="EmployeeHoliday.cs" />
+    <Compile Remove="EmployeeHolidayRequest.cs" />
+    <Compile Remove="EmployeeInterimTarget.cs" />
+    <Compile Remove="EmployeeOffice.cs" />
+    <Compile Remove="EmployeeOwnershipRelationship.cs" />
+    <Compile Remove="EmployeeOwnershipType.cs" />
+    <Compile Remove="EmployeeSalesCommission.cs" />
+    <Compile Remove="EmployeesSickness.cs" />
+    <Compile Remove="EmployeeStatusType.cs" />
+    <Compile Remove="EmployeeTeam.cs" />
+    <Compile Remove="EmployeeTimeLog.cs" />
+    <Compile Remove="EndClient.cs" />
+    <Compile Remove="EndClientDatum.cs" />
+    <Compile Remove="Enquiry.cs" />
+    <Compile Remove="ExchangeRate.cs" />
+    <Compile Remove="ExpenseCategory.cs" />
+    <Compile Remove="ExpenseCategoryLimit.cs" />
+    <Compile Remove="ExtranetAccessLevel.cs" />
+    <Compile Remove="ExtranetAvailableAccessLevel.cs" />
+    <Compile Remove="ExtranetSiteMap.cs" />
+    <Compile Remove="ExtranetSiteMapClientSpecific.cs" />
+    <Compile Remove="ExtranetSiteMapForBernafon.cs" />
+    <Compile Remove="ExtranetSiteMapForBostik.cs" />
+    <Compile Remove="ExtranetSiteMapForEnnovaShell.cs" />
+    <Compile Remove="ExtranetSiteMapForEon.cs" />
+    <Compile Remove="ExtranetSiteMapForFlsmidth.cs" />
+    <Compile Remove="ExtranetSiteMapforImc.cs" />
+    <Compile Remove="ExtranetSiteMapForNetEntPoland.cs" />
+    <Compile Remove="ExtranetSiteMapForRb.cs" />
+    <Compile Remove="ExtranetSiteMapForTemplatesStandard.cs" />
+    <Compile Remove="ExtranetUser.cs" />
+    <Compile Remove="ExtranetUsersPassword.cs" />
+    <Compile Remove="ExtranetUsersPasswordsLog.cs" />
+    <Compile Remove="ExtranetUsersReviewLanguage.cs" />
+    <Compile Remove="ExtranetUsersSecurityQuestion.cs" />
+    <Compile Remove="ExtraWorkingDay.cs" />
+    <Compile Remove="FileExtensionsForAutomation.cs" />
+    <Compile Remove="Ftpdetail.cs" />
+    <Compile Remove="GroupeLanguageServiceRateCard.cs" />
+    <Compile Remove="GroupeMasterRate.cs" />
+    <Compile Remove="GroupeRateCard.cs" />
+    <Compile Remove="HighFife.cs" />
+    <Compile Remove="InRiverFieldsBeingTranslated.cs" />
+    <Compile Remove="JobItem.cs" />
+    <Compile Remove="JobItemPgddetail.cs" />
+    <Compile Remove="JobOrder.cs" />
+    <Compile Remove="JobOrderAutomationData2.cs" />
+    <Compile Remove="JobOrderAutomationDatum.cs" />
+    <Compile Remove="JobOrderAutomationSetting.cs" />
+    <Compile Remove="JobOrderChannel.cs" />
+    <Compile Remove="JobOrderPgddetail.cs" />
+    <Compile Remove="JobSubmissionTemplate.cs" />
+    <Compile Remove="JsonXmlnodeMapping.cs" />
+    <Compile Remove="Language.cs" />
+    <Compile Remove="LanguageCombinationsForTop5Supplier.cs" />
+    <Compile Remove="LanguageRateUnit.cs" />
+    <Compile Remove="LanguageRegion.cs" />
+    <Compile Remove="LanguageService.cs" />
+    <Compile Remove="LanguageSubjectArea.cs" />
+    <Compile Remove="LinguisticSupplier.cs" />
+    <Compile Remove="LinguisticSupplierInvoice.cs" />
+    <Compile Remove="LinguisticSupplierInvoiceEarlyPaymentOption.cs" />
+    <Compile Remove="LinguisticSupplierInvoiceJobItem.cs" />
+    <Compile Remove="LinguisticSupplierInvoiceTemplate.cs" />
+    <Compile Remove="LinguisticSupplierRate.cs" />
+    <Compile Remove="LinguisticSupplierSoftwareApplication.cs" />
+    <Compile Remove="LinguisticSupplierSource.cs" />
+    <Compile Remove="LinguisticSupplierStatus.cs" />
+    <Compile Remove="LinguisticSupplierType.cs" />
+    <Compile Remove="LinguistsAltairDetail.cs" />
+    <Compile Remove="LocalCountryInfo.cs" />
+    <Compile Remove="LocalCurrencyInfo.cs" />
+    <Compile Remove="LocalDiscountAndSurchargeInfo.cs" />
+    <Compile Remove="LocalExtranetAccessLevelInfo.cs" />
+    <Compile Remove="LocalJobOrderChannelInfo.cs" />
+    <Compile Remove="LocalLanguageInfo.cs" />
+    <Compile Remove="LocalLanguageRateUnitInfo.cs" />
+    <Compile Remove="LocalLanguageServiceInfo.cs" />
+    <Compile Remove="LocalPlanningCalendarCategoriesInfo.cs" />
+    <Compile Remove="LoyaltyPlusInfo.cs" />
+    <Compile Remove="MarketingCampaign.cs" />
+    <Compile Remove="MarketingCampaignRecipient.cs" />
+    <Compile Remove="MiscResource.cs" />
+    <Compile Remove="NetEntTemp.cs" />
+    <Compile Remove="NewsItem.cs" />
+    <Compile Remove="NewsItemsLanguage.cs" />
+    <Compile Remove="OperatingSystem.cs" />
+    <Compile Remove="OperatingSystemVersion.cs" />
+    <Compile Remove="OrderAndItemAuditLog.cs" />
+    <Compile Remove="Org.cs" />
+    <Compile Remove="OrgAltairDetail.cs" />
+    <Compile Remove="OrgGroup.cs" />
+    <Compile Remove="OrgIndustry.cs" />
+    <Compile Remove="OrgIndustryRelationship.cs" />
+    <Compile Remove="OrgIntroductionSource.cs" />
+    <Compile Remove="OrgLegalStatus.cs" />
+    <Compile Remove="OrgMainIndustry.cs" />
+    <Compile Remove="OrgReminderSetting.cs" />
+    <Compile Remove="OrgSalesCategory.cs" />
+    <Compile Remove="OrgTechnologyRelationship.cs" />
+    <Compile Remove="OverdueReason.cs" />
+    <Compile Remove="PaymentMethod.cs" />
+    <Compile Remove="PerformancePlusManualFigure.cs" />
+    <Compile Remove="PerformancePlusTarget.cs" />
+    <Compile Remove="PlanningCalendarAppointment.cs" />
+    <Compile Remove="PlanningCalendarCategory.cs" />
+    <Compile Remove="PreferredLanguage.cs" />
+    <Compile Remove="PriceListAutomationManagementAudit.cs" />
+    <Compile Remove="PriceListsAuditLog.cs" />
+    <Compile Remove="Quote.cs" />
+    <Compile Remove="QuoteAndOrderDiscountsAndSurcharge.cs" />
+    <Compile Remove="QuoteAndOrderDiscountsAndSurchargesCategory.cs" />
+    <Compile Remove="QuoteItem.cs" />
+    <Compile Remove="QuoteTemplate.cs" />
+    <Compile Remove="ReviewContextField.cs" />
+    <Compile Remove="ReviewContextFieldsArchived.cs" />
+    <Compile Remove="ReviewContextFieldsTransit.cs" />
+    <Compile Remove="ReviewGrade.cs" />
+    <Compile Remove="ReviewPlusSignOffJobItem.cs" />
+    <Compile Remove="ReviewPlusTag.cs" />
+    <Compile Remove="ReviewPlusTagsArchived.cs" />
+    <Compile Remove="ReviewPlusTagsTransit.cs" />
+    <Compile Remove="ReviewQuestion.cs" />
+    <Compile Remove="ReviewTranslation.cs" />
+    <Compile Remove="ReviewTranslationComment.cs" />
+    <Compile Remove="ReviewTranslationsArchived.cs" />
+    <Compile Remove="ReviewTranslationsBernafonTemp1.cs" />
+    <Compile Remove="ReviewTranslationsTemp.cs" />
+    <Compile Remove="ReviewTranslationsTransit.cs" />
+    <Compile Remove="SalesHotlistEntry.cs" />
+    <Compile Remove="SharedDoc.cs" />
+    <Compile Remove="SharePlusArticle.cs" />
+    <Compile Remove="SharePlusArticlesTemp1.cs" />
+    <Compile Remove="SharePlusArticleViewLog.cs" />
+    <Compile Remove="SharePlusSearchLog.cs" />
+    <Compile Remove="Sheet1.cs" />
+    <Compile Remove="SoftwareApplication.cs" />
+    <Compile Remove="StandardPageContent.cs" />
+    <Compile Remove="StyleGuideRule.cs" />
+    <Compile Remove="SystemConfig.cs" />
+    <Compile Remove="Task.cs" />
+    <Compile Remove="TaskType.cs" />
+    <Compile Remove="Timesheet.cs" />
+    <Compile Remove="TimesheetLogBreakdown.cs" />
+    <Compile Remove="TimesheetsApproval.cs" />
+    <Compile Remove="TimesheetTaskCategory.cs" />
+    <Compile Remove="TPCoreProductionContext.cs" />
+    <Compile Remove="TradosTemplate.cs" />
+    <Compile Remove="TradosTemplateToTmmapping.cs" />
+    <Compile Remove="TrainingCourse.cs" />
+    <Compile Remove="TrainingCourseType.cs" />
+    <Compile Remove="TrainingSession.cs" />
+    <Compile Remove="TrainingSessionAttendee.cs" />
+    <Compile Remove="TrCourseType.cs" />
+    <Compile Remove="ViewContactsSearchableInfo.cs" />
+    <Compile Remove="ViewContactsWhichHaveBeenContacted.cs" />
+    <Compile Remove="ViewCountriesMultilingualInfo.cs" />
+    <Compile Remove="ViewCurrenciesMultilingualInfo.cs" />
+    <Compile Remove="ViewLanguagesMultilingualInfo.cs" />
+    <Compile Remove="ViewLinguisticSuppliersSearchableInfo.cs" />
+    <Compile Remove="ViewMarketingEmailAddressesOfAllClientContact.cs" />
+    <Compile Remove="ViewMarketingEmailAddressesOfAllNonClientContact.cs" />
+    <Compile Remove="ViewOrgsSearchableInfo.cs" />
+    <Compile Remove="ViewOrgsWhichHaveBeenContacted.cs" />
+    <Compile Remove="VodropdownItem.cs" />
+    <Compile Remove="VodropdownList.cs" />
+    <Compile Remove="VolumeDiscount.cs" />
+    <Compile Remove="VwNewsItemsSearchableDe.cs" />
+    <Compile Remove="VwNewsItemsSearchableDum.cs" />
+    <Compile Remove="VwNewsItemsSearchableEn.cs" />
+    <Compile Remove="VwNewsItemsSearchableEnGb.cs" />
+    <Compile Remove="VwNewsItemsSearchableFr.cs" />
+    <Compile Remove="VwNewsItemsSearchableSv.cs" />
+    <Compile Remove="VwStandardPagesSearchableDe.cs" />
+    <Compile Remove="VwStandardPagesSearchableDum.cs" />
+    <Compile Remove="VwStandardPagesSearchableEn.cs" />
+    <Compile Remove="VwStandardPagesSearchableFr.cs" />
+    <Compile Remove="VwStandardPagesSearchableSv.cs" />
+    <Compile Remove="Wolcomputer.cs" />
+    <Compile Remove="WorkAnnivarsariesComment.cs" />
+    <Compile Remove="WorkAnniversariesLike.cs" />
+    <Compile Remove="WorkAnniversariesWish.cs" />
+    <Compile Remove="WorkFlow.cs" />
+    <Compile Remove="WorkFlowStep.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Views\Shared\_DropdownMenu.cshtml" />
+    <Content Remove="Views\Shared\_PageHeader.cshtml" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Update="app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="bootstrap" Version="5.1.3" />
+    <PackageReference Include="jQuery" Version="1.12.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="5.0.13" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.13">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.13" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.13">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\tpCommon\Custom_Exceptions\Custom_Exceptions.csproj" />
+    <ProjectReference Include="..\..\..\tpCommon\Data.QA\Data.QA.csproj" />
+    <ProjectReference Include="..\..\..\tpCommon\Data\Data.csproj" />
+    <ProjectReference Include="..\..\..\tpCommon\Extensions\Extensions.csproj" />
+    <ProjectReference Include="..\..\..\tpCommon\Global_Settings\Global_Settings.csproj" />
+    <ProjectReference Include="..\..\..\tpCommon\Sandbox\Sandbox.csproj" />
+    <ProjectReference Include="..\..\..\tpCommon\Services\Services.csproj" />
+    <ProjectReference Include="..\..\..\tpCommon\ViewModels\ViewModels.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="appsettingsDevelopment.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="appsettingsQa.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
+  <ItemGroup>
+	<Content Include="OtherResources\**">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</Content>
+</ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="OtherResources\Code of Conduct.pdf" />
+    <None Remove="OtherResources\Green Policy Statement.pdf" />
+    <None Remove="OtherResources\Green Policy.pdf" />
+    <None Remove="OtherResources\IT policy.pdf" />
+    <None Remove="OtherResources\Office equipment policy.pdf" />
+    <None Remove="OtherResources\Privacy notice for translate plus personnel.pdf" />
+    <None Remove="OtherResources\Professional ethics.pdf" />
+    <None Remove="OtherResources\Quality policy.pdf" />
+    <None Remove="OtherResources\Social media guidelines.pdf" />
+    <None Remove="OtherResources\Team lunch policy.pdf" />
+    <None Remove="OtherResources\Template files\Benefits and recognition plan Bulgaria.pdf" />
+    <None Remove="OtherResources\Template files\BG Holiday Procedure.pdf" />
+    <None Remove="OtherResources\Template files\BG Sickness procedure.pdf" />
+    <None Remove="OtherResources\Template files\Disciplinary procedure Bulgaria.pdf" />
+    <None Remove="OtherResources\Template files\Powerpoint\2023-02-10_Creative presentation template.potx" />
+    <None Remove="OtherResources\Template files\Powerpoint\2023-02-10_Presentation template for e-learning clients.potx" />
+    <None Remove="OtherResources\Template files\Powerpoint\2023-02-10_Presentation template for life sciences clients.potx" />
+    <None Remove="OtherResources\Template files\Powerpoint\2023-02-10_Presentation template for manufacturing clients.potx" />
+    <None Remove="OtherResources\Template files\Powerpoint\2023-02-10_References-case-studies.potx" />
+    <None Remove="OtherResources\Template files\Powerpoint\2023-02-10_Standard sales presentation deck.potx" />
+    <None Remove="OtherResources\Template files\Powerpoint\2023-02-10_Workflows.potx" />
+    <None Remove="OtherResources\Template files\Powerpoint\Presentation for manufacturing clients.potx" />
+    <None Remove="OtherResources\Template files\Powerpoint\Sales presentation GLS ENG.potx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_Development project brief.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_Draft MSA (ICA) for inter-company cooperations.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_Meeting agenda for sales - TP - NEW.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_NDA translate plus standard.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_Transcreation Copy Deck - translate plus.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_translate plus - Client Assessment Form.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_translate plus - contract - Danish.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_translate plus - contract - German.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_translate plus - Draft SLA.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_translate plus - Interpreting Quoting Brief.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_translate plus - Letterhead.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_translate plus - proposal with logo.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_translate plus - QA report.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-02-10_translate plus SEO and localisation.dotx" />
+    <None Remove="OtherResources\Template files\Word\2023-03-27_translate plus - external client contract %28EN%29 - v2023.dotx" />
+    <None Remove="OtherResources\UK Benefits and Recognition plan.pdf" />
+    <None Remove="OtherResources\UK Family friendly policy.pdf" />
+    <None Remove="OtherResources\UK Health and Safety Policy.pdf" />
+    <None Remove="OtherResources\UK sickness policy.pdf" />
+  </ItemGroup>
+
+</Project>

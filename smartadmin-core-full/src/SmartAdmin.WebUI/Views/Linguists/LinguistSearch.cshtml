@@ -1,0 +1,1172 @@
+﻿
+@{
+    @model ViewModels.LinguistSearch.LinguistSearchViewModel ;
+
+    @using System.Text.Json;
+
+}
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/reactions/reactions.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/miscellaneous/jqvmap/jqvmap.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/ion-rangeslider/ion-rangeslider.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+}
+
+
+<h3>Search for a linguistic supplier </h3>
+<br />
+A linguistic supplier can be an individual freelance, an agency (another translation company), or a team of freelance translators working together.
+<br />
+<br />
+<div class="row">
+    <div class="panel-content" style="width:100%">
+        <form asp-controller="LinguistSearch" id="LinguistSearchForm" asp-action="Results">
+            <input type="hidden" name="LanguageServicesValues" id="hiddenLanguageServicesValues" />
+            <input type="hidden" name="MasterFieldsValues" id="hiddenMasterFieldsValues" />
+            <input type="hidden" name="SubFieldsValues" id="hiddenSubFieldsValues" />
+            <input type="hidden" name="MediaTypesValues" id="hiddenMediaTypesValues" />
+            <input type="hidden" name="SourceLanguagesValues" id="hiddenSourceLanguagesValues" />
+            <input type="hidden" name="TargetLanguageValues" id="hiddenTargetLanguageValues" />
+            <input type="hidden" name="SpecialRatesValues" id="hiddenSpecialRatesValues" />
+            <input type="hidden" name="supplierStatusValues" id="hiddensupplierStatusValues" />
+            <input type="hidden" name="CountriesNationalyValues" id="hiddenCountriesNationalyValues" />
+            <input type="hidden" name="CountryOfResidenceValues" id="hiddenCountryOfResidenceValues" />
+            <input type="hidden" name="SoftwaresValues" id="hiddenSoftwaresValues" />
+            <input type="hidden" name="gdprStatusListValues" id="hiddengdprStatusListValues" />
+            <input type="hidden" name="SupplierAvailabilityValues" id="hiddenSupplierAvailabilityValues" />
+            <input type="hidden" name="RateUnitsListValues" id="hiddenRateUnitsListValues" />
+            <input type="hidden" name="AppliesToValues" id="hiddenAppliesToValues" />
+            <input type="hidden" name="TableToShow" id="TableToShow" />
+            <input type="hidden" name="ProfessionalBodiesValues" id="hiddenProfessionalBodiesValues" />
+            <input type="hidden" name="VendorTypeValues" id="hiddenVendorTypeValues" />
+
+            <div class="row col mb-3" style="margin-left:0px;">
+                <input type="radio" value="accNumber" name="rbAccNumber" id="accNumberID" />
+                <label class="form-label ml-1 mr-2" for="accNumberID">Find specific linguist ID number:</label>
+                <input type="text" id="txtNumberID" name="NumberValue" value="@Model.exactID" class="form-control col-sm-2 form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-2 bg-transparent" @*value="@Model.exactID"*@ />
+            </div>
+
+            <div class="row col mb-3" style="margin-left:0px;">
+                <input type="radio" value="other" name="rbAccNumber" id="otherID" checked="checked" />
+                <label class="form-label ml-1" for="otherID">Search by other criteria</label>
+            </div>
+            <div id="SearchCriteriaTable">
+                <div class="row col mb-3" id="SupplierNameRow" style="margin-left:0px;">
+                    <label class="form-label col-sm-3"> Search by name: </label>
+                    <input type="text" name="linguistName" id="txtContact" class="form-control  col-sm-3 form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@Model.linguistName" />
+                </div>
+                <div class="row col mb-3" id="EmailRow" style="margin-left:0px;">
+                    <label class="form-label col-sm-3"> Search by e-mail address: </label>
+                    <input type="text" name="EmailValue" id="txtEmail" class="form-control col-sm-3 form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@Model.emailValue" />
+                </div>
+                <div class="row col mb-3" style="margin-left:0px;">
+                    <label class="form-label col-sm-3"> Search by postcode, zip code or equivalent: </label>
+                    <input type="text" name="PostcodeValue" id="txtPostCode" class="form-control col-sm-3 form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" value="@Model.postcodeValue" />
+                </div>
+
+                @*<div>
+            <label class="form-label col-sm-3 px-6">Search by supplier rating:</label>
+            <div class="col-sm-3">
+                <input type="text" class="js-range-slider form-control col-sm-1 form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" name="myRangeValue" value="" />
+            </div>
+
+            </div>*@
+
+
+                <div class="col-12">
+                    @*Enquiries to be actioned*@
+                    <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                        <div class="panel-hdr">
+                            <h2>General search</h2>
+                        </div>
+                        <div class="panel-container">
+                            <div class="panel-content">
+                                <div id="js-page-content">
+                                    <div class="row justify-content-center px-5">
+
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Area of expertise</label>
+                                            <select size="7" name="@nameof(Model.MasterFieldsIds)" id="MasterFields" onchange="SelectedFields(this)" multiple="multiple" class="select2 form-control">
+                                                @foreach (var service in Model.MasterFields)
+                                                {
+                                                    @if (Model.MasterFieldsIds != null)
+                                                    {
+                                                        string[] values = Model.MasterFieldsIds.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == service.Id.ToString())
+                                                            {
+                                                                <option value="@service.Id" selected="selected">@service.Name</option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@service.Id">@service.Name</option>
+                                                            }}
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@service.Id">@service.Name</option>
+                                                    }
+
+                                                }
+                                            </select>
+                                        </div>
+
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Sub fields</label>
+                                            <select size="7" name="@nameof(Model.SubFieldsIds)" multiple="multiple" id="SubFields" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @if (Model.SubFields != null)
+                                                {
+                                                    @foreach (var service in Model.SubFields)
+                                                    {
+                                                        @if (Model.SubFields != null)
+                                                        {
+                                                            string[] values = Model.SubFieldsIds.Split(",");
+                                                            @foreach (var value in values)
+                                                            {
+                                                                @if (value == service.Id.ToString())
+                                                                {
+
+                                                                    <option value="@service.Id" selected="selected">@service.Name</option>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <option value="@service.Id">@service.Name</option>
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@service.Id">@service.Name</option>
+                                                        }
+                                                    }
+                                                }
+
+                                            </select>
+
+                                        </div>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Media types</label>
+                                            <select size="7" name="@nameof(Model.MediaTypeIds)" multiple="multiple" id="MediaTypes" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var service in Model.MediaTypes)
+                                                {
+                                                    @if (Model.MediaTypeIds != null)
+                                                    {
+                                                        string[] values = Model.MediaTypeIds.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == service.Id.ToString())
+                                                            {
+
+                                                                <option value="@service.Id" selected="selected"> @service.Name </option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@service.Id"> @service.Name </option>
+                                                            }
+                                                        }}
+                                                    else
+                                                    {
+                                                        <option value="@service.Id"> @service.Name </option>
+                                                    }
+
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Membership in professional bodies</label>
+                                            <select size="7" name="@nameof(Model.LinguisticProfessionalBodies)" multiple="multiple" id="ProfessionalBodies" class="select2 form-control">
+                                                @foreach (var service in Model.LinguisticProfessionalBodies)
+                                                {
+
+                                                    <option value="@service.Id"> @service.Name </option>
+
+
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="js-page-content">
+
+                                    <div class="row justify-content-center px-5">
+
+                                        <div class="col mb-3">
+                                            <div id="allServices" hidden>
+
+
+                                                <label class="form-label text-center px-6">Language service</label>
+                                                <select size="7" name="@nameof(Model.LanguageServiceIds)" multiple="multiple" onchange="onChangeSelectValues(this)" id="LanguageServices" class="select2 form-control">
+                                                    @foreach (var service in Model.LanguageServices)
+                                                    {
+                                                        @if (Model.LanguageServiceIds != null)
+                                                        {
+                                                            string[] values = Model.LanguageServiceIds.Split(",");
+                                                            @foreach (var value in values)
+                                                            {
+                                                                @if (value == service.Id.ToString())
+                                                                {
+                                                                    <option value="@service.Id" selected="selected"> @service.Name </option>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <option value="@service.Id"> @service.Name </option>
+                                                                }
+
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@service.Id"> @service.Name </option>
+                                                        }
+
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div id="defaultServicesDiv">
+                                                <label class="form-label text-center px-6">Language service</label>
+                                                <select size="7" name="@nameof(Model.defaultLanguageServiceIds)" multiple="multiple" onchange="onChangeSelectValues(this)" id="DefaultLanguageServices" class="select2 form-control" hidden>
+                                                    @foreach (var service in Model.DefaultLanguageServices)
+                                                    {
+                                                        @if (Model.defaultLanguageServiceIds != null)
+                                                        {
+                                                            string[] values = Model.defaultLanguageServiceIds.Split(",");
+                                                            @foreach (var value in values)
+                                                            {
+                                                                @if (value == service.Id.ToString())
+                                                                {
+                                                                    <option value="@service.Id" selected="selected"> @service.Name </option>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <option value="@service.Id"> @service.Name </option>
+                                                                }
+
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@service.Id"> @service.Name </option>
+                                                        }
+
+                                                    }
+                                                </select>
+                                            </div>
+                                            <br />
+                                            <div id="">
+                                                <label class="form-label text-center px-6">Vendor type</label>
+                                                <select size="7" name="@nameof(Model.VendorTypeIds)" multiple="multiple" onchange="onChangeSelectValues(this)" id="VendorTypes" class="select2 form-control" hidden>
+                                                    @foreach (var service in Model.VendorTypes)
+                                                    {
+                                                        @if (Model.VendorTypeIds != null)
+                                                        {
+                                                            string[] values = Model.VendorTypeIds.Split(",");
+                                                            @foreach (var value in values)
+                                                            {
+                                                                @if (value == service.Id.ToString())
+                                                                {
+                                                                    <option value="@service.Id" selected="selected"> @service.Name </option>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <option value="@service.Id"> @service.Name </option>
+                                                                }
+
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@service.Id"> @service.Name </option>
+                                                        }
+
+                                                    }
+                                                </select>
+                                            </div>
+                                            <br />
+                                            <div class="form-group-row">
+
+                                                <div class="custom-control custom-switch col-sm-12 px-6">
+                                                    <input type="checkbox" checked name="defaultServices" class="custom-control-input" onchange="changeServices()" id="defaultServices" />
+                                                    <label class="custom-control-label" for="defaultServices">Show most used services</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Source language</label>
+                                            <select size="7" name="@nameof(Model.SourceLanguageIanacodes)" multiple="multiple" onchange="onChangeSelectValues(this)" id="SourceLanguages" class="select2 form-control">
+                                                @foreach (var language in Model.Languages)
+                                                {
+                                                    @if (Model.SourceLanguageIanacodes != null)
+                                                    {
+                                                        string[] values = Model.SourceLanguageIanacodes.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == language.StringValue.ToString())
+                                                            {
+                                                                <option value="@language.StringValue" selected="selected"> @language.Name </option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@language.StringValue"> @language.Name </option>
+                                                            }}
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@language.StringValue"> @language.Name </option>
+                                                    }
+
+                                                }
+                                            </select>
+
+                                        </div>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Target language</label>
+                                            <select size="7" name="@nameof(Model.TargetLanguageIanacodes)" multiple="multiple" id="TargetLanguage" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var language in Model.Languages)
+                                                {
+                                                    @if (Model.TargetLanguageIanacodes != null)
+                                                    {
+                                                        string[] values = Model.TargetLanguageIanacodes.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == language.StringValue.ToString())
+                                                            {
+                                                                <option value="@language.StringValue" selected="selected"> @language.Name </option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@language.StringValue"> @language.Name </option>
+                                                            }
+                                                        }}
+                                                    else
+                                                    {
+                                                        <option value="@language.StringValue"> @language.Name </option>
+                                                    }
+
+                                                }
+                                            </select>
+
+                                        </div>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Specialised rate</label>
+                                            <select size="7" name="@nameof(Model.SpecialRateIds)" multiple="multiple" id="SpecialRates" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var service in Model.SpecialRates)
+                                                {
+                                                    @if (Model.SpecialRateIds != null)
+                                                    {
+                                                        string[] values = Model.SpecialRateIds.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == service.Id.ToString())
+                                                            {
+                                                                <option value="@service.Id" selected="selected"> @service.Name </option>
+                                                            }
+
+                                                            else
+                                                            {
+                                                                <option value="@service.Id"> @service.Name </option>
+                                                            }
+                                                        }}
+                                                    else
+                                                    {
+                                                        @if (service.Name == "General")
+                                                        {
+                                                            <option value="@service.Id" selected="selected"> @service.Name </option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@service.Id"> @service.Name </option>
+                                                        }
+                                                    }
+
+                                                }
+                                            </select>
+
+                                        </div>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Key words search</label>
+                                            <textarea name="KeyWords" asp-for="@Model.keyWords" style="width:100%;height: 100px;"></textarea>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div id="js-page-content">
+                                    <div class="row justify-content-center px-5" id="UnitsDiv" hidden>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Rate unit</label>
+                                            <select size="7" name="@nameof(Model.rateUnitsId)" id="RateUnitsList" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var service in Model.RateUnitsList)
+                                                {
+                                                    @if (Model.rateUnitsId == service.Id)
+                                                    {
+                                                        <option value="@service.Id" selected="selected"> @service.Name </option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@service.Id"> @service.Name </option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Applies to</label>
+                                            <select size="7" name="@nameof(Model.AppliesToId)" id="AppliesTo" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var service in Model.AppliesToList)
+                                                {
+                                                    @if (Model.AppliesToId == service.Id)
+                                                    {
+                                                        <option value="@service.Id" selected="selected"> @service.Name </option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@service.Id"> @service.Name </option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    @*Enquiries to be actioned*@
+                    <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                        <div class="panel-hdr">
+                            <h2>Extended search</h2>
+                        </div>
+                        <div class="panel-container collapse">
+                            <div class="panel-content">
+                                <div class="row justify-content-center px-5">
+                                    <div class="row justify-content-center">
+                                        <div class="col mb-3" id="prefSuppliers">
+                                            <label class="form-label text-center px-6 mb-2">Preferred suppliers</label>
+                                            <button id="clearPreferredSuppliers" type="button" onclick="clearFields('prefSuppliers')" class="fal fa-trash border-0 ml-1" style="background:none;"></button>
+                                            <br />
+                                            <input type="radio" asp-for="@Model.prefSuppliersType" name="rbPreferred" id="approvedByUs" value="1" />
+                                            <label class="form-label ml-1" for="approvedByUs">Approved by us</label>
+                                            <br />
+                                            <input type="radio" asp-for="@Model.prefSuppliersType" name="rbPreferred" id="approvedByClient" value="2" />
+                                            <label class="form-label ml-1" for="approvedByClient">Approved by the client</label>
+                                            <br />
+                                            <input type="text" value="@Model.prefSuppliersID" id="txtObjectPreferred" name="PreferredObjectValue" class="form-control mb-2 col-sm-11 form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 bg-transparent" @*value="@Model.exactID"*@ />
+                                            <input type="radio" asp-for="@Model.prefSuppliersForType" name="rbPreferredObject" id="ObjectContact" value="1" />
+                                            <label class="form-label ml-1" for="ObjectContact">Contact ID</label>
+                                            <input type="radio" asp-for="@Model.prefSuppliersForType" name="rbPreferredObject" id="ObjectOrg" value="2" />
+                                            <label class="form-label ml-1" for="ObjectOrg">Org ID</label>
+                                            <input type="radio" asp-for="@Model.prefSuppliersForType" name="rbPreferredObject" id="ObjectGroup" value="3" />
+                                            <label class="form-label ml-1" for="ObjectGroup">Org Group ID</label>
+                                            <br />
+
+                                        </div>
+                                        <div class="col mb-3" id="JobsDoneDiv">
+                                            <label class="form-label text-center px-6 mb-3">Jobs done for client</label>
+                                            <button id="clearJobsDone" type="button" onclick="clearFields('JobsDoneDiv')" class="fal fa-trash border-0 ml-1" style="background:none;"></button>
+                                            <br /> <br /> <br />
+                                            <input type="text" value="@Model.JobsID" id="txtJobId" name="JobsDoneForClient" class="form-control mb-2 col-sm-11 form-control-sm rounded-0 border-top-0 border-left-0 border-right-0 px-0 bg-transparent" @*value="@Model.exactID"*@ />
+                                            <input type="radio" asp-for="@Model.JobsDoneType" name="rbJobsObject" id="JobsContact" value="1" />
+                                            <label class="form-label ml-1" for="JobsContact">Contact ID</label>
+                                            <input type="radio" asp-for="@Model.JobsDoneType" name="rbJobsObject" id="JobsOrg" value="2" />
+                                            <label class="form-label ml-1" for="JobsOrg">Org ID</label>
+                                            <input type="radio" asp-for="@Model.JobsDoneType" name="rbJobsObject" id="JobsGroup" value="3" />
+
+                                            <label class="form-label ml-1" for="JobsGroup">Org Group ID</label>
+                                        </div>
+                                    </div>
+                                    @*<div class="col mb-3">
+                                    <label class="form-label text-center px-6">Applies to</label>
+                                    <select size="7" name="@nameof(Model.AppliesToId)" multiple="multiple" id="AppliesTo" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                        @foreach (var service in Model.AppliesToList)
+                                        {
+                                        @if (Model.AppliesToId == service.Id)
+                                            {
+                                        <option value="@service.Id" selected="selected">@service.Name</option>
+                                            }
+                                            else
+                                            {
+                                        <option value="@service.Id">@service.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>*@
+                                </div>
+
+
+                                <div id="js-page-content">
+                                    <div class="row justify-content-center px-5">
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Country of nationality</label>
+                                            <select size="7" name="@nameof(Model.CountryOfNationalityIds)" multiple="multiple" id="CountriesNationaly" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var service in Model.Countries)
+                                                {
+                                                    @if (Model.CountryOfNationalityIds != null)
+                                                    {
+                                                        string[] values = Model.CountryOfNationalityIds.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == service.Id.ToString())
+                                                            {
+                                                                <option value="@service.Id" selected="selected">@service.CountryName</option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@service.Id">@service.CountryName</option>
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@service.Id">@service.CountryName</option>
+
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Country of residence</label>
+                                            <select size="7" name="@nameof(Model.CountryOfResidenceIds)" multiple="multiple" id="CountryOfResidence" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var service in Model.Countries)
+                                                {
+                                                    @if (Model.CountryOfResidenceIds != null)
+                                                    {
+                                                        string[] values = Model.CountryOfResidenceIds.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == service.Id.ToString())
+                                                            {
+                                                                <option value="@service.Id" selected="selected">@service.CountryName</option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@service.Id">@service.CountryName</option>
+                                                            }
+                                                        }}
+                                                    else
+                                                    {
+                                                        <option value="@service.Id">@service.CountryName</option>
+                                                    }
+
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Supplier status</label>
+                                            <select size="7" name="@nameof(Model.StatusIds)" multiple="multiple" id="supplierStatus" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var service in Model.supplierStatus)
+                                                {
+                                                    @if (Model.StatusIds != null)
+                                                    {
+                                                        string[] values = Model.StatusIds.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == service.Id.ToString())
+                                                            {
+                                                                <option value="@service.Id" selected="selected"> @service.Name </option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@service.Id"> @service.Name </option>
+                                                            }
+                                                        }}
+                                                    else
+                                                    {
+                                                        <option value="@service.Id"> @service.Name </option>
+                                                    }
+
+                                                }
+                                            </select>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div id="js-page-content">
+                                    <div class="row justify-content-center px-5">
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Software used</label>
+                                            <select size="7" name="@nameof(Model.SoftwareIds)" multiple="multiple" id="Softwares" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var service in Model.Softwares)
+                                                {
+                                                    @if (Model.SoftwareIds != null)
+                                                    {
+                                                        string[] values = Model.SoftwareIds.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == service.Id.ToString())
+                                                            {
+                                                                <option value="@service.Id" selected="selected">@service.Name</option>
+                                                            }
+
+                                                            else
+                                                            {
+                                                                <option value="@service.Id">@service.Name</option>
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@service.Id">@service.Name</option>
+                                                    }
+
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">GDPR status</label>
+                                            <select size="7" name="@nameof(Model.gdprStatusIds)" multiple="multiple" id="gdprStatusList" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var service in Model.gdprStatusList)
+                                                {
+                                                    @if (Model.gdprStatusIds != null)
+                                                    {
+                                                        string[] values = Model.gdprStatusIds.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == service.Id.ToString())
+                                                            {
+                                                                <option value="@service.Id" selected="selected">@service.Name</option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@service.Id">@service.Name</option>
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@service.Id">@service.Name</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col mb-3">
+                                            <label class="form-label text-center px-6">Supplier availability</label>
+                                            <select size="7" name="@nameof(Model.AvailabilityIds)" multiple="multiple" id="SupplierAvailability" onchange="onChangeSelectValues(this)" class="select2 form-control">
+                                                @foreach (var service in Model.SupplierAvailability)
+                                                {
+                                                    @if (Model.AvailabilityIds != null)
+                                                    {
+                                                        string[] values = Model.AvailabilityIds.Split(",");
+                                                        @foreach (var value in values)
+                                                        {
+                                                            @if (value == service.Id.ToString())
+                                                            {
+                                                                <option value="@service.Id" selected="selected">@service.Name</option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@service.Id">@service.Name</option>
+                                                            }
+                                                        }}
+                                                    else
+                                                    {
+                                                        <option value="@service.Id">@service.Name</option>
+                                                    }
+
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="form-group-row">
+                    <div class="custom-control custom-switch col-sm-9">
+                        <input type="checkbox" name="SupplierNDAValue" asp-for="@Model.suppliersNDA" class="custom-control-input" id="SupplierNDA" />
+                        <label class="custom-control-label" for="SupplierNDA">Search for suppliers with NDA</label>
+                    </div>
+
+                </div>
+                <div class="form-group-row">
+                    <div class="custom-control custom-switch col-sm-9">
+                        <input type="checkbox" name="SupplierMemoryMatchValue" class="custom-control-input" id="SupplierMemoryMatch" />
+                        <label class="custom-control-label" for="SupplierMemoryMatch">Search for suppliers with new breakdown for memory match rates</label>
+                    </div>
+
+                </div>
+                <div class="form-group-row">
+                    <div class="custom-control custom-switch col-sm-9">
+                        <input type="checkbox" name="SupplierEncryptedValue" asp-for="@Model.suppliersEncryptedComputer" class="custom-control-input" id="SupplierEncrypted" />
+                        <label class="custom-control-label" for="SupplierEncrypted">Search for suppliers that have encrypted their computer</label>
+                    </div>
+
+                </div>
+            </div>
+
+
+
+
+
+            <div class="row mt-4">
+                <button type="submit" onclick="saveValues()" class="form-control" style="background-color: #E84133; color: white; width: 100px;"> Search </button>
+                <button type="button" class="form-control" onclick="ClearAll()" style="background-color: #E84133; color: white; width: 100px;"> Clear all </button>
+            </div>
+            <br />
+            <br />
+            <div>
+                <table id="Service-table" class="table-sm table table-bordered table-hover table-striped w-100" hidden>
+                    <thead style="background-color: #e84133">
+                        <tr>
+                            <th>ID</th>
+                            <th>Supplier name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Number of jobs in last 3 months</th>
+                            <th>Source</th>
+                            <th>Target</th>
+                            <th>Language service</th>
+                            <th>Linguist rate</th>
+                            <th>Rate in GBP</th>
+                            <th>Rate unit</th>
+                            <th>Minimum charge</th>
+                            <th>Specialised rate</th>
+                            <th>Applies to</th>
+                        </tr>
+                    </thead>
+                </table>
+                <table id="NoService-table" class="table-sm table table-bordered table-hover table-striped w-100" hidden>
+                    <thead style="background-color: #e84133">
+                        <tr>
+                            <th>ID</th>
+                            <th>Supplier name</th>
+                            <th>Status</th>
+                            <th>Type</th>
+                            <th>Number of jobs in last 3 months</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+@section ScriptsBlock
+{
+
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+
+    <script src="~/js/dependency/moment/moment.js"></script>
+    <script src="~/js/formplugins/ion-rangeslider/ion-rangeslider.js"></script>
+    <script src="~/js/miscellaneous/fullcalendar/fullcalendar.bundle.js"></script>
+    <script src="~/js/statistics/sparkline/sparkline.bundle.js"></script>
+    <script src="~/js/statistics/easypiechart/easypiechart.bundle.js"></script>
+    <script src="~/js/statistics/flot/flot.bundle.js"></script>
+    <script src="~/js/datagrid/datatables/datatables.bundle.js"></script>
+    <script src="~/js/miscellaneous/jqvmap/jqvmap.bundle.js"></script>
+    <script>
+        $('#js-page-content').smartPanel();
+    </script>
+
+    <script>
+
+        function SelectedFields(selectObject) {
+
+            var selectednumbers = [];
+            $('#MasterFields :selected').each(function (i, selected) {
+                selectednumbers[i] = $(selected).val();
+            });
+            var selectId = selectObject.id;
+            var values = $('#' + selectId).val();
+            var hiddenId = "hidden" + selectId;
+            $('#' + hiddenId + 'Values').val(values);
+
+            $.ajax({
+                beforeSend: function () {
+                    // add loading spinner
+                },
+                url: "api/GetSubFields",
+                method: 'POST',
+                dataType: 'json',
+                data: { 'SelectedFields': JSON.stringify(selectednumbers) },
+                success: function (data) {
+                    //confirm update was successfull
+
+                    var select = $("#SubFields");
+                    select.find('option').remove();
+                    for (let index = 0; index < data.length; ++index) {
+                        const element = data[index];
+                        var opt = document.createElement('option');
+                        opt.value = element.id;
+                        opt.innerHTML = element.name;
+                        select.append(opt);
+                        // ...use `element`...
+                    }
+                },
+                error: function (err) {
+                    //show that there was an error
+                    alert('ERROR');
+                    console.log(err);
+                },
+                complete: function () {
+                    // remove the spinner
+                }
+            });
+        }
+
+        $(".js-range-slider").ionRangeSlider({
+            type: "double",
+            min: 0,
+            max: 5,
+            from: 0,
+            to: 5,
+            grid: true
+        });
+
+
+        $(document).ready(function () {
+
+
+            $(function () {
+                $('.select2').select2();
+                let LocationRef = window.location.href;
+                if (LocationRef.includes('Results'))
+                {
+                        initializeResults();
+                }
+            });
+
+            function initializeResults() {
+                var dataSet = @Html.Raw(JsonSerializer.Serialize( Model.LinguistSearchList));
+
+                if (document.getElementById('defaultServices').checked) {
+                    $('#hiddenLanguageServicesValues').val($('#DefaultLanguageServices').val());
+                }
+                else {
+                    $('#hiddenLanguageServicesValues').val($('#LanguageServices').val());
+                }
+
+                if ($('#hiddenLanguageServicesValues').val() != '') {
+                    $('#Service-table').dataTable(
+                        {
+                            data: dataSet,
+                            searching: true,
+                            dataSrc: "",
+                            columns: [
+                                {
+                                    "data": "linguistID",
+                                },
+                                {
+                                    "data": "linguistName",
+                                    "defaultContent": "N/A",
+                                    render: function (data, type, row, meta) {
+                                        if (type == "display") {
+                                            let link = `https://myplusbeta.publicisgroupe.net/Linguist?id=${row.linguistID}`;
+                                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                        }
+                                        return data;
+                                    }
+                                },
+
+                                { "data": "linguistType" },
+                                { "data": "linguistStatus" },
+                                { "data": "numberOfJobs" },
+                                { "data": "lingSourceLang" },
+                                { "data": "lingTargetLang" },
+                                { "data": "lingService" },
+                                { "data": "linguistRate" },
+                                { "data": "linguistRateGBP" },
+                                { "data": "linguistRateRateUnit" },
+                                { "data": "minimumCharge" },
+                                { "data": "specialisedRate" },
+                                {
+                                    "data": "appliesTo",
+                                    render: function (data, type, row, meta) {
+                                        if (row.appliesToType == "1") {
+                                            let link = `https://myplusbeta.publicisgroupe.net/Contact?contactid=${row.appliesToId}`;
+                                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                        }
+                                        else if (row.appliesToType == "2") {
+                                            let link = `https://myplusbeta.publicisgroupe.net/Organisation?id=${row.appliesToId}`;
+                                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                        }
+                                        else if (row.appliesToType == "3") {
+                                            let link = `https://myplusbeta.publicisgroupe.net/OrgGroup?groupid=${row.appliesToId}`;
+                                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                        }
+                                        else {
+                                            return data;
+                                        }
+                                    }
+                                }
+
+                            ],
+
+                            colReorder: true,
+                            responsive: true,
+                            dom:
+                                "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                                "<'row'<'col-sm-12'tr>>" +
+                                "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                            buttons: [
+                                {
+                                    extend: 'pageLength',
+                                    className: 'btn-outline-default'
+                                },
+                                {
+                                    extend: 'colvis',
+                                    text: 'Column Visibility',
+                                    titleAttr: 'Col visibility',
+                                    className: 'btn-outline-default'
+                                }
+                            ],
+
+                            initComplete: function () {
+                                this.api().columns().every(function () {
+                                    var column = this;
+                                    var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                        .appendTo($(column.footer()).empty())
+                                        .on('change', function () {
+                                            var val = $.fn.dataTable.util.escapeRegex(
+                                                $(this).val()
+                                            );
+
+                                            column
+                                                .search(val ? '^' + val + '$' : '', true, false)
+                                                .draw();
+                                        });
+
+                                    column.data().unique().sort().each(function (d, j) {
+                                        select.append('<option value="' + d + '">' + d + '</option>')
+                                    });
+                                });
+
+                            }
+                        });
+                    $('#Service-table').removeAttr('hidden');
+                    $('#NoService-table').attr('hidden', 'hidden');
+                }
+                else {
+                    $('#NoService-table').removeAttr('hidden');
+                    $('#NoService-table').dataTable(
+                        {
+                            data: dataSet,
+                            searching: true,
+                            dataSrc: "",
+                            columns: [
+                                {
+                                    "data": "linguistID",
+                                },
+                                {
+                                    "data": "linguistName",
+                                    "defaultContent": "N/A",
+                                    render: function (data, type, row, meta) {
+                                        if (type == "display") {
+                                            let link = `https://myplusbeta.publicisgroupe.net/Linguist?id=${row.linguistID}`;
+                                            //var test = '';
+                                            //if (row.lingStatusID == "3") {
+                                            //    test = '&nbsp; <i class="ni ni-close" title="Struck off – Never use" style="color:red"></i>';
+                                            //}
+                                            //else if (row.lingStatusID == "13") {
+                                            //    test = '&nbsp; <i class="ni ni-close" title="Client specific only – see notes" style="color:red"></i>';
+                                            //}
+                                            //else if (row.lingStatusID == "6") {
+                                            //    test = '&nbsp; <i class="ni ni-close" title="No longer working as a translator" style="color:red"></i>';
+                                            //}
+                                            //else if (row.lingStatusID == "5") {
+                                            //    test = '&nbsp;  <i class="fal fa-minus-circle" title="Did not want to register - too many customers" style="color:grey"></i>';
+                                            //}
+                                            //else if (row.lingStatusID == "11") {
+                                            //    test = '&nbsp;  <i class="fal fa-minus-circle" title="Did not want to register - will not work via an agency" style="color:grey"></i>';
+                                            //}
+                                            //else if (row.lingStatusID == "12") {
+                                            //    test = '&nbsp; <i class="fal fa-exclamation-triangle" title="Use with care - see notes" style="color:orangered"></i>'
+                                            //}
+                                            //else if (row.lingStatusID == "7") {
+                                            //    test = '&nbsp; <i class="fal fa-question-circle" title="Will register when there is definite work" style="color:grey"></i>'
+                                            //}
+                                            //else if (row.lingStatusID == "2") {
+                                            //    test = '&nbsp; <i class="fal fa-question-circle" title="New addition (awaiting approval)" style="color:grey"></i>'
+                                            //}
+                                            //else if (row.lingStatusID == "1") {
+                                            //    test = '&nbsp; <i class="ni ni-check" title="Approved" style="color:forestgreen"></i> '
+                                            //}
+
+                                            return '<a href="' + link + '" target="_blank" >' + data + '</a>';
+                                        }
+                                        return data;
+                                    }
+                                },
+                                { "data": "linguistStatus" },
+                                { "data": "linguistType" },
+                                { "data": "numberOfJobs" }
+
+
+                            ],
+
+                            colReorder: true,
+                            responsive: true,
+                            dom:
+                                "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                                "<'row'<'col-sm-12'tr>>" +
+                                "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+                            buttons: [
+                                {
+                                    extend: 'pageLength',
+                                    className: 'btn-outline-default'
+                                },
+                                {
+                                    extend: 'colvis',
+                                    text: 'Column Visibility',
+                                    titleAttr: 'Col visibility',
+                                    className: 'btn-outline-default'
+                                }
+                            ],
+
+                            initComplete: function () {
+                                this.api().columns().every(function () {
+                                    var column = this;
+                                    var select = $('<select class="custom-select form-control"><option value=""></option></select>')
+                                        .appendTo($(column.footer()).empty())
+                                        .on('change', function () {
+                                            var val = $.fn.dataTable.util.escapeRegex(
+                                                $(this).val()
+                                            );
+
+                                            column
+                                                .search(val ? '^' + val + '$' : '', true, false)
+                                                .draw();
+                                        });
+
+                                    column.data().unique().sort().each(function (d, j) {
+                                        select.append('<option value="' + d + '">' + d + '</option>')
+                                    });
+                                });
+
+                            }
+                        });
+                    $('#Service-table').attr('hidden', 'hidden');
+
+                }
+
+
+        }
+
+
+
+            if ($('#otherID').is(':checked')) {
+                /*   document.getElementById('txtNumberID').value = '';*/
+                if (document.getElementById('txtNumberID').value == "0") {
+                    document.getElementById('txtNumberID').value = '';
+                }
+                $("#txtNumberID").attr('disabled', 'disabled');
+            }
+
+        });
+
+
+
+        $('#accNumberID').change(function () {
+            if ($('#accNumberID').is(':checked')) {
+                $("#txtNumberID").removeAttr('disabled');
+                $("#SearchCriteriaTable").attr('hidden', 'hidden');
+            }
+        });
+
+        function onChangeSelectValues(selectObject) {
+            var selectId = selectObject.id;
+
+            var values = $('#' + selectId).val();
+            var hiddenId = "hidden" + selectId;
+            $('#' + hiddenId + 'Values').val(values);
+            if ($('#hiddenLanguageServicesValues').val() != ''  && $('#hiddenSourceLanguagesValues').val() != '' && $('#hiddenTargetLanguageValues').val() != '') {
+                $("#UnitsDiv").removeAttr('hidden');
+            }
+            else {
+                $("#UnitsDiv").attr('hidden', 'hidden');
+            }
+        }
+
+        function ClearAll() {
+            document.getElementById("LinguistSearchForm").reset();
+            const form = document.getElementById('LinguistSearchForm');
+
+            for (const element of form.elements) {
+                element.value = "";
+            }
+
+
+        }
+
+        function clearFields(fieldid) {
+            var container, inputs, index;
+
+            container = document.getElementById(fieldid);
+            inputs = container.getElementsByTagName('input');
+
+            for (index = 0; index < inputs.length; ++index) {
+                if (inputs[index].type == "text") {
+                    inputs[index].value = '';
+                }
+                else {
+                    inputs[index].checked = false;
+                }
+            }
+        }
+
+        function changeServices() {
+            if (document.getElementById('defaultServices').checked) {
+                $("#defaultServicesDiv").removeAttr('hidden');
+                $("#allServices").attr('hidden', 'hidden');
+            }
+            else {
+                $("#defaultServicesDiv").attr('hidden', 'hidden');
+                $("#allServices").removeAttr('hidden');
+            }
+
+
+        }
+
+        function saveValues() {
+            //debugger;
+            if (document.getElementById('defaultServices').checked) {
+                $('#hiddenLanguageServicesValues').val($('#DefaultLanguageServices').val());
+            }
+            else {
+                $('#hiddenLanguageServicesValues').val($('#LanguageServices').val());
+            }
+            $('#hiddenMasterFieldsValues').val($('#MasterFields').val());
+            $('#hiddenSubFieldsValues').val($('#SubFields').val());
+            $('#hiddenMediaTypesValues').val($('#MediaTypes').val());
+            $('#hiddenSourceLanguagesValues').val($('#SourceLanguages').val());
+            $('#hiddenTargetLanguageValues').val($('#TargetLanguage').val());
+            $('#hiddenSpecialRatesValues').val($('#SpecialRates').val());
+            $('#hiddensupplierStatusValues').val($('#supplierStatus').val());
+            $('#hiddenCountriesNationalyValues').val($('#CountriesNationaly').val());
+            $('#hiddenCountryOfResidenceValues').val($('#CountryOfResidence').val());
+            $('#hiddenSoftwaresValues').val($('#Softwares').val());
+            $('#hiddengdprStatusListValues').val($('#gdprStatusList').val());
+            $('#hiddenSupplierAvailabilityValues').val($('#SupplierAvailability').val());
+            $('#hiddenRateUnitsListValues').val($('#RateUnitsList').val());
+            $('#hiddenAppliesToValues').val($('#AppliesTo').val());
+            $('#hiddenProfessionalBodiesValues').val($('#ProfessionalBodies').val());
+            $('#hiddenVendorTypeValues').val($('#VendorTypes').val());
+
+            if ($('#hiddenSourceLanguagesValues').val() == "") {
+                $('#TableToShow').val("Service");
+            }
+            else {
+                $('#TableToShow').val("NoService");
+            }
+        }
+        $('#otherID').change(function () {
+            if ($('#otherID').is(':checked')) {
+                $("#txtNumberID").attr('disabled', 'disabled');
+                document.getElementById('txtNumberID').value = '';
+                $("#SearchCriteriaTable").removeAttr('hidden');
+            }
+        });
+
+    </script>
+}

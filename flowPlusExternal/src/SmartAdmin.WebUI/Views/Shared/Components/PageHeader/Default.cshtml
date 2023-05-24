@@ -1,0 +1,106 @@
+@{
+    @using flowPlusExternal.Models.ExtranetUserModel
+    @model ExtranetUserModel;
+
+}
+
+<style>
+    .bg-tp-red {
+        background-color: #46bfe0;
+    }
+</style>
+
+@if (Settings.Features.AppHeader)
+{
+    <header class="page-header" style="background-color: #46bfe0;color:white;" role="banner">
+        <partial name="_Logo" />
+        @if (Settings.Features.AppLayoutShortcut)
+        {
+            <div class="hidden-md-down dropdown-icon-menu position-relative">
+                <a href="#" class="header-btn btn js-waves-off" data-action="toggle" data-class="nav-function-hidden" title="Hide Navigation">
+                    <i class="ni ni-menu"></i>
+                </a>
+                <ul>
+                    <li>
+                        <a href="#" class="btn js-waves-off" data-action="toggle" data-class="nav-function-minify" title="Minify Navigation">
+                            <i class="ni ni-minify-nav"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="btn js-waves-off" data-action="toggle" data-class="nav-function-fixed" title="Lock Navigation">
+                            <i class="ni ni-lock-nav"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>}
+        <div class="hidden-lg-up">
+            <a href="#" class="header-btn btn press-scale-down" data-action="toggle" data-class="mobile-nav-on">
+                <i class="ni ni-menu"></i>
+            </a>
+        </div>
+        @*<div class="search">
+                <form class="app-forms hidden-xs-down" role="search" asp-controller="Page" asp-action="Search" autocomplete="off">
+                    <input type="text" id="search-field" placeholder="Search for anything" class="form-control" tabindex="1">
+                    <a href="#" onclick="return false;" class="btn-danger btn-search-close js-waves-off d-none" data-action="toggle" data-class="mobile-search-on">
+                        <i class="@(Settings.Theme.IconPrefix) fa-times"></i>
+                    </a>
+                </form>
+            </div>*@
+        <div class="ml-auto d-flex">
+            <div class="hidden-sm-up">
+                <a href="#" class="header-icon" data-action="toggle" data-class="mobile-search-on" data-focus="search-field" title="Search">
+                    <i class="@(Settings.Theme.IconPrefix) fa-search"></i>
+                </a>
+            </div>
+            @if (Settings.Features.LayoutSettings)
+            {
+                <div class="hidden-md-down">
+                    <a href="#" class="header-icon" data-toggle="modal" data-target=".js-modal-settings">
+                        <i class="@(Settings.Theme.IconPrefix) fa-cog" style="color:white;"></i>
+                    </a>
+                </div>
+            }
+            @*        <div>
+                    <a href="#" class="header-icon" data-toggle="dropdown" title="My Apps">
+                        <i class="@(Settings.Theme.IconPrefix) fa-cube" style="color:white;"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-animated w-auto h-auto">
+                        <partial name="_DropdownApp" />
+                    </div>
+                </div>*@
+            @*        @if (Settings.Features.ChatInterface)
+                {
+                    <a href="#" class="header-icon" data-toggle="modal" data-target=".js-modal-messenger">
+                        <i class="@(Settings.Theme.IconPrefix) fa-globe" style="color:white;"></i>
+                        <span class="badge badge-icon">!</span>
+                    </a>}
+                <div>
+                    <a href="#" class="header-icon" data-toggle="dropdown" title="You got 11 notifications">
+                        <i class="@(Settings.Theme.IconPrefix) fa-bell" style="color:white;"></i>
+                        <span class="badge badge-icon">11</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-animated dropdown-xl">
+                        <partial name="_DropdownNotification" />
+                    </div>
+                </div>*@
+            <div>
+                <a href="#" data-toggle="dropdown" class="header-icon d-flex align-items-center justify-content-center ml-2">
+                    @{
+                        if (Model.UserProfileImageBase64 == "")
+                        {
+                            <img src="~/img/demo/avatars/avatar-m.png" class="profile-image rounded-circle">
+                        }
+                        else
+                        {
+                            <img src="@Model.UserProfileImageBase64" class="profile-image rounded-circle">
+                        }
+                    }
+
+                </a>
+                <div class="dropdown-menu dropdown-menu-animated dropdown-lg">
+                    @await Component.InvokeAsync("DropDownMenu")
+                    @*<partial name="_DropdownMenu" />*@
+                </div>
+            </div>
+        </div>
+    </header>}

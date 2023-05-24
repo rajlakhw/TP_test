@@ -1,0 +1,162 @@
+﻿@{ ViewData["Title"] = "translate plus company policies";
+    ViewData["Category1"] = "HR";
+
+}
+
+<div class="row">
+    <div class="col-xl-12">
+
+        <div id="panel-2" class="panel">
+
+            <div class="panel-hdr">
+                <h2>translate plus company policies</h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <p>
+                        As part of our ISO 9001:2015 procedures and the Publicis Groupe guidelines, all company employees are required to be aware of, understand and comply with the following company policies.
+                        Should you have any questions about these policies, please speak to our HR team.
+                    </p>
+                </div>
+            </div>
+
+            <div id="panel-1" class="panel">
+                <div class="panel-hdr">
+
+                    <h2>Policies in UK</h2>
+
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                    </div>
+                </div>
+
+                <div class="panel-container show">
+                    <br />
+                    <ol>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="UK Health and Safety Policy.pdf">UK Health and safety policy</a>
+                        </li>
+                        @*<li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="translate plus IT policy.pdf">UK IT policy</a>
+                        </li>*@
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="UK sickness policy.pdf">UK Sickness policy</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="UK Grievance Procedure.pdf">UK Grievance Procedure</a>
+                        </li>
+                        @*<li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="UK Working from home policy.pdf">UK Working from home policy</a>
+                        </li>*@
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="UK Disciplinary Rules & Procedures.pdf">UK Disciplinary Rules & Procedures</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="UK Benefits and Recognition plan.pdf">UK Benefits and recognition policy</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="UK Family friendly policy.pdf">UK Family Friendly policy</a>
+                        </li>
+                    </ol>
+                </div>
+
+            </div>
+
+            <div id="panel-sofia" class="panel">
+                <div class="panel-hdr">
+
+                    <h2>Policies in Bulgaria</h2>
+
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                    </div>
+                </div>
+
+                <div class="panel-container show">
+                    <br />
+                    <ol>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="BG Health and safety policy.pdf">BG Health and safety policy</a>
+                        </li>
+                        @*<li>
+            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="BG_translate plus IT policy.pdf">BG IT policy</a>
+        </li>*@
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="BG Sickness procedure.pdf">BG Sickness policy</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="BG Holiday Procedure.pdf">BG Holidays policy</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Disciplinary procedure Bulgaria.pdf">BG Disciplinary Rules & Procedures</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Benefits and recognition plan Bulgaria.pdf">BG Benefits and Recognition policy</a>
+                        </li>
+                    </ol>
+                </div>
+
+            </div>
+
+            <div id="panel-global" class="panel">
+                <div class="panel-hdr">
+
+                    <h2>Global policies</h2>
+
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                    </div>
+                </div>
+
+                <div class="panel-container show">
+                    <br />
+                    <ol>
+                        <li>
+                            <a href="https://publicisgroupe.sharepoint.com/sites/RIN/Janus/Pages/Default.aspx">Janus (The Publicis way to behave and to operate)</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Code of Conduct.pdf">Code of conduct</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Social media guidelines.pdf">Social media guidelines document</a>
+                            (this document forms part of the overall IT policies)
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Green Policy.pdf">Green policy</a>
+                            and the accompanying
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Green Policy Statement.pdf">Green policy statement</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Professional ethics.pdf">Professional ethics</a>
+                        </li>
+                        <li>
+                            <a href="https://publicisgroupe.sharepoint.com/sites/RIN/Janus/Pages/Default.aspx">Anti-corruption and bribery policy (see the section in Janus)</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Quality policy.pdf">Quality policy</a>
+                        </li>
+                        <li>
+                            <a href="https://lion.app.box.com/v/DataPrivacyAndSecurityPolicies">Publicis Groupe Data Privacy and Security Policies</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Privacy notice for translate plus personnel.pdf">Privacy notice for translate plus personnel</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Team lunch policy.pdf">Team Lunch Policy</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="Office equipment policy.pdf">Office Equipment Policy</a>
+                        </li>
+                        <li>
+                            <a asp-controller="HR" asp-action="GetCompanyPolicyPDFFile" asp-route-filename="IT policy.pdf">IT policy</a>
+                        </li>
+                    </ol>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,2136 @@
+﻿
+@section HeadBlock {
+    <link rel="stylesheet" media="screen, print" href="~/css/datagrid/datatables/datatables.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-regular.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-solid.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/fa-duotone.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/select2/select2.bundle.css">
+    <link rel="stylesheet" media="screen, print" href="~/css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+    <style>
+        div.tooltip-inner {
+            max-width: 900px;
+            text-align: left;
+        }
+    </style>
+}
+
+@{ ViewData["Title"] = "New project";
+    //ViewData["PageName"] = "datatables_basic";
+    ViewData["Category1"] = "Services";
+    ViewData["Heading"] = "<i class='far fa-ballot-check'></i> New project";
+    //ViewData["PageDescription"] = "Create headache free searching, sorting and pagination tables without any complex configuration";
+}
+
+@{
+    @using ViewModels.flowPlusExternal;
+    @model ProjectCreationModel;
+    @using Services;
+
+}
+
+
+
+@section ScriptsBlock {
+    <script src="~/js/formplugins/select2/select2.bundle.js"></script>
+    <script src="~/js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <script>
+
+        var controls = {
+			leftArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-left" style="font-size: 1.25rem"></i>',
+			rightArrow: '<i class="@(Settings.Theme.IconPrefix) fa-angle-right" style="font-size: 1.25rem"></i>'
+		}
+		var runDatePicker = function () {
+			// orientation
+            $('.delivery-datepicker').datepicker({
+				orientation: "top left",
+				todayHighlight: true,
+                templates: controls,
+                format: "dd/mm/yyyy",
+                startDate: new Date()
+			});
+		}
+        /*webfont prefix*/
+        var prefix = "far"; //fal fas far fab ni etc
+        var prefix_extend = "fa" //fa-icon
+        /*JSON file that will be loaded*/
+        var filename = "/media/data/fa-icon-list";  //available JSON files [ng-icon-base, ng-icon-list, ng-text-colors, fa-brand-list, fa-icon-list]
+        /*execute code*/
+        $.getJSON(filename + ".json").then(function (data) {
+            /*...worked*/
+            var formatedDOMElms = [];
+            /*compile DOM elements*/
+            jQuery.each(data, function (index, item) {
+                formatedDOMElms.push('<div class="col-4 col-sm-3 col-md-3 col-lg-2 col-xl-1 d-flex justify-content-center align-items-center mb-g">\
+                                                                <a href="#" class="rounded bg-white p-0 m-0 d-flex flex-column w-100 h-100 js-showcase-icon shadow-hover-2" data-toggle="modal" data-target="#iconModal" data-filter-tags=' + item.substring(1) + '>\
+                                                                    <div class="rounded-top color-fusion-300 w-100 bg-primary-300">\
+                                                                        <div class="rounded-top d-flex align-items-center justify-content-center w-100 pt-3 pb-3 pr-2 pl-2 fa-3x hover-bg">\
+                                                                            <i class="'+ prefix + ' ' + prefix_extend + item + '"></i>\
+                                                                        </div>\
+                                                                    </div>\
+                                                                    <div class="rounded-bottom p-1 w-100 d-flex justify-content-center align-items-center text-center">\
+                                                                        <span class="d-block text-truncate text-muted">' + item.substring(1) + '</span>\
+                                                                    </div>\
+                                                                </a>\
+                                                            </div>');
+            });
+            /* append to HTML dom*/
+            $('#icon-list').append(formatedDOMElms.join(" "));
+            /*initialize filter*/
+            initApp.listFilter($('#icon-list'), $('#filter-icon'));
+            /*client event for each icon*/
+            $('.js-showcase-icon').click(function () {
+                var iconClass = $(this).find('i').attr('class');
+                $('#iconModal .modal-body i').removeClass().addClass(iconClass);
+                $('#iconModal .modal-footer .js-icon-class').empty().text(iconClass);
+                $('#js-icon-class').val('<i class="' + iconClass + '"></i>')
+                $('#iconModalLabel strong').empty().text(iconClass);
+            });
+            /*copy icon button*/
+            $('.js-icon-copy').click(function () {
+                $('#js-icon-class').select();
+                document.execCommand('copy');
+            });
+            /*add number of icons*/
+            $('#filter-icon').attr('placeholder', "Search " + data.length + " icons for")
+        }).fail(function () {
+            console.log("failed")
+        });
+
+        $('#defaultIndeterminate').prop('indeterminate', true)
+        var toggleCheckbox = function () {
+            $('#js-checkbox-toggle').toggleText('Change to CIRCLE', 'Change back to default');
+            $('.frame-wrap .custom-checkbox').toggleClass('custom-checkbox-circle');
+        }
+        var toggleRadio = function () {
+            $('#js-radio-toggle').toggleText('Change to ROUNDED', 'Change back to default');
+            $('.frame-wrap .custom-radio').toggleClass('custom-radio-rounded');
+        }
+
+        $(document).ready(function () {
+            $(function () {
+                runDatePicker();
+                $('.select2').select2();
+				$(".select2-placeholder-multiple").select2({
+					placeholder: "Select State"
+                });
+				$(".js-hide-search").select2({
+					minimumResultsForSearch: 1 / 0
+				});
+				$(".js-max-length").select2({
+					maximumSelectionLength: 2,
+					placeholder: "Select maximum 2 items"
+				});
+				$(".select2-placeholder").select2({
+					placeholder:"Select a state",
+					allowClear: true
+				});
+				$(".js-select2-icons").select2({
+					minimumResultsForSearch: 1 / 0,
+					templateResult: icon,
+					templateSelection: icon,
+					escapeMarkup: function (elm) {
+						return elm
+					}
+				});
+				function icon(elm) {
+					elm.element;
+					return elm.id ? "<i class='" + $(elm.element).data("icon") + " mr-2'></i>" + elm.text : elm.text
+				}
+				$(".js-data-example-ajax").select2({
+				  ajax: {
+				    url: "https://api.github.com/search/repositories",
+				    dataType: 'json',
+				    delay: 250,
+				    data: function (params) {
+				      return {
+				        q: params.term, // search term
+				        page: params.page
+				      };
+				    },
+				    processResults: function (data, params) {
+				      // parse the results into the format expected by Select2
+				      // since we are using custom formatting functions we do not need to
+				      // alter the remote JSON data, except to indicate that infinite
+				      // scrolling can be used
+				      params.page = params.page || 1;
+				      return {
+				        results: data.items,
+				        pagination: {
+				          more: (params.page * 30) < data.total_count
+				        }
+				      };
+				    },
+				    cache: true
+				  },
+				  placeholder: 'Search for a repository',
+				  escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+				  minimumInputLength: 1,
+				  templateResult: formatRepo,
+				  templateSelection: formatRepoSelection
+				});
+				function formatRepo (repo) {
+				  if (repo.loading) {
+				    return repo.text;
+				  }
+				  var markup = "<div class='select2-result-repository clearfix d-flex'>" +
+				    "<div class='select2-result-repository__avatar mr-2'><img src='" + repo.owner.avatar_url + "' class='width-2 height-2 mt-1 rounded' /></div>" +
+				    "<div class='select2-result-repository__meta'>" +
+				      "<div class='select2-result-repository__title fs-lg fw-500'>" + repo.full_name + "</div>";
+				  if (repo.description) {
+				    markup += "<div class='select2-result-repository__description fs-xs opacity-80 mb-1'>" + repo.description + "</div>";
+				  }
+				  markup += "<div class='select2-result-repository__statistics d-flex fs-sm'>" +
+				    "<div class='select2-result-repository__forks mr-2'><i class='@(Settings.Theme.IconPrefix) fa-lightbulb'></i> " + repo.forks_count + " Forks</div>" +
+				    "<div class='select2-result-repository__stargazers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-star'></i> " + repo.stargazers_count + " Stars</div>" +
+				    "<div class='select2-result-repository__watchers mr-2'><i class='@(Settings.Theme.IconPrefix) fa-eye'></i> " + repo.watchers_count + " Watchers</div>" +
+				  "</div>" +
+				  "</div></div>";
+				  return markup;
+				}
+				function formatRepoSelection (repo) {
+				  return repo.full_name || repo.text;
+                }
+
+            });
+
+
+            if (@Model.ParentOrg.ExtranetIncludeClientReviewByDefault.ToString().ToLower() == false) {
+                document.getElementById('noReviewOption').checked = true;
+                document.getElementById('ReviewRequiredOption').checked = false;
+            }
+            else {
+                document.getElementById('noReviewOption').checked = false;
+                document.getElementById('ReviewRequiredOption').checked = true;
+            }
+
+
+            var countrySelect = document.getElementById('country-select');
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var allCountries = $.parseJSON(response);
+                    var defaultOption = document.createElement("option");
+                    defaultOption.innerText = "(Please select)";
+                    countrySelect.appendChild(defaultOption);
+                    for (var i = 0; i < allCountries.length; i++) {
+                        var countryOption = document.createElement("option");
+                        countryOption.setAttribute("value", allCountries[i].id);
+                        countryOption.innerText = allCountries[i].countryName;
+                        countrySelect.appendChild(countryOption);
+                    }
+                }
+            }
+            xhr.open("POST", "Services/GetAllCountries", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send();
+
+            var preTranslateFrom = document.getElementById('pre-translate-from-select');
+            var saveTranslationsTo = document.getElementById('save-translations-to-select');
+
+            var xhr1 = new XMLHttpRequest();
+            xhr1.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr1.responseText;
+                    var allTemplates = $.parseJSON(response);
+
+                    for (var i = 0; i < allTemplates.length; i++) {
+                        var templateOption = document.createElement("option");
+                        var templateOption1 = document.createElement("option");
+
+                        templateOption.setAttribute("value", allTemplates[i].id);
+                        templateOption.innerText = allTemplates[i].name;
+                        preTranslateFrom.appendChild(templateOption);
+
+                        templateOption1.setAttribute("value", allTemplates[i].id);
+                        templateOption1.innerText = allTemplates[i].name;
+                        saveTranslationsTo.appendChild(templateOption1);
+
+                    }
+                }
+            }
+            xhr1.open("POST", "Services/GetAllTradosTemplates", true);
+            xhr1.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr1.send();
+
+            $('#post-editing-desc').tooltip({
+                sanitize: false
+            }).tooltip('show');
+
+            var jobRadio = document.getElementById('jobRadio');
+            var orgId = @Model.ParentOrg.Id;
+
+            if ((orgId == 86248 || orgId == 98181) && jobRadio.checked == true) {
+                document.getElementById('separate-job-item-per-lang').hidden = false;
+            }
+            else {
+                document.getElementById('separate-job-item-per-lang').hidden = true;
+            }
+
+            var groupdId = @Model.ParentOrg.OrgGroupId;
+
+            var contactId = @Model.ContactObject.Id;
+
+
+            var oticonMedicalDiv = document.getElementById('oticon-medical-invoice-to-div');
+            var oticonMedicalSelect = document.getElementById('oticon-medical-invoice-select');
+
+            if ((orgId == 108180 || orgId == 98181) && jobRadio.checked == true) {
+                oticonMedicalDiv.hidden = false;
+                //add contact option to the invoice select
+                var contactOption = document.createElement("option");
+                contactOption.setAttribute("value", contactId);
+                contactOption.innerText = "@Model.ContactObject.Name";
+                oticonMedicalSelect.appendChild(contactOption);
+
+            }
+            else {
+                oticonMedicalDiv.hidden = true;
+            }
+
+            var oticonDiv = document.getElementById('oticon-invoice-to-div');
+
+            if ((orgId == 86248 || orgId == 101521) && jobRadio.checked == true) {
+                oticonDiv.hidden = false;
+            }
+            else {
+                oticonDiv.hidden = true;
+            }
+
+            var designPlusRadio = document.getElementById('design-plus-option');
+            if (orgId == 111853) {
+                var bernafonDiv = document.getElementById('bernafon-document-type-div');
+
+                if (designPlusRadio.checked == true) {
+                    bernafonDiv.hidden = false;
+                }
+                else {
+                    bernafonDiv.hidden = true;
+                }
+
+            }
+
+            if (orgId == 86248) {
+                var oticonDiv = document.getElementById('oticon-document-type-div');
+
+                if (designPlusRadio.checked == true) {
+                    oticonDiv.hidden = false;
+                }
+                else {
+                    oticonDiv.hidden = true;
+                }
+            }
+
+
+
+
+        });
+
+
+        $(function () {
+            $(document).on('click', '.btn-add', function (e) {
+                e.preventDefault();
+
+                 // get the last input which ID starts with ^= "inputGroupFile"
+                var $input = $('input[id^="inputGroupFile"]:last');
+
+                // Read the Number from that input's ID
+                // And increment that number by 1
+                var num = parseInt($input.prop("id").match(/\d+/g), 10) + 1;
+
+                var controlForm = $('#source-file-div'),
+                    currentEntry = $(this).parents('#source-file-input-div'),
+                    newEntry = $(currentEntry.clone()).appendTo(controlForm);
+
+                newEntry.find('input').prop('id', 'inputGroupFile' + num);
+                newEntry.find('input').prop('name', 'SourceFiles[' + (num - 1)  + '].file');
+                newEntry.find('input').attr('aria-describedby', 'inputGroupFileAddon' + num).removeClass('is-invalid');
+                newEntry.find('input').val('');
+                newEntry.find('label').prop('for', 'inputGroupFile' + num);
+                newEntry.find('label').text("Choose file");
+                newEntry.find('button').addClass('btn-success').removeClass('waves-effect').removeClass('waves-themed');
+
+                if ($('#source-file-div').find('.btn-remove').length == 18) {
+
+                    newEntry.find('button')
+                        .removeClass('btn-add').addClass('btn-remove')
+                        .removeClass('btn-success').addClass('btn-danger')
+                        .html('<span class="fa fa-trash"></span>')
+                        .attr({ "title": "Remove this file" });
+                }
+
+                controlForm.find('.entry:not(:last) .btn-add')
+                    .removeClass('btn-add').addClass('btn-remove')
+                    .removeClass('btn-success').addClass('btn-danger')
+                    .html('<span class="fa fa-trash"></span>')
+                    .attr({ "title": "Remove this file" });
+                    }).on('click', '.btn-remove', function (e) {
+                        $(this).parents('.entry:first').remove();
+
+                        $('#source-add-button').find('.entry:last .btn-remove')
+                            .removeClass('btn-remove').addClass('btn-add')
+                            .removeClass('btn-danger').addClass('btn-success').removeClass('waves-effect').removeClass('waves-themed')
+                            .html('<span class="fa fa-plus"></span>')
+                            .attr({ "title": "Add another file" });
+
+
+                        var allInputControls = $('input[id^="inputGroupFile"]');
+
+                        //now loop through each control to update the name property
+                        for (var c = 0; c < allInputControls.length; c++) {
+                            allInputControls[c].attributes.name.value = 'SourceFiles[' + c + '].file';
+                        }
+
+
+
+                e.preventDefault();
+                return false;
+                    });
+
+            $(document).on('click', '#ref-add-button', function (e) {
+                e.preventDefault();
+                //debugger;
+                // get the last input which ID starts with ^= "inputGroupFile"
+                var $input = $('input[id^="referenceGroupFile"]:last');
+
+                // Read the Number from that input's ID
+                // And increment that number by 1
+                var num = parseInt($input.prop("id").match(/\d+/g), 10) + 1;
+
+                var controlForm = $('#ref-file-div'),
+                    currentEntry = $(this).parents('#ref-file-input-div'),
+                    newEntry = $(currentEntry.clone()).appendTo(controlForm)
+
+                newEntry.find('input').prop('id', 'referenceGroupFile' + num);
+                newEntry.find('input').prop('name', 'ReferenceFiles[' + (num - 1) + '].file');
+                newEntry.find('input').attr('aria-describedby', 'referenceGroupFileAddon' + num).removeClass('is-invalid');
+                newEntry.find('input').val('');
+                newEntry.find('label').prop('for', 'referenceGroupFile' + num);
+                newEntry.find('label').text("Choose file");
+                newEntry.find('button').addClass('btn-success').removeClass('waves-effect').removeClass('waves-themed');
+
+                if ($('#ref-file-div').find('.btn-remove').length == 18) {
+
+                    newEntry.find('button')
+                        .removeClass('btn-add').addClass('btn-remove')
+                        .removeClass('btn-success').addClass('btn-danger')
+                        .prop('id', 'ref-remove-button')
+                        .attr({ "title": "Remove this file" })
+                        .html('<span class="fa fa-trash"></span>');
+                }
+
+                controlForm.find('.entry:not(:last) .btn-add')
+                    .removeClass('btn-add').addClass('btn-remove')
+                    .removeClass('btn-success').addClass('btn-danger')
+                    .prop('id', 'ref-remove-button')
+                    .attr({ "title": "Remove this file" })
+                    .html('<span class="fa fa-trash"></span>');
+            }).on('click', '.btn-remove', function (e) {
+                //debugger;
+                $(this).parents('div[id^="ref-file-input-div"]:first').remove();
+
+                $('#ref-add-button').find('.entry:last .btn-remove')
+                    .removeClass('btn-remove').addClass('btn-add')
+                    .removeClass('btn-danger').addClass('btn-success')
+                    .attr({ "title": "Add another file" })
+                    .html('<span class="fa fa-plus"></span>');
+
+                var allRefControls = $('input[id^="referenceGroupFile"]');
+
+                //now loop through each control to update the name property
+                for (var c = 0; c < allRefControls.length; c++) {
+                    allRefControls[c].attributes.name.value = 'ReferenceFiles[' + c + '].file';
+                }
+
+
+                e.preventDefault();
+                return false;
+            });
+        });
+
+        //$("create-request-form").submit(function (e) {
+        //    validateFields();
+        //});
+        function hideDeadline(deadlineNotNeededRadio) {
+            if (deadlineNotNeededRadio.checked == true) {
+                document.getElementById("datepicker-div").hidden = true;
+            }
+        }
+
+        function showDeadline(showDeadlineRadio) {
+            if (showDeadlineRadio.checked == true) {
+                document.getElementById("datepicker-div").hidden = false;
+            }
+        }
+
+        function hideReviewOptions(hideReviewRadio) {
+            if (hideReviewRadio.checked == true) {
+                document.getElementById("reviewOptionDiv").hidden = true;
+            }
+        }
+
+        function showReviewOptions(showReviewRadio) {
+
+
+            var toShowReviewOptions = "@(Model.ParentOrg.ExtranetShowClientReviewOptions == true && Model.JobRequestedByContact.DesignplusEnabled == true)".toLowerCase();
+
+            if (showReviewRadio.checked == true && toShowReviewOptions == 'true') {
+                document.getElementById("reviewOptionDiv").hidden = false;
+            }
+        }
+
+        function updateSourceLanguageList(mostUsedLanguageCheckBox) {
+            var sourceLangSelect = document.getElementById('source-lang-select');
+
+            var mtSource = "";
+
+            if ($('#mt-engine-select').val() == '1') {
+                mtSource = "Google Translate API";
+            }
+            else if ($('#mt-engine-select').val() == '2') {
+                mtSource = "DeepL API Source";
+            }
+
+            if ($('#service-select').val() == '46') {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        var response = xhr.responseText;
+                        var allLangs = $.parseJSON(response);
+
+                        sourceLangSelect.innerHTML = '';
+                        var defaultOption = document.createElement("option");
+                        sourceLangSelect.appendChild(defaultOption);
+
+                        for (var i = 0; i < allLangs.length; i++) {
+                            var langOption = document.createElement("option");
+                            langOption.setAttribute("value", allLangs[i].stringValue);
+                            langOption.innerText = allLangs[i].name;
+                            sourceLangSelect.appendChild(langOption);
+                        }
+
+                        sourceLangSelect.removeAttribute("disabled");
+                        mostUsedLanguageCheckBox.removeAttribute("disabled");
+
+                    }
+                }
+                xhr.open("POST", "Services/GetMTLanguages", true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(mostUsedLanguageCheckBox.checked + "$" + mtSource);
+            }
+            else {
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        var response = xhr.responseText;
+                        var allLangs = $.parseJSON(response);
+                        sourceLangSelect.innerHTML = '';
+                        var defaultOption = document.createElement("option");
+                        sourceLangSelect.appendChild(defaultOption);
+                        for (var i = 0; i < allLangs.length; i++) {
+                            var langOption = document.createElement("option");
+                            langOption.setAttribute("value", allLangs[i].stringValue);
+                            langOption.innerText = allLangs[i].name;
+                            sourceLangSelect.appendChild(langOption);
+                        }
+                    }
+                }
+                xhr.open("POST", "Services/GetLanguages", true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(mostUsedLanguageCheckBox.checked);
+            }
+
+        }
+
+        function updateTargetLanguageList(mostUsedLanguageCheckBox) {
+            var targetLangSelect = document.getElementById('target-lang-select');
+
+            var mtTarget = "";
+            if ($('#mt-engine-select').val() == '1') {
+                mtTarget = "Google Translate API";
+            }
+            else if ($('#mt-engine-select').val() == '2')
+            {
+                mtTarget = "DeepL API Target";
+            }
+
+            if ($('#service-select').val() == '46') {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        var response = xhr.responseText;
+                        var allLangs = $.parseJSON(response);
+
+                        targetLangSelect.innerHTML = '';
+                        var defaultOption = document.createElement("option");
+                        targetLangSelect.appendChild(defaultOption);
+
+                        for (var i = 0; i < allLangs.length; i++) {
+                            var langOption = document.createElement("option");
+                            langOption.setAttribute("value", allLangs[i].stringValue);
+                            langOption.innerText = allLangs[i].name;
+                            targetLangSelect.appendChild(langOption);
+                        }
+
+                        targetLangSelect.removeAttribute("disabled");
+                        mostUsedLanguageCheckBox.removeAttribute("disabled");
+
+                    }
+                }
+                xhr.open("POST", "Services/GetMTLanguages", true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(mostUsedLanguageCheckBox.checked + "$" + mtTarget);
+            }
+            else {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        var response = xhr.responseText;
+                        var allLangs = $.parseJSON(response);
+                        targetLangSelect.innerHTML = '';
+                        var defaultOption = document.createElement("option");
+                        targetLangSelect.appendChild(defaultOption);
+                        for (var i = 0; i < allLangs.length; i++) {
+                            var langOption = document.createElement("option");
+                            langOption.setAttribute("value", allLangs[i].stringValue);
+                            langOption.innerText = allLangs[i].name;
+                            targetLangSelect.appendChild(langOption);
+                        }
+                    }
+                }
+                xhr.open("POST", "Services/GetLanguages", true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.send(mostUsedLanguageCheckBox.checked);
+            }
+
+        }
+
+        function updateInterpretingTargetLanguageList(mostUsedLanguageCheckBox) {
+            var targetLangSelect = document.getElementById('interpreting-target-lang-select');
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var allLangs = $.parseJSON(response);
+                    targetLangSelect.innerHTML = '';
+                    var defaultOption = document.createElement("option");
+                    targetLangSelect.appendChild(defaultOption);
+                    for (var i = 0; i < allLangs.length; i++) {
+                        var langOption = document.createElement("option");
+                        langOption.setAttribute("value", allLangs[i].stringValue);
+                        langOption.innerText = allLangs[i].name;
+                        targetLangSelect.appendChild(langOption);
+                    }
+                }
+            }
+            xhr.open("POST", "Services/GetLanguages", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(mostUsedLanguageCheckBox.checked);
+        }
+
+        function showUpdatedOptions(ServiceSelect) {
+            var orgId =  @Model.ParentOrg.Id;
+            var allTranslationsOnlyDiv = document.getElementsByClassName('translation-service-div');
+            var quoteRadio = document.getElementById('quoteRadio');
+            if (ServiceSelect.options[ServiceSelect.selectedIndex].value == '1') {
+                for (var t = 0; t < allTranslationsOnlyDiv.length; t++) {
+                    allTranslationsOnlyDiv[t].hidden = false;
+                }
+                if (quoteRadio.checked == false && (orgId == 86248 || orgId == 98181)) {
+                    document.getElementById('separate-job-item-per-lang').hidden = false;
+                }
+                else {
+                    document.getElementById('separate-job-item-per-lang').hidden = true;
+                }
+                if ("@Model.ParentOrgGroup.ShowProofreadingOptionForClients" == "True") {
+                    document.getElementById('independent-proofreading-div').hidden = false;
+                }
+                else {
+                    document.getElementById('independent-proofreading-div').hidden = true;
+                }
+
+            }
+            else {
+                for (var t = 0; t < allTranslationsOnlyDiv.length; t++) {
+                    allTranslationsOnlyDiv[t].hidden = true;
+                }
+                document.getElementById('separate-job-item-per-lang').hidden = true;
+                document.getElementById('independent-proofreading-div').hidden = true;
+            }
+
+            if (ServiceSelect.options[ServiceSelect.selectedIndex].value == '46') {
+                document.getElementById('mt-engine-div').hidden = false;
+
+                if ($('#mt-engine-select').val() == '') {
+                    document.getElementById('source-lang-select').disabled = true;
+                    document.getElementById('most-used-lang-source-checkbox').disabled = true;
+
+                    document.getElementById('target-lang-select').disabled = true;
+                    document.getElementById('most-used-lang-target-checkbox').disabled = true;
+                }
+                else {
+                    document.getElementById('source-lang-select').disabled = false;
+                    document.getElementById('most-used-lang-source-checkbox').disabled = false;
+
+                    document.getElementById('target-lang-select').disabled = false;
+                    document.getElementById('most-used-lang-target-checkbox').disabled = false;
+                }
+            }
+            else {
+                document.getElementById('mt-engine-div').hidden = true;
+
+                document.getElementById('source-lang-select').disabled = false;
+                document.getElementById('most-used-lang-source-checkbox').disabled = false;
+
+                document.getElementById('target-lang-select').disabled = false;
+                document.getElementById('most-used-lang-target-checkbox').disabled = false;
+            }
+
+
+            var nonInterpretingDiv = document.getElementById('non-interpretation-div');
+            var allInterpretingTargetDiv = document.getElementsByClassName('interpreting-target-div');
+
+            if (ServiceSelect.options[ServiceSelect.selectedIndex].value == '2') {
+                nonInterpretingDiv.hidden = true;
+                for (var t = 0; t < allInterpretingTargetDiv.length; t++) {
+                    allInterpretingTargetDiv[t].hidden = false;
+                }
+
+            }
+            else {
+                nonInterpretingDiv.hidden = false;
+                for (var t = 0; t < allInterpretingTargetDiv.length; t++) {
+                    allInterpretingTargetDiv[t].hidden = true;
+                }
+            }
+
+            var machinetranslationDivs = document.getElementsByClassName('machine-translation-div');
+            var quoteRadio = document.getElementById('quoteRadio');
+            var jobRadio = document.getElementById('jobRadio');
+
+            if (ServiceSelect.options[ServiceSelect.selectedIndex].value == '46') {
+                for (var t = 0; t < machinetranslationDivs.length; t++) {
+                    machinetranslationDivs[t].hidden = false;
+                    document.getElementById("deadline-div").hidden = true;
+                    quoteRadio.checked = false;
+                    quoteRadio.disabled = true;
+                    jobRadio.checked = true;
+                }
+            }
+            else {
+                for (var t = 0; t < machinetranslationDivs.length; t++) {
+                    machinetranslationDivs[t].hidden = true;
+                    document.getElementById("deadline-div").hidden = false;
+                    quoteRadio.disabled = false;
+                }
+            }
+
+
+        }
+
+        function showHidePostEditingOptions(PostEditingSelect) {
+            var allPEcontrols = document.getElementsByClassName('post-editing');
+            if (PostEditingSelect.checked == true) {
+                for (var p = 0; p < allPEcontrols.length; p++) {
+                    allPEcontrols[p].hidden = false;
+                }
+            }
+            else {
+                for (var p = 0; p < allPEcontrols.length; p++) {
+                    allPEcontrols[p].hidden = true;
+                }
+            }
+        }
+
+        function validateFields() {
+            var isSourceValid = true;
+            var isTargetLangValid = true;
+
+            //no need to validate source file uploader for Interpreting request
+            if ($('#service-select').val() != '2') {
+                var sourceFileControls = document.getElementsByClassName('source-file');
+
+                if (sourceFileControls.length > 0) {
+                    for (var i = 0; i < sourceFileControls.length; i++) {
+                        if (sourceFileControls[i].files.length > 0 && sourceFileControls[i].files[0].name != '') {
+                            isSourceValid = true;
+                            break;
+                        }
+                        else { isSourceValid = false; }
+                    }
+                }
+                else {
+                    isSourceValid = false;
+                }
+
+                //validate target language selector
+                var targetLangError = document.getElementById('invalid-target-lang');
+                if ($('#target-lang-select').val() == '') {
+                    targetLangError.hidden = false;
+                    isTargetLangValid = false;
+                }
+                else {
+                    targetLangError.hidden = true;
+                    isTargetLangValid = true;
+                }
+
+            }
+            else {
+
+                //validate target language selector
+                var targetLangError = document.getElementById('invalid-interpreting-target-lang');
+                if ($('#interpreting-target-lang-select').val() == '') {
+                    targetLangError.hidden = false;
+                    isTargetLangValid = false;
+                }
+                else {
+                    targetLangError.hidden = true;
+                    isTargetLangValid = true;
+                }
+
+                //validate org name
+                var orgDetailsValid = true;
+                var interpretationDurationValid = true;
+                var orgNameInput = document.getElementById('organisation-name-input');
+                var orgNameReq = document.getElementById('org-name-required');
+
+                if (orgNameInput.value == '') {
+                    orgNameReq.hidden = false;
+                    orgDetailsValid = false
+                }
+                else {
+                    orgNameReq.hidden = true;
+                }
+
+                //validate address
+                var address1Input = document.getElementById('address-line-1-input');
+                var address1Req = document.getElementById('address-line1-required');
+
+                if (address1Input.value == '') {
+                    address1Req.hidden = false;
+                    orgDetailsValid = false
+                }
+                else {
+                    address1Req.hidden = true;
+                }
+
+                //validate country
+
+                var countryReq = document.getElementById('country-required');
+
+                if ($('#country-select').val() == '(Please select)') {
+                    countryReq.hidden = false;
+                    orgDetailsValid = false
+                }
+                else {
+                    countryReq.hidden = true;
+                }
+
+                var interpretingHours = document.getElementById('interpreting-hours-input');
+                var interpretingMinutes = document.getElementById('interpreting-minutes-input');
+
+                if (parseInt(interpretingHours.value) <= 0 && parseInt(interpretingMinutes.value) <= 0) {
+                    document.getElementById('interpreting-hours-req').hidden = false;
+                    interpretationDurationValid = false;
+                }
+                else {
+                    document.getElementById('interpreting-hours-req').hidden = true;
+                }
+
+            }
+
+
+            var isPEOptionValid = true;
+            if ($('#service-select').val() == '46') {
+                var PEcheckbox = document.getElementById('post-editing-checkbox');
+
+                if (PEcheckbox.checked == true) {
+                    if ($('#post-editing-option-select').val() == '') {
+                        document.getElementById('invalid-PE-option').hidden = false;
+                        isPEOptionValid = false;
+                    }
+                    else {
+                        document.getElementById('invalid-PE-option').hidden = true;
+                        isPEOptionValid = true;
+                    }
+                }
+
+            }
+
+            //validate source language selector
+            var isSourceLangValid = true;
+
+            var sourceLangError = document.getElementById('invalid-source-lang');
+            if ($('#source-lang-select').val() == '') {
+                sourceLangError.hidden = false;
+                isSourceLangValid = false;
+            }
+            else {
+                sourceLangError.hidden = true;
+                isSourceLangValid = true;
+            }
+
+            //validate service selector
+            var isServiceValid = true;
+
+            var serviceError = document.getElementById('invalid-service');
+
+
+            if ($('#service-select').val() == '') {
+                serviceError.hidden = false;
+                isServiceValid = false;
+            }
+            else {
+                serviceError.hidden = true;
+                isServiceValid = true;
+            }
+
+            //validate mt engine selector
+            var isMTEngineValid = true;
+
+            var mtEngineDiv = document.getElementById('mt-engine-div');
+            var invalidMTEngineError = document.getElementById('invalid-mt-engine');
+            if (mtEngineDiv.hidden == false) {
+                if ($('#mt-engine-select').val() == '') {
+                    invalidMTEngineError.hidden = false;
+                    isMTEngineValid = false;
+                }
+                else {
+                    invalidMTEngineError.hidden = true;
+                    isMTEngineValid = true;
+                }
+            }
+            else {
+                isMTEngineValid = true;
+            }
+
+            if ($('#service-select').val() != '2') {
+                var invalidSourceControls = document.getElementById('invalid-source-file');
+                if (isSourceValid == false) {
+                    sourceFileControls[0].setAttribute("class", "form-control is-invalid source-file");
+                    invalidSourceControls.hidden = false;
+                }
+                else {
+                    for (var i = 0; i < sourceFileControls.length; i++) {
+                        sourceFileControls[i].setAttribute("class", "form-control source-file");
+                    }
+                    invalidSourceControls.hidden = true;
+                }
+            }
+
+
+            var orgId = @Model.ParentOrg.Id;;
+            var isClientSpecificFieldValid = true;
+
+            var bernafonDiv = document.getElementById('bernafon-document-type-div');
+            if (bernafonDiv.hidden == false && (orgId == 111853)) {
+                if ($('#bernafon-document-type').val() == '(Please select)') {
+                    isClientSpecificFieldValid = false;
+                    document.getElementById('invalid-document-type').hidden = false;
+                }
+                else {
+                    document.getElementById('invalid-document-type').hidden = true;
+                }
+            }
+
+            var oticonDiv = document.getElementById('oticon-document-type-div');
+            if (oticonDiv.hidden == false && (orgId == 86248)) {
+                if ($('#oticon-document-type').val() == '(Please select)') {
+                    isClientSpecificFieldValid = false;
+                    document.getElementById('oticon-invalid-document-type').hidden = false;
+                }
+                else {
+                    document.getElementById('oticon-invalid-document-type').hidden = true;
+                }
+            }
+
+            var jobRadio = document.getElementById('jobRadio');
+            var oticonMedInvoiceDiv = document.getElementById('oticon-medical-invoice-to-div');
+
+            if ((orgId == 108180 || orgId == 98181) && jobRadio.checked == true && oticonMedInvoiceDiv.hidden == false) {
+                if ($('#oticon-medical-invoice-select').val() == '(Please select)') {
+                    isClientSpecificFieldValid = false;
+                    //$('#invalid-invoice-to').show();
+                    document.getElementById('invalid-invoice-to').hidden = false;
+
+                }
+                else {
+                    document.getElementById('invalid-invoice-to').hidden = true;
+
+                }
+            }
+
+            if (isSourceValid == false || isSourceLangValid == false || isTargetLangValid == false || isClientSpecificFieldValid == false
+                || isServiceValid == false || isMTEngineValid == false || isPEOptionValid == false || orgDetailsValid == false || interpretationDurationValid == false) {
+                //var createRequestForm = document.getElementById('create-request-form');
+
+                //$(document).on('change', '#create-request-form', validateFields());
+
+                //alert("test");
+                //createRequestForm.removeAttribute("action");
+                //e.preventDefault();
+
+                return false;
+            }
+            else {
+                document.getElementById('submit-button').hidden = true;
+                document.getElementById('submit-spinner').hidden = false;
+                document.getElementById('create-request-form').submit();
+            }
+
+        }
+
+        function submitRequest() {
+            //debugger;
+            if ($('#service-select').val() == '1') {
+
+                var projectName = document.getElementById('project-name-input').innerText;
+                var sourceLang = $('#source-lang-select').val();
+                var targetLangs = $('#target-lang-select').val();
+
+                var createDiffJobOrder = false;
+
+                if (document.getElementById('separate-job-item-per-lang').hidden == true) {
+                    createDiffJobOrder = document.getElementById('separate-job-item-checkbox').checked;
+                }
+                var deadlineDate;
+                var hourString, minuteString, deadlineTimeZone;
+                var deadlineNotReqRadio = document.getElementById('deadlineNotNeededRadio');
+                if (deadlineNotReqRadio.checked == true) {
+                    //deadlineDate = document.getElementById('deadline-input').value;
+                    //hourString = $('#deadline-hour-select').val();
+                    //minuteString = $('#deadline-minute-select').val();
+                    //deadlineTimeZone = $('#deadline-time-zone').val();
+                }
+                else {
+                    deadlineDate = document.getElementById('deadline-input').value;
+                    hourString = $('#deadline-hour-select').val();
+                    minuteString = $('#deadline-minute-select').val();
+                    deadlineTimeZone = $('#deadline-time-zone').val();
+                }
+
+                var PONumber = document.getElementById('po-number-input').innerText;
+
+                var reviewPlusDiv = document.getElementById('review-plus-div');
+                var reviewOptionSelected;
+                var notifyReviewer = false;
+                var customerSpecificField1 = "";
+                if (reviewPlusDiv.hidden == false) {
+
+                    if (document.getElementById('reviewOptionDiv').hidden == true) {
+                        reviewOptionSelected = "reviewPlus";
+                    }
+                    else {
+                        if (document.getElementById('design-plus-option').checked == true) {
+                            reviewOptionSelected = "designPlus";
+                        }
+                        else if (document.getElementById('review-plus-option').checked == true) {
+                            reviewOptionSelected = "reviewPlus";
+                        }
+
+                        if (document.getElementById('notify-reviewer-checkbox').checked == true) {
+                            notifyReviewer = true;
+                        }
+
+                        var bernafonDiv = document.getElementById('bernafon-document-type-div');
+                        if (bernafonDiv.hidden == false) {
+                            customerSpecificField1 = $('#bernafon-document-type').val();
+                        }
+
+                        var oticonDocTypeDiv = document.getElementById('oticon-document-type-div');
+                        if (oticonDocTypeDiv.hidden == false) {
+                            customerSpecificField1 = $('#oticon-document-typ').val();
+                        }
+                    }
+
+
+                }
+
+                var translateOnlineDiv = document.getElementById('translate-online-div');
+                var translateOnlineSelected = false;
+
+                if (translateOnlineDiv.hidden == false) {
+                    var translateOnlineRadio = document.getElementById('translateOnline');
+                    translateOnlineSelected = translateOnlineRadio.checked;
+                }
+
+                var printingReq = false;
+                if (document.getElementById('printing-checkbox').checked == true) {
+                    printingReq = true;
+                }
+
+                var isConfidentialProject = document.getElementById('extra-confidential-checkbox').checked;
+                var priority = $('#priority-select').val()
+                var proofreadingOptionSelected = document.getElementById('proofread-checkbox');
+
+                var invoiceCurrency = $('#currency-select').val();
+
+                var jobNotes = document.getElementById('notes-textarea').innextText;
+
+                var OticonMedInvoiceDiv = document.getElementById('oticon-medical-invoice-to-div');
+                var OticonInvoiceDiv = document.getElementById('oticon-invoice-to-div');
+
+                var customerSpecificField2 = "";
+                if (OticonMedInvoiceDiv.hidden == false) {
+                    customerSpecificField2 = $('#oticon-medical-invoice-select').val();
+                }
+
+                if (OticonInvoiceDiv.hidden == false) {
+                    customerSpecificField2 = $('#oticon-invoice-select').val();
+                }
+
+                var allSourceFiles = new FormData();
+
+                var sourceFileInputs = document.getElementsByClassName('source-file');
+
+                for (var s = 0; s < sourceFileInputs.length; s++) {
+                    for (var x = 0; x < sourceFileInputs[s].files.length; x++) {
+                        allSourceFiles.append("file" + s + x, sourceFileInputs[s].files[x]);
+                    }
+                }
+
+                var allReferenceFiles = new FormData();
+
+                var refFileInputs = document.getElementsByClassName('ref-files');
+
+                for (var s = 0; s < refFileInputs.length; s++) {
+                    for (var x = 0; x < refFileInputs[s].files.length; x++) {
+                        allReferenceFiles.append("file" + x, refFileInputs[s].files[x]);
+                    }
+                }
+
+
+                //debugger;
+                //var jobRequestString = projectName + '$' + sourceLang + '$' + targetLangs + '$' + createDiffJobOrder + '$' +
+                //    deadlineDate + '$' + hourString + '$' + minuteString + '$' + deadlineTimeZone + '$' +
+                //    PONumber + '$' + reviewOptionSelected + '$' + notifyReviewer + '$' + customerSpecificField1 + '$' +
+                //    translateOnlineSelected + '$' + printingReq + '$' + isConfidentialProject + '$' + priority + '$' +
+                //    proofreadingOptionSelected + '$' + invoiceCurrency + '$' + jobNotes + '$' + customerSpecificField2 + '$' +
+                //    allSourceFiles + '$' + allReferenceFiles;
+
+                var jobRequestString = allSourceFiles;
+
+                //var xhr = new XMLHttpRequest();
+                //xhr.onreadystatechange = function () {
+                //    if (this.readyState == 4 && this.status == 200) {
+
+                //       //get job order details
+                //        alert('job submitted');
+
+                //    }
+                //};
+
+                //xhr.open("POST", "Services/CreateTranslationRequest/", true);
+                //xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                //xhr.send(jobRequestString);
+            }
+
+
+        }
+
+        function showQuoteOrJobOptions() {
+            var orgId = @Model.ParentOrg.Id;
+            var quoteRadio = document.getElementById('quoteRadio');
+            document.getElementById('priority-div').hidden = quoteRadio.checked;
+            if (quoteRadio.checked == false) {
+                if ($('#service-select').val() == '1' && (orgId == 86248 || orgId == 98181)) {
+                    document.getElementById('separate-job-item-per-lang').hidden = false;
+                }
+                else {
+                    document.getElementById('separate-job-item-per-lang').hidden = true;
+                }
+            }
+
+            else {
+                document.getElementById('separate-job-item-per-lang').hidden = true;
+            }
+
+        }
+
+        function updateReviewOption() {
+
+            var orgId = @Model.ParentOrg.Id;
+            var designPlusRadio = document.getElementById('design-plus-option');
+
+            if (orgId == 111853) {
+                var bernafonDiv = document.getElementById('bernafon-document-type-div');
+
+                if (designPlusRadio.checked == true) {
+                    bernafonDiv.hidden = false;
+                }
+                else {
+                    bernafonDiv.hidden = true;
+                }
+            }
+
+            if (orgId == 86248) {
+                var oticonDiv = document.getElementById('oticon-document-type-div');
+
+                if (designPlusRadio.checked == true) {
+                    oticonDiv.hidden = false;
+                }
+                else {
+                    oticonDiv.hidden = true;
+                }
+            }
+
+        }
+
+        function showMTLanguages(mtEngineSelect) {
+            var sourceLangSelect = document.getElementById('source-lang-select');
+            var targetLangSelect = document.getElementById('target-lang-select');
+
+            var mostUsedLangSource = document.getElementById('most-used-lang-source-checkbox');
+            var mostUsedLangTarget = document.getElementById('most-used-lang-target-checkbox');
+
+            var mtSource = "";
+            var mtTarget = "";
+            if (mtEngineSelect.options[mtEngineSelect.selectedIndex].value == '1') {
+                mtSource = "Google Translate API";
+                mtTarget = "Google Translate API";
+            }
+            else if (mtEngineSelect.options[mtEngineSelect.selectedIndex].value == '2')
+            {
+                mtSource = "DeepL API Source";
+                mtTarget = "DeepL API Target";
+
+            }
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = xhr.responseText;
+                    var allLangs = $.parseJSON(response);
+
+                    sourceLangSelect.innerHTML = '';
+                    var defaultOption = document.createElement("option");
+                    sourceLangSelect.appendChild(defaultOption);
+
+                    for (var i = 0; i < allLangs.length; i++) {
+                        var langOption = document.createElement("option");
+                        langOption.setAttribute("value", allLangs[i].stringValue);
+                        langOption.innerText = allLangs[i].name;
+                        sourceLangSelect.appendChild(langOption);
+                    }
+
+                    sourceLangSelect.removeAttribute("disabled");
+                    mostUsedLangSource.removeAttribute("disabled");
+
+                    var xhr1 = new XMLHttpRequest();
+                    xhr1.onreadystatechange = function () {
+                        if (this.readyState == 4 && this.status == 200) {
+                            var response = xhr1.responseText;
+                            var allLangs = $.parseJSON(response);
+
+                            targetLangSelect.innerHTML = '';
+                            var defaultOption = document.createElement("option");
+                            targetLangSelect.appendChild(defaultOption);
+
+                            for (var i = 0; i < allLangs.length; i++) {
+                                var langOption = document.createElement("option");
+                                langOption.setAttribute("value", allLangs[i].stringValue);
+                                langOption.innerText = allLangs[i].name;
+                                targetLangSelect.appendChild(langOption);
+                            }
+
+                            targetLangSelect.removeAttribute("disabled");
+                            mostUsedLangTarget.removeAttribute("disabled");
+                        }
+                    }
+                    xhr1.open("POST", "Services/GetMTLanguages", true);
+                    xhr1.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr1.send(mostUsedLangTarget.checked + "$" + mtTarget);
+                }
+            }
+            xhr.open("POST", "Services/GetMTLanguages", true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.send(mostUsedLangSource.checked + "$" + mtSource);
+        }
+    </script>
+}
+<form enctype="multipart/form-data" asp-action="CreateTranslationRequest" id="create-request-form" method="post">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <i class="fal fa-info-circle fa-2x color-black color-black"></i> &nbsp; &nbsp;
+                    <h2>Project Information</h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                    </div>
+                </div>
+                <div class="panel-container show">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="frame-wrap">
+                                        <div class="custom-control custom-radio custom-control-inline" hidden="@(ViewBag.showQuoteOption == false)">
+                                            <input type="radio" class="custom-control-input" asp-for="QuoteOrJobRequest" id="quoteRadio" value="Quote" onchange="showQuoteOrJobOptions()" checked="@(ViewBag.jobVsQuote == "quote")">
+                                            <label for="quoteRadio" class="custom-control-label">Quote</label>
+                                        </div>
+                                        <div class="custom-control custom-radio custom-control-inline">
+                                            <input type="radio" class="custom-control-input" asp-for="QuoteOrJobRequest" id="jobRadio" value="Job" onchange="showQuoteOrJobOptions()" checked="@(ViewBag.jobVsQuote == "")">
+                                            <label for="jobRadio" class="custom-control-label">Live job request</label>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+
+                                        <label class="form-label" for="service-select">
+                                            Service
+                                        </label>
+                                        <label class="fs-xs text-danger" id="invalid-service" hidden>* Please select a service for this request.</label>
+                                        <select class="select2 form-control w-200" data-placeholder="Select a service.." id="service-select" asp-for="LanguageServiceSelected" onchange="showUpdatedOptions(this)">
+                                            @*<option></option>*@
+                                            <option value="1" disabled="@(ViewBag.CanRequestWrittenServicesWork == false)">Translation</option>
+                                            <option value="7" disabled="@(ViewBag.CanRequestWrittenServicesWork == false)">Proofreading</option>
+                                            <option value="5" disabled="@(ViewBag.CanRequestWrittenServicesWork == false)">Transcription</option>
+                                            <option value="46" disabled="@(ViewBag.MTEnabled == false)">Machine translation</option>
+                                            <option value="6" disabled="@(ViewBag.CanRequestWrittenServicesWork == false)">Voiceover</option>
+                                            <option value="2" disabled="@(ViewBag.CanRequestInterpretingServicesWork == false)">Interpreting</option>
+                                        </select>
+
+
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group validate-me">
+                                        <label class="form-label" for="project-name-input">Project name</label>
+                                        <input type="text" id="project-name-input" asp-for="ProjectName" class="form-control">
+                                    </div>
+
+                                </div>
+
+
+                            </div>
+                            <div class="row" hidden id="mt-engine-div">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <br />
+                                        <label class="form-label" for="service-select">
+                                            Machine translation engine&nbsp;&nbsp;<img src="~/img/mt_icon.png" />
+                                        </label>
+                                        <label class="fs-xs text-danger" id="invalid-mt-engine" hidden>* Please select a machine translation engine.</label>
+                                        <select class="select2 form-control w-200" data-placeholder="Select an engine.." id="mt-engine-select" asp-for="MTEngineSelected" onchange="showMTLanguages(this)">
+                                            <option></option>
+                                            <option value="1">Google Translate API</option>
+                                            <option value="2">DeepL API</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="source-lang-select">Source language</label>
+                                    <label class="fs-xs text-danger" id="invalid-source-lang" hidden>* Please select the source language of the file(s) you are uploading.</label>
+                                    <select data-placeholder="Select source.." class="select2 form-control" asp-for="SourceLangIANACode" id="source-lang-select">
+                                        <option></option>
+                                        @foreach (var language in Model.Languages)
+                                        {
+                                            <option value="@language.StringValue">@language.Name</option>
+                                        }
+                                    </select>
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="most-used-lang-source-checkbox" onchange="updateSourceLanguageList(this)" checked="">
+                                        <label class="custom-control-label" for="most-used-lang-source-checkbox">Show most-requested languages only</label>&nbsp;<a href="#" id="most-used-lang-info-icon" onclick="return false;" data-html="true" data-container="body" data-toggle="tooltip" data-placement="right" title="<br>•	Tick 'Show most-requested languages only' if you want a shorter list of languages to choose from, based on the languages most frequently requested by translate plus clients. Clear this box to see every available language.<br>•	If you're looking for specific regional variants, such as Canadian French, these are alphabetically listed by language followed by the region in brackets, for example: French (Canada).<br>"><i class="fal fa-info-circle fa-1x text-success"></i></a>
+                                    </div>
+
+                                </div>
+                                <div class="col-md-6 interpreting-target-div" hidden>
+                                    <label class="form-label" for="interpreting-target-lang-select">Target language</label>
+                                    <label class="fs-xs text-danger" id="invalid-interpreting-target-lang" hidden>* Please select at least one target language, i.e. the language or languages into which you want your source file(s) to be translated.</label>
+                                    <select data-placeholder="Select target.." class="select2 form-control" asp-for="TargetLangIANACode" id="interpreting-target-lang-select">
+                                        <option></option>
+                                        @foreach (var language in Model.Languages)
+                                        {
+                                            <option value="@language.StringValue">@language.Name</option>
+                                        }
+                                    </select>
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="most-used-lang-interpreting-target-checkbox" onchange="updateInterpretingTargetLanguageList(this)" checked="">
+                                        <label class="custom-control-label" for="most-used-lang-interpreting-target-checkbox">Show most-requested languages only</label>&nbsp;<a href="#" id="most-used-lang-info-icon" onclick="return false;" data-html="true" data-container="body" data-toggle="tooltip" data-placement="right" title="<br>•	Tick 'Show most-requested languages only' if you want a shorter list of languages to choose from, based on the languages most frequently requested by translate plus clients. Clear this box to see every available language.<br>•	If you're looking for specific regional variants, such as Canadian French, these are alphabetically listed by language followed by the region in brackets, for example: French (Canada).<br>"><i class="fal fa-info-circle fa-1x text-success"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div id="non-interpretation-div">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="form-label" for="target-lang-select">Target language(s)</label>
+                                        <label class="fs-xs text-danger" id="invalid-target-lang" hidden>* Please select at least one target language, i.e. the language or languages into which you want your source file(s) to be translated.</label>
+                                        <select data-placeholder="Select target.." id="target-lang-select" asp-for="TargetLangIANACode" class="select2-placeholder-multiple custom-select" multiple="multiple">
+                                            <option></option>
+                                            @foreach (var language in Model.Languages)
+                                            {
+                                                <option value="@language.StringValue">@language.Name</option>
+                                            }
+                                        </select>
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="most-used-lang-target-checkbox" onchange="updateTargetLanguageList(this)" checked="">
+                                            <label class="custom-control-label" for="most-used-lang-target-checkbox">Show most-requested languages only</label>&nbsp;<a href="#" id="most-used-lang-info-icon" onclick="return false;" data-html="true" data-container="body" data-toggle="tooltip" data-placement="right" title="<br>•	Tick 'Show most-requested languages only' if you want a shorter list of languages to choose from, based on the languages most frequently requested by translate plus clients. Clear this box to see every available language.<br>•	If you're looking for specific regional variants, such as Canadian French, these are alphabetically listed by language followed by the region in brackets, for example: French (Canada).<br>"><i class="fal fa-info-circle fa-1x text-success"></i></a>
+                                        </div>
+                                        <div class="custom-control custom-checkbox" id="separate-job-item-per-lang">
+                                            <input type="checkbox" class="custom-control-input" id="separate-job-item-checkbox" asp-for="CreateDifferentItemsForLangs">
+                                            <label class="custom-control-label" for="separate-job-item-checkbox">Create different orders for each target language</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="form-label" for="source-file-uploader">Source file(s)</label>
+                                        <label class="fs-xs text-danger" id="invalid-source-file" hidden>* Please specify a source file which you need us to translate.</label>
+                                        <div class="controls" id="source-file-div">
+                                            <div class="entry input-group upload-input-group" id="source-file-input-div">
+                                                <div class="input-group">
+                                                    @*<div class="custom-file">
+                                                            <input type="file" class="custom-file-input" id="inputGroupFile1" aria-describedby="inputGroupFileAddon1">
+                                                            <label class="custom-file-label" for="inputGroupFile1">Choose file</label>
+                                                        </div>*@
+                                                    <input class="form-control source-file" id="inputGroupFile1" aria-describedby="inputGroupFileAddon1" type="file"
+                                                           accept="@GeneralUtils.GetAllPermittedFileExtensionForExternalWebsite()" asp-for="SourceFiles[0].file">
+                                                    <button class="btn btn-upload btn-success btn-add" title="Add another file" type="button">
+                                                        <span class="fa fa-plus"></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <span class="help-block">You can upload up to 20 individual files using the above controls. To upload additional file(s) click on “+” button. If the combined size of all files will exceed 800 MB, please submit separate smaller requests.&nbsp;<a href="#" onclick="return false;" data-toggle="tooltip" data-placement="right" title="If you need to submit more than 9 files, and/or you need to submit a complete folder structure, please compress the files/folders into a single zip. "><i class="fal fa-info-circle fa-1x text-success"></i></a></span>
+                                    </div>
+                                </div>
+                                <br />
+                                <div id="deadline-div">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Required delivery deadline</label>
+                                            <br />
+                                            <br />
+                                            <div class="frame-wrap">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" class="custom-control-input" id="deadlineNotNeededRadio" asp-for="FixedDeadlineRequestedByClient" value="False" onchange="hideDeadline(this)">
+                                                    <label class="custom-control-label" for="deadlineNotNeededRadio">I don’t have a fixed deadline by when I need the translation.</label>
+                                                </div>
+                                                <br />
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" class="custom-control-input" id="showDeadlineRadio" value="True" onchange="showDeadline(this)" asp-for="FixedDeadlineRequestedByClient" checked="">
+                                                    <label class="custom-control-label" for="showDeadlineRadio">I need the translation by the following deadline:</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div class="row" id="datepicker-div">
+
+                                        <div class="col-md-6">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control delivery-datepicker" asp-for="JobDeadline" id="deadline-input" value="@DateTime.Now.AddDays(3).ToString("dd/MM/yyyy")">
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text fs-xl">
+                                                        <i class="@(Settings.Theme.IconPrefix) fa-calendar-check"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select id="deadline-hour-select" class="select2 form-control" asp-for="JobDeadlineHours">
+                                                @for (var h = 0; h < 24; h++)
+                                                {
+                                                    <option selected="@(DateTime.Now.Hour == h)" value="@h">@h.ToString()</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select id="deadline-minute-select" class="select2 form-control" asp-for="JobDeadlineMinutes">
+                                                @for (var m = 0; m < 59; m += 15)
+                                                {
+                                                    <option value="@m">@m.ToString()</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <br /><br />
+                                        <div class="col-md-6">
+                                            <select id="deadline-time-zone" class="select2 form-control" asp-for="JobDeadlineTimeZone">
+                                                @for (var t = 0; t < Model.AllTimeZones.Count; t++)
+                                                {
+                                                    <option value="@Model.AllTimeZones.ElementAtDynamic(t).Id"
+                                                            selected="@(Model.JobRequestedByContact.DefaultTimeZone == Model.AllTimeZones.ElementAtDynamic(t).Id)">
+                                                        @Model.AllTimeZones.ElementAtDynamic(t).DisplayName
+                                                    </option>
+                                                }
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <span class="help-block">We can fine-tune deadlines for specific languages and/or source files after submission if required</span>
+                                        </div>
+
+                                    </div>
+                                    <br />
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="form-label" for="reference-file-uploader">Reference file(s) (Optional)</label>
+                                        <div class="controls" id="ref-file-div">
+                                            <div class="entry input-group upload-input-group" id="ref-file-input-div">
+                                                <div class="input-group">
+                                                    @*<div class="custom-file">
+                                                            <input type="file" class="custom-file-input" id="referenceGroupFile1" aria-describedby="referenceGroupFileAddon1">
+                                                            <label class="custom-file-label" for="referenceGroupFile1">Choose file</label>
+                                                        </div>*@
+                                                    <input class="form-control ref-files" id="referenceGroupFile1" aria-describedby="referenceGroupFileAddon1"
+                                                           asp-for="ReferenceFiles[0].file" type="file" accept="@GeneralUtils.GetAllPermittedFileExtensionForExternalWebsite()">
+                                                    <button class="btn btn-upload btn-success btn-add" title="Add another file" id="ref-add-button" type="button">
+                                                        <i class="fa fa-plus"></i>
+                                                    </button>
+                                                </div>
+
+
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <span class="help-block">You can upload up to 20 individual files using the above controls. To upload additional file(s) click on “+” button. If the combined size of all files will exceed 800 MB, please submit separate smaller requests.&nbsp;<a href="#" onclick="return false;" data-toggle="tooltip" data-placement="right" title="If you need to submit more than 9 files, and/or you need to submit a complete folder structure, please compress the files/folders into a single zip. "><i class="fal fa-info-circle fa-1x text-success"></i></a></span>
+                                    </div>
+                                </div>
+                                <br />
+                            </div>
+
+                            <div class="interpreting-target-div" hidden>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Date, time and duration of assigment</label>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control delivery-datepicker" asp-for="JobDeadline" id="deadline-input" value="@DateTime.Now.AddDays(3).ToString("dd/MM/yyyy")">
+                                            <div class="input-group-append">
+                                                <span class="input-group-text fs-xl">
+                                                    <i class="@(Settings.Theme.IconPrefix) fa-calendar-check"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select id="deadline-hour-select" class="select2 form-control" asp-for="JobDeadlineHours">
+                                            @for (var h = 0; h < 24; h++)
+                                            {
+                                                <option selected="@(DateTime.Now.Hour == h)" value="@h">@h.ToString()</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <select id="deadline-minute-select" class="select2 form-control" asp-for="JobDeadlineMinutes">
+                                            @for (var m = 0; m < 59; m += 15)
+                                            {
+                                                <option value="@m">@m.ToString()</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <br /><br />
+                                    <div class="col-md-6">
+                                        <select id="deadline-time-zone" class="select2 form-control" asp-for="JobDeadlineTimeZone">
+                                            @for (var t = 0; t < Model.AllTimeZones.Count; t++)
+                                            {
+                                                <option value="@Model.AllTimeZones.ElementAtDynamic(t).Id"
+                                                        selected="@(Model.JobRequestedByContact.DefaultTimeZone == Model.AllTimeZones.ElementAtDynamic(t).Id)">
+                                                    @Model.AllTimeZones.ElementAtDynamic(t).DisplayName
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <span class="help-block">We can fine-tune deadlines for specific languages and/or source files after submission if required</span>
+                                    </div>
+
+                                </div>
+                                <br />
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        Expected duration:
+                                    </div>
+                                    <div class="col-md-2">
+                                        Hours:&nbsp;
+                                        <input type="number" id="interpreting-hours-input" class="form-control w-70" asp-for="InterpretingHours">
+
+                                    </div>
+                                    <div class="col-md-2">
+                                        Minutes:&nbsp;
+                                        <input type="number" id="interpreting-minutes-input" class="form-control w-70" asp-for="InterpretingMinutes">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <label class="fs-xs text-danger" id="interpreting-hours-req" hidden>* Enter interpreting hours or minutes </label>
+                                </div>
+                                <br/><br />
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Location of assignment</label>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        Organisation name:
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" id="organisation-name-input" class="form-control" asp-for="InterpretingOrg">
+                                        <label class="fs-xs text-danger" id="org-name-required" hidden>* Enter the name of the organisation which the interpreter will visit</label>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        Address:
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" id="address-line-1-input" class="form-control" asp-for="InterpretingAddressLine1">
+                                        <label class="fs-xs text-danger" id="address-line1-required" hidden>* Enter at least one address line </label>
+                                        <input type="text" id="address-line-2-input" class="form-control" asp-for="InterpretingAddressLine2">
+                                        <input type="text" id="address-line-3-input" class="form-control" asp-for="InterpretingAddressLine3">
+                                        <input type="text" id="address-line-4-input" class="form-control" asp-for="InterpretingAddressLine4">
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        County/state:
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" id="county-input" class="form-control" asp-for="InterpretingCountyOrState">
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        Postcode/zip:
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" id="postcode-input" class="form-control" asp-for="InterpretingPostOrZip">
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        Country:
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select class="select2 form-control" id="country-select" asp-for="InterpretingCountryId">
+                                        </select>
+                                        <label class="fs-xs text-danger" id="country-required" hidden>* Select the country </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="panel" data-panel-fullscreen="false" data-panel-close="false">
+                <div class="panel-hdr">
+                    <i class="fal fa-tools fa-2x color-black"></i> &nbsp; &nbsp;
+                    <h2>
+                        Project, review and delivery options
+                    </h2>
+                    <div class="panel-toolbar">
+                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse/Expand"></button>
+                    </div>
+                </div>
+                <div class="panel-container expanded">
+                    <div class="panel-content">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label class="form-label" for="po-number-input">PO Number</label>
+                                        <input type="text" id="po-number-input" placeholder="Purchase order number" asp-for="PONumber" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="translation-service-div">
+
+                                <div class="row" id="translate-online-div" hidden="@(Model.JobRequestedByContact.TranslateonlineAllowed == false)">
+                                    <div class="col-md-8">
+                                        <label class="form-label">Translate online</label>
+                                        <br />
+                                        <br />
+                                        <div class="frame-wrap">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" class="custom-control-input" id="translateOnline" value="True" asp-for="TranslateOnlineSelected">
+                                                <label class="custom-control-label" for="translateOnline">Assign the translators and send the job(s) for translation via translate online</label>
+                                            </div>
+                                            <br />
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" class="custom-control-input" id="noTranslateOnline" value="False" asp-for="TranslateOnlineSelected" checked="">
+                                                <label class="custom-control-label" for="noTranslateOnline">translate plus should handle all translations on their end</label>
+                                            </div>
+                                        </div>
+                                        <br />
+                                    </div>
+                                </div>
+
+                                <div id="review-plus-div" hidden="@(Model.ParentOrg.ExtranetShowClientReviewOptions == false)">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Review options</label>
+                                            <br />
+                                            <br />
+                                            <div class="frame-wrap">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" class="custom-control-input" value="True" id="ReviewRequiredOption" asp-for="ReviewRequired" onchange="showReviewOptions(this)">
+                                                    <label class="custom-control-label" for="ReviewRequiredOption">These translations will need to be approved by reviewers appointed by @Model.ParentOrg.OrgName</label>
+                                                </div>
+                                                <br />
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" class="custom-control-input" id="noReviewOption" value="False" asp-for="ReviewRequired" onchange="hideReviewOptions(this)">
+                                                    <label class="custom-control-label" for="noReviewOption">No review is required</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div id="reviewOptionDiv" hidden="@Model.ParentOrg.ExtranetShowClientReviewOptions == false || @Model.JobRequestedByContact.DesignplusEnabled == false">
+                                        <div class="row">
+                                            @*<div class="col-md-12">
+                                                    <span class="help-block">
+                                                        <a href="#" onclick="return false;" data-html="true" data-container="body" data-toggle="tooltip" data-placement="bottom" title="design plus<br>For Adobe InDesign files, design plus lets reviewers make text changes via an interactive preview of the document, clicking on text boxes and updating the InDesign file directly. Use this option if you are happy to give your reviewers full responsibility for the text of the document, including the ability to rewrite the contents of text boxes (so that if translations no longer match the source text, translation memories cannot be fully updated).<br><br>review plus<br />For all formats, including InDesign, review plus lets reviewers make changes via a two-column table so that they can see each source sentence alongside its corresponding translation. Use this option if you would like to restrict your reviewers to only make changes which can be updated in the translation memories (they cannot completely remove sections of text, and review plus ensures the order of the translations cannot be changed)."><i class="fal fa-info-circle fa-1x text-success"></i> design plus and review plus: what’s the difference?</a>
+                                                    </span>
+                                                </div>*@
+                                        </div>
+                                        @*<br />*@
+                                        <div class="row" id="review-div">
+                                            <div class="col-md-12">
+                                                <div class="input-group">
+                                                    <div class="frame-wrap">
+
+                                                        @*<img src="~/img/design-plus-logo.png" />
+                                                            <div class="custom-control custom-radio custom-control-inline">
+                                                                <input type="radio" class="custom-control-input" id="design-plus-option" asp-for="ReviewPlusOrDesignPlus" value="DesignPlus" onchange="updateReviewOption()">
+                                                                <label class="custom-control-label" for="design-plus-option">design plus</label>
+                                                            </div>
+
+                                                            <img src="~/img/review-plus-logo.jpg" />
+                                                            <div class="custom-control custom-radio custom-control-inline">
+                                                                <input type="radio" class="custom-control-input" id="review-plus-option" asp-for="ReviewPlusOrDesignPlus" value="ReviewPlus" onchange="updateReviewOption()" checked="">
+                                                                <label class="custom-control-label" for="review-plus-option">review plus</label>
+                                                            </div>*@
+                                                    </div>
+                                                </div>
+                                                <br />
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="notify-reviewer-checkbox" asp-for="NotifyReviewerOfDelivery">
+                                                    <label class="custom-control-label" for="notify-reviewer-checkbox">As well as notifying me, please also notify the reviewers when translations are delivered</label>
+                                                </div>
+                                                <span class="help-block">
+                                                    Please don't forget to accommodate review timings into your requested delivery deadline below. As a guideline, for every 1,000 words, about half a day is required for translation and about 1 day for review.
+                                                </span>
+
+                                            </div>
+
+                                            <div class="col-md-12" id="bernafon-document-type-div" hidden>
+                                                <br />
+                                                <label class="form-label">
+                                                    Document type:
+                                                </label>
+                                                <label class="fs-xs text-danger" id="invalid-document-type" hidden>* You must select the document type</label>
+                                                <div class="col-md-4">
+                                                    <select class="select2 form-control w-200" id="bernafon-document-type" asp-for="CustomerSpecificData1">
+                                                        <option>(Please select)</option>
+                                                        <option value="Bernafon- IFU TM">Bernafon- IFU document(s)</option>
+                                                        <option value="Bernafon- PI TM">Bernafon- PI document(s)</option>
+                                                        <option value="Bernafon- General TM">Bernafon- General document(s)</option>
+                                                        <option value="Sonic- IFU TM">Sonic- IFU document(s)</option>
+                                                        <option value="Sonic- PI TM">Sonic- PI document(s)</option>
+                                                        <option value="Sonic- General TM">Sonic- General document(s)</option>
+                                                        <option value="HearToo- IFU TM">HearToo- IFU document(s)</option>
+                                                        <option value="HearToo- PI TM">HearToo- PI document(s)</option>
+                                                        <option value="HearToo- General TM">HearToo- General document(s)</option>
+                                                        <option value="Philips- IFU TM">Philips- IFU document(s)</option>
+                                                        <option value="Philips- PI TM">Philips- PI document(s)</option>
+                                                        <option value="Philips- General TM">Philips- General document(s)</option>
+                                                        <option value="Demant Brand Neutral">Demant Brand Neutral</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12" id="oticon-document-type-div" hidden>
+                                                <br />
+                                                <label class="form-label">
+                                                    Document type:
+                                                </label>
+                                                <label class="fs-xs text-danger" id="oticon-invalid-document-type" hidden>* You must select the document type</label>
+                                                <div class="col-md-4">
+                                                    <select class="select2 form-control w-200" id="oticon-document-type" asp-for="CustomerSpecificData1">
+                                                        <option>(Please select)</option>
+                                                        <option value="General TM">General document(s)</option>
+                                                        <option value="IFU documents">IFU document(s)</option>
+                                                        <option value="PI documents">PI document(s)</option>
+                                                        <option value="E-learning">E-learning document(s)</option>
+                                                        <option value="MadCap Flare Help files">MadCap Flare Help file(s))</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <br />
+
+                                    </div>
+                                    <br />
+                                </div>
+                                <div class="row" hidden="@(Model.ParentOrg.ExtranetShowDtpoptions == false)">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Layout/Desktop Publishing</label>
+                                        <br />
+                                        <br />
+                                        <div class="frame-wrap">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" class="custom-control-input" id="noDTPRequiredOption" value="True" asp-for="DTPRequired" checked="@(Model.ParentOrg.ExtranetDtpoptionSelectedByDefault == false)">
+                                                <label class="custom-control-label" for="noDTPRequiredOption">translate plus to carry out full layout/Desktop Publishing of the translated files</label>
+                                            </div>
+                                            <br />
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" class="custom-control-input" id="DTPRequiredOption" value="False" asp-for="DTPRequired" checked="@(Model.ParentOrg.ExtranetDtpoptionSelectedByDefault == true)">
+                                                <label class="custom-control-label" for="DTPRequiredOption">No layout checks required</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row" id="independent-proofreading-div" hidden="@(Model.ParentOrgGroup.ShowProofreadingOptionForClients == false)">
+                                    <div class="col-md-12">
+                                        <br /><br />
+                                        <label class="form-label">Independent proofreading</label>
+                                        <br />
+                                        <br />
+                                        <div class="frame-wrap">
+                                            @if (Model.ParentOrgGroup.CreatedDate < new DateTime(2023, 1, 1))
+                                            {
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" class="custom-control-input" id="ProofreadingRequiredOption" value="True" asp-for="TargetProofReadingRequired">
+                                                    <label class="custom-control-label" for="ProofreadingRequiredOption">Proofreading of the translated content through a second native translator (ISO 17100)</label>
+                                                </div>
+                                                <br />
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" class="custom-control-input" id="noProofreadingRequiredOption" value="False" asp-for="TargetProofReadingRequired" checked>
+                                                    <label class="custom-control-label" for="noProofreadingRequiredOption">No Proofreading is required</label>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" class="custom-control-input" id="ProofreadingRequiredOption" value="True" asp-for="TargetProofReadingRequired" checked>
+                                                    <label class="custom-control-label" for="ProofreadingRequiredOption">Proofreading of the translated content through a second native translator (ISO 17100)</label>
+                                                </div>
+                                                <br />
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" class="custom-control-input" id="noProofreadingRequiredOption" value="False" asp-for="TargetProofReadingRequired">
+                                                    <label class="custom-control-label" for="noProofreadingRequiredOption">No Proofreading is required</label>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <br /><br />
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <label class="form-label">Printing/Packaging project</label>
+                                        <br />
+                                        <br />
+                                        <div class="frame-wrap">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" asp-for="IsPrintingPackagingProject" id="printing-checkbox">
+                                                <label class="custom-control-label" for="printing-checkbox">This is a printing/packaging project </label>
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="machine-translation-div" hidden>
+                                <br /><br />
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Post editing</label>&nbsp;<img src="~/img/pe_icon.png" />
+                                        <br /><br />
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="post-editing-checkbox" asp-for="IsPostEditingSelected" onchange="showHidePostEditingOptions(this)">
+                                            <label class="custom-control-label" for="post-editing-checkbox">Check this box to choose post-editing option </label>
+                                        </div>
+                                        <span class="help-block">
+                                            <a href="#" onclick="return false;" data-html="true" data-container="body" data-toggle="tooltip" data-placement="bottom"
+                                               title="Below are the different levels of post-editing services that we offer<br><br>Light Post Editing<br>•   An automated spellcheck<br>•   Checking that all content has been translated and no source segments have been left in the source language<br>•   An overall sanity check that aims to remove ambiguities<br><br>Standard Post Editing<br>•   An automated spell-check<br>•	A manual spot-check to eliminate objective errors within the time limit and as best as possible<br>•	Checking that no source segments have been left untranslated<br>•	An overall sanity check that aims to remove ambiguities<br>•	Consistency checks on key terminology, including product/brand names, names of institutions or services, job titles, etc.<br>•	Some stylistic changes to increase the readability of the text and improve upon the 'machine-translation feel'<br><br>Full Post Editing<br>•	An automated spell-check<br>•	A manual spot-check of grammar, spelling etc. to eliminate objective errors within the time limit as best as possible<br>•	Checking that no source segments have been left untranslated<br>•	Consistency checks on key terminology, including product/brand names, names of institutions or services, job titles, etc.<br>•	Cross-checks related to a subject matter-specific tone of voice<br>•	More stylistic changes to increase the readability of the text and further remove some of the 'machine-translation feel'<br>•	Terminology extraction for new glossary candidates">View post-editing descriptions <i class="fal fa-info-circle fa-1x text-success"></i></a>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="post-editing" hidden>
+                                    <br />
+                                    <label class="fs-xs text-danger" id="invalid-PE-option" hidden>* Please select one of the post-editing options.</label>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <br />
+                                            <select class="select2 form-control w-200" data-placeholder="Select PE option.." id="post-editing-option-select" asp-for="PostEditingOption">
+                                                <option></option>
+                                                <option value="72">Light</option>
+                                                <option value="73">Standard</option>
+                                                <option value="74">Full</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <i class="fas fa-long-arrow-alt-right text-success fa-6x" style="width:150px;"></i>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="row">
+                                                <div class="col-md-8">
+                                                    Required delivery deadline
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control delivery-datepicker" asp-for="PEDeadline" value="@DateTime.Now.AddDays(3).ToString("dd/MM/yyyy")">
+                                                        <div class="input-group-append">
+                                                            <span class="input-group-text fs-xl fa-4x">
+                                                                <i class="@(Settings.Theme.IconPrefix) fa-calendar-check"></i>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <br />
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <select class="select2 form-control" asp-for="PEDeadlineHours">
+                                                        @for (var h = 0; h < 24; h++)
+                                                        {
+                                                            <option selected="@(DateTime.Now.Hour == h)" value="@h">@h.ToString()</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <select class="select2 form-control" asp-for="PEDeadlineMinutes">
+                                                        @for (var m = 0; m < 59; m += 15)
+                                                        {
+                                                            <option value="@m">@m.ToString()</option>
+                                                        }
+                                                    </select>
+                                                </div>
+
+                                            </div>
+                                            <br />
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <select class="select2 form-control" asp-for="PEDeadlineTimeZone">
+                                                        @for (var t = 0; t < Model.AllTimeZones.Count; t++)
+                                                        {
+                                                            <option value="@Model.AllTimeZones.ElementAtDynamic(t).Id"
+                                                                    selected="@(Model.JobRequestedByContact.DefaultTimeZone == Model.AllTimeZones.ElementAtDynamic(t).Id)">
+                                                                @Model.AllTimeZones.ElementAtDynamic(t).DisplayName
+                                                            </option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Translation memories</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        Pre-translate from
+                                        <select class="select2 form-control w-200" id="pre-translate-from-select" asp-for="PEPreTranslateFrom">
+                                            <option value="0">(None selected)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <i class="fas fa-long-arrow-alt-right text-success fa-6x" style="width:150px;"></i>
+                                    </div>
+                                    <div>
+                                        <br />
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="~/img/mt_icon.png" />
+                                    </div>
+                                    <div class="col-md-1">
+                                        <i class="fas fa-long-arrow-alt-right text-success fa-6x" style="width:150px;"></i>
+                                    </div>
+                                    <div class="post-editing" hidden>
+                                        <br />
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="~/img/pe_icon.png" />
+                                    </div>
+                                    <div class="col-md-1 post-editing" hidden>
+                                        <i class="fas fa-long-arrow-alt-right text-success fa-6x" style="width:150px;"></i>
+                                    </div>
+                                    <div>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    </div>
+                                    <div class="col-md-3">
+                                        Save translations to
+                                        <select class="select2 form-control w-200" id="save-translations-to-select" asp-for="PESaveTranslationTo">
+                                            <option value="0">(None selected)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label">Additional options</label>
+                                    <br />
+                                    <div class="col-md-6" id="priority-div">
+                                        <br />
+                                        Please specify the level of priority if applicable:
+                                        <select id="priority-select" class="select2 form-control" asp-for="Priority">
+                                            <option value="0">(None selected)</option>
+                                            <option value="1">High</option>
+                                            <option value="2">Medium</option>
+                                            <option value="3">Low</option>
+                                        </select>
+                                    </div>
+                                    <br />
+                                    <div class="frame-wrap">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="extra-confidential-checkbox" asp-for="IsExtraConfidential">
+                                            <label class="custom-control-label" for="extra-confidential-checkbox">Extra confidential; if you mark a request as “Extra confidential” then only you will be able to see or download the file(s) </label>
+                                        </div>
+                                        <div class="translation-service-div">
+                                            <br />
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="proofread-checkbox" asp-for="ProofreadingRequired">
+                                                <label class="custom-control-label" for="proofread-checkbox">Please proofread the source text before starting translation (Additional time and cost may be applicable) </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br /><br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="form-label">
+                                        Available currencies to be invoiced in:
+                                    </label>
+                                    <div class="col-md-8">
+                                        <div class="col-md-6 row">
+                                            <select id="currency-select" class="select2 form-control" style="width:100px;" asp-for="InvoiceCurrencyID">
+
+                                                @for (var c = 0; c < Model.AllAvailableCurrencies.Count(); c++)
+                                                {
+                                                    <option selected="@(Model.ParentOrg.InvoiceCurrencyId == Model.AllAvailableCurrencies.ElementAt(c).Id)" value="@Model.AllAvailableCurrencies.ElementAt(c).Id">@Model.AllAvailableCurrencies.ElementAt(c).Name (@Model.AllAvailableCurrencies.ElementAt(c).StringValue)</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <span class="help-block">
+                                            If a currency is needed, that is not in the dropdown list, then please contact us
+                                        </span>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <div id="oticon-medical-invoice-to-div">
+                                <br /><br />
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="form-label">
+                                            Invoice to:
+                                        </label>
+                                        <label class="fs-xs text-danger" id="invalid-invoice-to" hidden>* You must select an invoicing option</label>
+                                        <div class="col-md-4">
+                                            <select class="select2 form-control w-200" id="oticon-medical-invoice-select" asp-for="CustomerSpecificData2">
+                                                <option selected>(Please select)</option>
+                                                <option>CI</option>
+                                                <option>BAHS</option>
+                                                <option>Online Team – KHOR</option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div id="oticon-invoice-to-div">
+                                <br /><br />
+                                <div class="row">
+
+                                    <div class="col-md-12">
+                                        <label class="form-label">
+                                            Invoice to:
+                                        </label>
+                                        <div class="col-md-4">
+                                            <select class="select2 form-control w-200" id="oticon-invoice-select" asp-for="CustomerSpecificData2">
+                                                <option>HQ</option>
+                                                <option selected>Countries</option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <br /><br />
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="form-label" for="notes-textarea">Notes or additional information</label>
+                                        <textarea class="form-control" id="notes-textarea" asp-for="Notes" placeholder="Notes or additional information" rows="5"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>
+<div class="row">
+    <div class="col-lg-12 text-center">
+        <button class="btn btn-success" type="submit" id="submit-button" onclick="validateFields()">Submit request</button>
+        <button class="btn btn-success" type="button" disabled id="submit-spinner" hidden>
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Submitting...
+        </button>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
