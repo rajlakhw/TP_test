@@ -501,7 +501,7 @@ namespace Services
         }
         public async Task<Employee> GetEmployeeById(int empID)
         {
-            var employee = await employeeRepository.All()
+            var employee = await employeeRepository.All().AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == empID && x.TerminateDate == null);
             if (employee.Manager == null)
             {
