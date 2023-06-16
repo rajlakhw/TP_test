@@ -508,7 +508,7 @@ namespace Services
                 var teamManager = await employeeRepository.All().FirstOrDefaultAsync(x => x.TeamId == employee.TeamId && x.TerminateDate == null && x.IsTeamManager == true);
                 if (teamManager != null && teamManager.Id != empID)
                 {
-                    employee.Manager = teamManager.Id;
+                    employee.Manager = empID;
                 }
             }
 
