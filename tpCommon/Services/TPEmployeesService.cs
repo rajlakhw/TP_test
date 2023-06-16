@@ -503,7 +503,14 @@ namespace Services
         {
             var employee = await employeeRepository.All()
                 .FirstOrDefaultAsync(x => x.Id == empID && x.TerminateDate == null);
-
+            if (employee.Manager == null)
+            {
+                var teamManager = await employeeRepository.All().FirstOrDefaultAsync(x => x.TeamId == employee.TeamId && x.TerminateDate == null && x.IsTeamManager == true);
+                if (teamManager != null && teamManager.Id != empID)
+                {
+                    employee.Manager = teamManager.Id;
+                }
+            }
 
             return employee;
         }
