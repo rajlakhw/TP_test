@@ -16,6 +16,11 @@ namespace SmartAdmin.WebUI.Controllers
     public class HRController : Controller
     {
         private readonly ITPEmployeesService employeesService;
+
+
+
+
+
         private readonly ITPPublicHoliday publicHolidayService;
         private readonly IHolidayService holidayService;
         private readonly INotificationService notificationService;
